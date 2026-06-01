@@ -1,0 +1,15 @@
+@startuml
+
+interface IFlipStrategy {
+    /' Flips coins and records number of head in Battle '/
+    + flip(Battle): void
+}
+
+class FlipN implements IFlipStrategy {
+    - n: int
+}
+
+class FlipUntilTails implements IFlipStrategy {
+}
+
+@enduml

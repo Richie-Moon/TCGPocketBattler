@@ -4,21 +4,11 @@ interface IAttempt {
     + execute(Battle): void
 }
 
+/'Possible to completely cutout IAttempt and move List<Effect> into IAction? '/
+
 class Attempt implements IAttempt {
-    - flipStrategy: ICoinFlipStrategy
     - effects: List<IEffect>
 }
 
-interface ICoinFlipStrategy {
-    + flip(): int
-}
-
-class NFlips implements ICoinFlipStrategy {
-    - n: int
-}
-
-class FlipUntilTails implements ICoinFlipStrategy {
-    
-}
 
 @enduml

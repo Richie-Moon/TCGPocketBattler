@@ -1,0 +1,16 @@
+@startuml
+
+interface IEffect {
+    + apply(Battle): void
+}
+
+class FlipEffect implements IEffect {
+    - flipStrategy: IFlipStrategy
+    - effects: List<Effect>
+}
+
+class DealDamageToOpponentActive implements IEffect {
+    - damage: int/INumber
+}
+
+@enduml
