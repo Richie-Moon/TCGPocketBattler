@@ -1,0 +1,23 @@
+@startuml
+
+interface IAction {
+    + execute(Battle): void
+}
+
+class Action implements IAction {
+    - name: String
+    - description: String
+    - attempt: IAttempt
+}
+
+class TrainerAction implements IAction {
+    - description: String
+    - attempt: IAttempt
+}
+
+class WithPrecondition implements IAction {
+    - condition: ICondition<Battle>
+    - action: IAction
+}
+
+@enduml

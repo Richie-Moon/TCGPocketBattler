@@ -1,0 +1,40 @@
+@startuml
+
+class Battle {
+    - id: int
+    - id: turn
+    - attacker: Side
+    - defender: Side
+    
+    + switchSides(): void
+    + publishEvent(): void
+}
+
+class Side {
+    - active: IPlayableCard
+    - bench: List<? extends IPlayableCard>
+    - hand: List<ICard>
+    - deck: List<ICard>
+    - discardPile: List<ICard>
+    - points: int
+    /' Status effect: poison, paralysis, sleep, etc. 
+       Maybe should be a field in ICard instead? '/
+    - status: IStatus
+    
+    + shuffleDeck(): void
+    + switchActive(): void
+    + placeOnBench(): void
+    + placeOnActive(): void
+    + drawCard(): void
+    + discardCard(): void
+}
+
+/' Battle observer '/
+interface ITrigger {
+    - condition: ICondition<Battle>
+    + onEvent(Battle): void
+}
+
+Battle -|> Side
+
+@enduml

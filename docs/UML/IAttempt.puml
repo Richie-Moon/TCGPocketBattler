@@ -1,0 +1,24 @@
+@startuml
+
+interface IAttempt {
+    + execute(Battle): void
+}
+
+class Attempt implements IAttempt {
+    - flipStrategy: ICoinFlipStrategy
+    - effects: List<IEffect>
+}
+
+interface ICoinFlipStrategy {
+    + flip(): int
+}
+
+class NFlips implements ICoinFlipStrategy {
+    - n: int
+}
+
+class FlipUntilTails implements ICoinFlipStrategy {
+    
+}
+
+@enduml
