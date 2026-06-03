@@ -1,4 +1,5 @@
 @startuml
+skinparam linetype ortho
 
 interface ICard {
     - name: String

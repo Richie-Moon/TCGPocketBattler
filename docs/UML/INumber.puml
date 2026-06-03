@@ -1,0 +1,46 @@
+@startuml
+skinparam linetype ortho
+
+interface INumber {
+    + evaluate(Battle): int
+}
+
+class Literal implements INumber {
+    - value: int
+}
+
+class Sum implements INumber {
+    - left: INumber
+    - right: INumber
+}
+
+class Difference implements INumber {
+    - left: INumber
+    - right: INumber
+}
+
+class Product implements INumber {
+    - left: INumber
+    - right: INumber
+}
+
+class Quotient implements INumber {
+    - left: INumber
+    - right: INumber
+}
+
+class MaxHP implements INumber {
+    - target: ITarget
+}
+
+class CurrentHP implements INumber {
+    - target: ITarget
+}
+
+class Stage implements INumber {
+    - target: ITarget
+}
+
+class NumberHeads implements INumber {}
+
+@enduml

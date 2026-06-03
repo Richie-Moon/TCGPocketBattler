@@ -1,16 +1,98 @@
 @startuml
+skinparam linetype ortho
+
 
 interface IEffect {
     + apply(Battle): void
 }
 
-class FlipEffect implements IEffect {
-    - flipStrategy: IFlipStrategy
-    - effects: List<Effect>
+interface IDurationEffect extends IEffect {
+    - duration: INumber
 }
 
-class DealDamageToOpponentActive implements IEffect {
-    - damage: int/INumber
+/' Coin Flips '/ 
+
+interface IFlipStrategy extends IEffect {
+    /' Flips coins and records the amount of head in Battle '/
+    + flip(Battle): void
 }
+
+class FlipN implements IFlipStrategy {
+    - n: INumber
+}
+
+class FlipUntilTails implements IFlipStrategy {}
+
+class DrawCard implements IEffect {
+    - cardCount: INumber
+    - side: ISideTarget
+}
+
+/' Damage '/
+
+class DealDamage implements IEffect {
+    - damageAmount: INumber
+    - target: ITarget
+}
+
+' Damage that depends on the number of heads flipped, or some other variable. The map is from the variable to the damage amount.
+class DealMappedDamage implements IEffect {
+    - damageMap: Map<INumber, INumber>
+    - target: ITarget
+}
+
+' Spread Damage is distributed randomly among all Pokemon on the opponents' side.
+class SpreadDamage implements IEffect {
+    - damageAmount: INumber
+    - targets: IMultiTarget
+}
+
+class MultiHit implements IEffect {
+    - targets: IMultiTarget
+    - damage: INumber
+    - timesToHit: INumber
+}
+
+class HealDamage implements IEffect {
+    - healAmount: INumber
+    - target: ITarget
+}
+
+/' Energy '/
+
+class AttachEnergy implements IEffect {
+    - energyType: Type
+    - target: ITarget
+}
+
+class DiscardRandomEnergy implements IEffect {
+    - energyCount: INumber
+    - target: ITarget
+}
+
+class DiscardTypeEnergy implements IEffect {
+    - energyType: Type
+    - energyCount: INumber
+    - target: ITarget
+}
+
+/' Buffs/Debuffs '/
+
+class ReduceDamage implements IDurationEffect {
+    - reductionAmount: INumber
+    - target: ITarget
+}
+
+class IncreaseDamage implements IDurationEffect {
+    - increaseAmount: INumber
+    - target: ITarget
+}
+
+class SwitchActive implements IEffect {
+    - target: ITarget
+}
+
+/' Null Object Pattern '/
+class NoEffect implements IEffect {}
 
 @enduml

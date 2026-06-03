@@ -1,10 +1,12 @@
 @startuml
+skinparam linetype ortho
 
 class Battle {
     - id: int
     - id: turn
     - attacker: Side
     - defender: Side
+    - previousHeads: int
     
     + switchSides(): void
     + publishEvent(): void
@@ -17,6 +19,7 @@ class Side {
     - deck: List<ICard>
     - discardPile: List<ICard>
     - points: int
+    - numKnockedOut: int
     /' Status effect: poison, paralysis, sleep, etc. 
        Maybe should be a field in ICard instead? '/
     - status: IStatus
