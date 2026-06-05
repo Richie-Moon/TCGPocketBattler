@@ -92,6 +92,16 @@ class SwitchActive implements IEffect {
     - target: ITarget
 }
 
+class AddStatus implements IEffect {
+    - target: ITarget
+    - statusToAdd: IStatus
+}
+
+class RemoveStatus implements IEffect {
+    - target: ITarget
+    - statusToRemove: IStatus
+}
+
 /' Null Object Pattern '/
 class NoEffect implements IEffect {}
 

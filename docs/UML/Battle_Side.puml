@@ -3,13 +3,13 @@ skinparam linetype ortho
 
 class Battle {
     - id: int
-    - id: turn
+    - turn: int
     - attacker: Side
     - defender: Side
     - previousHeads: int
     
     + switchSides(): void
-    + publishEvent(): void
+    + runTriggers(): void
 }
 
 class Side {
@@ -20,9 +20,6 @@ class Side {
     - discardPile: List<ICard>
     - points: int
     - numKnockedOut: int
-    /' Status effect: poison, paralysis, sleep, etc. 
-       Maybe should be a field in ICard instead? '/
-    - status: IStatus
     
     + shuffleDeck(): void
     + switchActive(): void
@@ -30,12 +27,6 @@ class Side {
     + placeOnActive(): void
     + drawCard(): void
     + discardCard(): void
-}
-
-/' Battle observer '/
-interface ITrigger {
-    - condition: ICondition<Battle>
-    + onEvent(Battle): void
 }
 
 Battle -|> Side

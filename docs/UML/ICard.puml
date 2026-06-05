@@ -10,38 +10,36 @@ interface ICard {
 
 interface IPlayableCard extends ICard {
     - hp: int
+    - status: Optional<IStatus>
     - tool: Optional<ToolCard>
 }
 
-interface TrainerCard extends ICard {
+interface ITrainerCard extends ICard {
 }
 
 /' Fossil cards, their IAction will be to discard itself '/
-class PlayableItemCard implements IPlayableCard, TrainerCard {
-}
+class PlayableItemCard implements IPlayableCard, ITrainerCard {}
 
-class ItemCard implements TrainerCard {
-}
+class ItemCard implements ITrainerCard {}
 
-class SupporterCard implements TrainerCard {
-}
+class SupporterCard implements ITrainerCard {}
 
-class ToolCard implements TrainerCard {
+class ToolCard implements ITrainerCard {
     - triggers: List<ITrigger>
 }
 
-class StadiumCard implements TrainerCard {
+class StadiumCard implements ITrainerCard {
     - triggers: List<ITrigger>
 }
 
 /' Will also need tags to track whether the card is a mega, EX, etc. '/
-class PokemonCard implements ICard, IPlayableCard {
+class PokemonCard implements IPlayableCard {
     - stage: int
     - type: Type
     - ability: Optional<IAbility>
     - retreatCost: int
     - weakness: Optional<Type>
-    - weaknessDamage: Optional<Integer>
+    - weaknessDamage: Optional<INumber>
 }
 
 @enduml

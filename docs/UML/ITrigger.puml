@@ -1,0 +1,16 @@
+@startuml
+skinparam linetype ortho
+
+/' Battle observer. Can change Battle to a generic type '/
+interface ITrigger<Battle> {
+    - onTrigger: IAttempt
+    - condition: ICondition<Battle>
+    + onTrigger(Battle): void
+}
+
+class TurnStartTrigger implements ITrigger {}
+class TurnEndTrigger implements ITrigger {}
+
+
+@enduml
+

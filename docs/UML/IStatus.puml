@@ -1,0 +1,20 @@
+@startuml
+skinparam linetype ortho
+
+interface IStatus {
+    - triggers: List<ITrigger>
+    + onApplied(ITarget, Battle): void
+    + onRemoved(ITarget, Battle): void
+}
+
+class PoisonStatus implements IStatus {}
+
+class SleepStatus implements IStatus {}
+
+class ParalysisStatus implements IStatus {}
+
+class BurnStatus implements IStatus {}
+
+class ConfusionStatus implements IStatus {}
+
+@enduml
