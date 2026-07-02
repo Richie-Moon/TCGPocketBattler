@@ -25,4 +25,8 @@ class MultiAttempt implements IAction {
     - attempts: List<IAttempt>
 }
 
+class ChoiceAction implements IAction {
+    - choices: List<IAction>
+}
+
 @enduml
