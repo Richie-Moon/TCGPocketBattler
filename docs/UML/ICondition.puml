@@ -56,12 +56,11 @@ class EqualTo implements IConditionINumber {
 
 interface "ICondition<IPlayableCard>" as IConditionIPlayableCard
 
-For -[hidden]- IConditionIPlayableCard
+EqualTo -[hidden]- IConditionIPlayableCard
 
 class HasType implements IConditionIPlayableCard {
     - type: Type
 }
-
 class IsParalyzed implements IConditionIPlayableCard {}
 class IsAsleep implements IConditionIPlayableCard {}
 class IsConfused implements IConditionIPlayableCard {}
@@ -70,6 +69,9 @@ class IsPoisoned implements IConditionIPlayableCard {}
 class IsSpecies implements IConditionIPlayableCard {
     - species: String /' or ID: int '/ 
 }
+class IsActive implements IConditionIPlayableCard {}
+class IsBenched implements IConditionIPlayableCard {}
+class InHand implements IConditionIPlayableCard {}
 
 interface "ICondition<Battle>" as IConditionBattle
 
@@ -80,5 +82,6 @@ class For implements IConditionBattle {
     - target: ITarget
 }
 
+class LastCoinTossHeads implements IConditionBattle {}
 
 @enduml
