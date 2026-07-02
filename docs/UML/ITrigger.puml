@@ -11,6 +11,27 @@ interface ITrigger<Battle> {
 class TurnStartTrigger implements ITrigger {}
 class TurnEndTrigger implements ITrigger {}
 
+class SideTurnStartTrigger implements ITrigger {}
+class SideTurnEndTrigger implements ITrigger {}
+
+class BeforeCoinFlipTrigger implements ITrigger {}
+class AfterCoinFlipTrigger implements ITrigger {}
+
+class OnMoveUsedTrigger implements ITrigger {}
+class OnDamageTrigger implements ITrigger {}
+
+class OnStatusAppliedTrigger implements ITrigger {}
+class OnStatusRemovedTrigger implements ITrigger {}
+
+class TrainerCardPlayedTrigger implements ITrigger {}
+class PlayableCardPlayedTrigger implements ITrigger {}
+
+class ItemCardPlayedTrigger implements ITrigger {}
+
+class SupporterCardPlayedTrigger implements ITrigger {}
+
+class ToolAttachedTrigger implements ITrigger {}
+class ToolRemovedTrigger implements ITrigger {}
 
 @enduml
 
