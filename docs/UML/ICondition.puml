@@ -1,0 +1,35 @@
+@startuml
+
+skinparam linetype ortho
+
+interface ICondition<T> {
+    + evaluate(T): boolean
+}
+
+class And<T> implements ICondition<T> {
+    - left: ICondition<T>
+    - right: ICondition<T>
+}
+
+class Or<T> implements ICondition<T> {
+    - left: ICondition<T>
+    - right: ICondition<T>
+}
+
+class Not<T> implements ICondition<T> {
+    - condition: ICondition<T>
+}
+
+class All<T> implements ICondition<T> {
+    - conditions: List<ICondition<T>>
+}
+
+class Any<T> implements ICondition<T> {
+    - conditions: List<ICondition<T>>
+}
+
+class Probability<T> implements ICondition<T> {
+    - probability: INumber
+}
+
+@enduml
