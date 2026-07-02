@@ -2,34 +2,83 @@
 
 skinparam linetype ortho
 
-interface ICondition<T> {
+interface "ICondition<T>" as IConditionT
+
+interface IConditionT {
     + evaluate(T): boolean
 }
 
-class And<T> implements ICondition<T> {
+class And<T> implements IConditionT {
     - left: ICondition<T>
     - right: ICondition<T>
 }
 
-class Or<T> implements ICondition<T> {
+class Or<T> implements IConditionT {
     - left: ICondition<T>
     - right: ICondition<T>
 }
 
-class Not<T> implements ICondition<T> {
+class Not<T> implements IConditionT {
     - condition: ICondition<T>
 }
 
-class All<T> implements ICondition<T> {
+class All<T> implements IConditionT {
     - conditions: List<ICondition<T>>
 }
 
-class Any<T> implements ICondition<T> {
+class Any<T> implements IConditionT {
     - conditions: List<ICondition<T>>
 }
 
-class Probability<T> implements ICondition<T> {
+class Probability<T> implements IConditionT {
     - probability: INumber
 }
+
+
+interface "ICondition<INumber>" as IConditionINumber
+
+Or -[hidden]- IConditionINumber
+
+class GreaterThan implements IConditionINumber {
+    - left: INumber
+    - right: INumber
+}
+
+class LessThan implements IConditionINumber {
+    - left: INumber
+    - right: INumber
+}
+
+class EqualTo implements IConditionINumber {
+    - left: INumber
+    - right: INumber
+}
+
+interface "ICondition<IPlayableCard>" as IConditionIPlayableCard
+
+For -[hidden]- IConditionIPlayableCard
+
+class HasType implements IConditionIPlayableCard {
+    - type: Type
+}
+
+class IsParalyzed implements IConditionIPlayableCard {}
+class IsAsleep implements IConditionIPlayableCard {}
+class IsConfused implements IConditionIPlayableCard {}
+class IsBurned implements IConditionIPlayableCard {}
+class IsPoisoned implements IConditionIPlayableCard {}
+class IsSpecies implements IConditionIPlayableCard {
+    - species: String /' or ID: int '/ 
+}
+
+interface "ICondition<Battle>" as IConditionBattle
+
+Any -[hidden]- IConditionBattle
+
+class For implements IConditionBattle {
+    - condition: ICondition<IPlayableCard>
+    - target: ITarget
+}
+
 
 @enduml
