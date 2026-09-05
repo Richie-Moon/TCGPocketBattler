@@ -24,3 +24,10 @@ hs_err_pid*
 replay_pid*
 
 .idea/
+
+# Maven
+target/
+
+# IntelliJ (pre-Maven module layout)
+out/
+*.iml
