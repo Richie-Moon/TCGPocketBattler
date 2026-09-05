@@ -14,11 +14,12 @@ import java.util.Optional;
  * that aborts its attempt, whereas an {@code INumber} reading a missing target
  * contributes zero.
  */
-public sealed interface ITarget permits AttackerActive, OpponentActive, Self {
+public sealed interface ITarget permits
+        AttackerActive, OpponentActive, Self,
+        AttackerBenchSpecific, OpponentBenchSpecific {
 
     // TODO: AttackerBenchRandom, OpponentBenchRandom, AttackerRandom,
-    //       OpponentRandom, *BenchSpecific, ChosenFrom, EventSource —
-    //       the random ones need RandomSource, ChosenFrom needs IPlayer.
+    //       OpponentRandom, ChosenFrom, EventSource — ChosenFrom needs IPlayer.
 
     Optional<PokemonInPlay> resolve(ResolutionContext context);
 }

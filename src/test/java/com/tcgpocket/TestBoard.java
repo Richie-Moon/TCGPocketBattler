@@ -1,5 +1,6 @@
 package com.tcgpocket;
 
+import com.tcgpocket.card.ICard;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
@@ -53,26 +54,26 @@ public final class TestBoard {
         return pokemon;
     }
 
-    public CardInstance inHand(Side side, PokemonCard definition) {
+    public CardInstance inHand(Side side, ICard definition) {
         CardInstance instance = new CardInstance(nextInstanceId++, definition, side, Zone.HAND);
         side.addToHand(instance);
         return instance;
     }
 
-    public CardInstance inDeck(Side side, PokemonCard definition) {
+    public CardInstance inDeck(Side side, ICard definition) {
         CardInstance instance = new CardInstance(nextInstanceId++, definition, side, Zone.DECK);
         side.addToDeck(instance);
         return instance;
     }
 
-    public CardInstance inDiscard(Side side, PokemonCard definition) {
+    public CardInstance inDiscard(Side side, ICard definition) {
         CardInstance instance = new CardInstance(nextInstanceId++, definition, side, Zone.DISCARD);
         side.addToDiscard(instance);
         return instance;
     }
 
     /** A loose card belonging to nobody's pile, for attaching as a Tool. */
-    public CardInstance loose(Side side, PokemonCard definition) {
+    public CardInstance loose(Side side, ICard definition) {
         return new CardInstance(nextInstanceId++, definition, side, Zone.ATTACHED);
     }
 

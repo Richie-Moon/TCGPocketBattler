@@ -9,7 +9,7 @@ import java.util.Set;
  * {@code CardInstance} instead. Two copies of Pikachu share one
  * {@code PokemonCard} but take damage independently.
  */
-public sealed interface ICard permits IPlayableCard {
+public sealed interface ICard permits IPlayableCard, ITrainerCard {
 
     /** Stable identifier for the printed card, unique across the card pool. */
     String id();
@@ -25,6 +25,4 @@ public sealed interface ICard permits IPlayableCard {
     }
 
     // TODO: List<IAction> actions() — awaits the IAction hierarchy.
-    // TODO: ITrainerCard branch (Item, Supporter, Tool, Stadium, Fossil) —
-    //       those need IAction and ITrigger, so the permits clause grows later.
 }

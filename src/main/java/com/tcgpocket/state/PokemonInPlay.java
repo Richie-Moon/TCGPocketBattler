@@ -5,9 +5,11 @@ import com.tcgpocket.energy.Type;
 import com.tcgpocket.status.IStatus;
 import com.tcgpocket.status.StatusCategory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -21,11 +23,11 @@ import java.util.Set;
  */
 public final class PokemonInPlay extends CardInstance {
 
-    // TODO: List<PokemonCard> evolutionStack, List<ActiveModifier> modifiers —
-    //       await evolution and the damage pipeline.
+    // TODO: List<PokemonCard> evolutionStack — awaits evolution.
 
     private final Map<Type, Integer> attachedEnergy = new EnumMap<>(Type.class);
     private final Set<IStatus> statuses = new LinkedHashSet<>();
+    private final List<ActiveModifier> modifiers = new ArrayList<>();
     private CardInstance tool;
     private int damage;
     private int turnPlayed;
@@ -138,6 +140,26 @@ public final class PokemonInPlay extends CardInstance {
     /** Statuses come off when a Pokemon leaves the active spot or evolves. */
     public void clearStatuses() {
         statuses.clear();
+    }
+
+    /** Statuses and temporary modifiers both come off when leaving the active spot. */
+    public void clearTemporaryState() {
+        statuses.clear();
+        modifiers.clear();
+    }
+
+    /** Temporary buffs and debuffs; read by the damage pipeline. */
+    public List<ActiveModifier> modifiers() {
+        return Collections.unmodifiableList(modifiers);
+    }
+
+    public void addModifier(ActiveModifier modifier) {
+        modifiers.add(modifier);
+    }
+
+    /** Drops modifiers whose duration has run out. Called between turns. */
+    public void expireModifiers(int currentTurn) {
+        modifiers.removeIf(modifier -> !modifier.isActiveOn(currentTurn));
     }
 
     public Optional<CardInstance> tool() {
