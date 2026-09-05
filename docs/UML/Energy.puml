@@ -1,0 +1,63 @@
+@startuml
+title Energy — types, costs, and the Energy Zone
+
+skinparam linetype ortho
+
+/'
+  Type was referenced by PokemonCard, AttachEnergy and HasType but never
+  defined anywhere in the model.
+'/
+enum Type {
+    GRASS
+    FIRE
+    WATER
+    LIGHTNING
+    PSYCHIC
+    FIGHTING
+    DARKNESS
+    METAL
+    DRAGON
+    /' Not generatable; only ever appears in a cost, where it matches any
+       leftover energy. '/
+    COLORLESS
+}
+
+class EnergyCost <<record>> {
+    - requirements: Map<Type, int>
+
+    + total(): int
+    /' Typed requirements are matched first, then COLORLESS absorbs whatever
+       energy is left over regardless of type. '/
+    + isSatisfiedBy(Map<Type, int> attached): boolean
+    + isFree(): boolean
+}
+
+/'
+  Pocket's Energy Zone, held per Side (see Battle_Side.puml). Unlike the
+  physical TCG there are no Energy cards in the deck: one energy is generated
+  per turn from the types the deck registered.
+'/
+class EnergyZone <<conceptual>> {
+    - registeredTypes: Set<Type>
+    - currentEnergy: Optional<Type>
+    - nextEnergy: Optional<Type>
+    - energyAttachedThisTurn: boolean
+}
+
+note right of EnergyZone
+  Rules encoded here:
+   * one energy generated at the start of your turn, chosen at
+     random from registeredTypes
+   * SKIPPED for the player who goes first, on their first turn
+   * `nextEnergy` is previewed to both players, so an AI can
+     plan against it — it is public information
+   * at most one attachment per turn (energyAttachedThisTurn)
+   * unused current energy is discarded at end of turn, it does
+     not accumulate
+  Drawn as its own box for clarity; these are fields on Side.
+end note
+
+EnergyCost o-- Type
+EnergyZone o-- Type
+
+@enduml

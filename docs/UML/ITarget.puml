@@ -1,41 +1,85 @@
 @startuml
+title ITarget — resolving "who" against the board
+
 skinparam linetype ortho
 
-interface ITarget {
-    + resolve(Battle): IPlayableCard
+interface ITarget <<sealed>> {
+    + resolve(ResolutionContext): Optional<PokemonInPlay>
 }
 
-class AttackerActive implements ITarget {}
-class OpponentActive implements ITarget {}
-class AttackerBenchRandom implements ITarget {}
-class OpponentBenchRandom implements ITarget {}
-class AttackerRandom implements ITarget {}
-class OpponentRandom implements ITarget {}
-class AttackerBenchSpecific implements ITarget {
+/'
+  Optional, because a target can legitimately fail to resolve — an empty bench,
+  a knocked-out active. An IEffect whose target does not resolve returns
+  EffectOutcome.FAILED, which is what makes "If you do, ..." chains work.
+  See IAttempt.puml.
+'/
+
+/' --- turn-relative --- '/
+class AttackerActive <<record>> implements ITarget {}
+class OpponentActive <<record>> implements ITarget {}
+class AttackerBenchRandom <<record>> implements ITarget {}
+class OpponentBenchRandom <<record>> implements ITarget {}
+class AttackerRandom <<record>> implements ITarget {}
+class OpponentRandom <<record>> implements ITarget {}
+
+/' --- source-relative --- '/
+/' The card whose text is resolving. Without this, a Tool's trigger could not
+   say "the Pokemon I am attached to": every other target is relative to whose
+   turn it is, which is not the same thing once triggers exist. '/
+class Self <<record>> implements ITarget {}
+
+/' Only while a trigger is resolving; reads ResolutionContext.event.
+   Lets a card retaliate against whatever just hit it. '/
+class EventSource <<record>> implements ITarget {}
+
+/' --- index-addressed: the caller already knows which one --- '/
+class AttackerBenchSpecific <<record>> implements ITarget {
     - benchIndex: int
 }
-class OpponentBenchSpecific implements ITarget {
+class OpponentBenchSpecific <<record>> implements ITarget {
     - benchIndex: int
 }
 
-/' Formatting, these are not actually linked '/ 
+/' --- agent-addressed: asked at resolution time --- '/
+/' "Choose 1 of your opponent's Benched Pokemon" is a decision made when the
+   attack resolves, not when the card is built. These delegate to
+   IPlayer.choose. See IPlayer.puml. '/
+class ChosenFrom <<record>> implements ITarget {
+    - candidates: IMultiTarget
+    /' Which player picks — not always the controller. '/
+    - chooser: ISideTarget
+    - prompt: String
+}
+
+/' Formatting only, these are not real relationships. '/
 AttackerBenchRandom -[hidden]- IMultiTarget
-AttackerBenchSpecific -[hidden]- ISideTarget
+ChosenFrom -[hidden]- ISideTarget
 
-interface IMultiTarget {
-    + resolve(Battle): List<IPlayableCard>
+interface IMultiTarget <<sealed>> {
+    + resolve(ResolutionContext): List<PokemonInPlay>
 }
 
-class AttackerBench implements IMultiTarget {}
-class OpponentBench implements IMultiTarget {}
-class AttackerAll implements IMultiTarget {}
-class OpponentAll implements IMultiTarget {}
+class AttackerBench <<record>> implements IMultiTarget {}
+class OpponentBench <<record>> implements IMultiTarget {}
+class AttackerAll <<record>> implements IMultiTarget {}
+class OpponentAll <<record>> implements IMultiTarget {}
+class AllInPlay <<record>> implements IMultiTarget {}
 
-interface ISideTarget {
-    + resolve(Battle): Side
+/' Narrows a group before choosing or hitting it, e.g. "each of your
+   Lightning Pokemon". Reuses the card conditions from ICondition.puml. '/
+class Matching <<record>> implements IMultiTarget {
+    - from: IMultiTarget
+    - condition: ICondition<PokemonInPlay>
 }
 
-class AttackerSide implements ISideTarget {}
-class OpponentSide implements ISideTarget {}
+interface ISideTarget <<sealed>> {
+    + resolve(ResolutionContext): Side
+}
+
+class AttackerSide <<record>> implements ISideTarget {}
+class OpponentSide <<record>> implements ISideTarget {}
+/' The side controlling the resolving card — differs from AttackerSide when a
+   trigger fires on the defender's card during the attacker's turn. '/
+class SelfSide <<record>> implements ISideTarget {}
 
 @enduml

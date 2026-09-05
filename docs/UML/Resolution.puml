@@ -1,0 +1,85 @@
+@startuml
+title Resolution context — the ambient state every node is evaluated against
+
+skinparam linetype ortho
+
+/'
+  Every evaluator (INumber, ICondition at the top level, ITarget, IEffect,
+  IAttempt, IAction) takes a ResolutionContext instead of a bare Battle.
+'/
+
+class ResolutionContext <<record>> {
+    - battle: Battle
+    - controller: Side
+    /' The card whose text is being resolved. `Self` and `SelfSide` resolve
+       through this, which is how a Tool or Ability trigger can mean
+       "the Pokemon I am attached to". '/
+    - source: PokemonInPlay
+    /' Present only while a trigger is resolving; carries the payload of the
+       event that fired it. '/
+    - event: Optional<GameEvent>
+    - scope: ResolutionScope
+
+    + withSource(PokemonInPlay): ResolutionContext
+    + withEvent(GameEvent): ResolutionContext
+    + opponentOf(Side): Side
+    + rng(): RandomSource
+    + choose(Decision<T>): T
+}
+
+/'
+  Deliberately mutable, and the only mutable thing reachable from an otherwise
+  immutable context. It is the scratchpad for one resolution: a coin flip
+  performed by an IFlipStrategy has to be readable by the INumber that follows
+  it in the same Attempt.
+'/
+class ResolutionScope {
+    - lastFlip: Optional<FlipResult>
+    - damageDealtThisResolution: int
+
+    + recordFlip(FlipResult): void
+}
+
+class FlipResult <<record>> {
+    - results: List<boolean>
+
+    + heads(): int
+    + tails(): int
+    + allHeads(): boolean
+    + lastWasHeads(): boolean
+}
+
+/'
+  Seeded so that a whole game replays identically. Everything random goes
+  through here: FlipN, FlipUntilTails, shuffleDeck, the *Random targets,
+  SpreadDamage distribution, and RandomPlayer's decisions.
+'/
+interface RandomSource {
+    + nextInt(int bound): int
+    + nextBoolean(): boolean
+    + shuffle(List<?>): void
+}
+
+class SeededRandom implements RandomSource {
+    - seed: long
+}
+
+ResolutionContext *-- ResolutionScope
+ResolutionScope o-- FlipResult
+ResolutionContext ..> Battle
+ResolutionContext ..> Side
+ResolutionContext ..> PokemonInPlay
+ResolutionContext ..> GameEvent
+Battle *-- RandomSource
+
+note right of ResolutionContext
+  Why not just pass Battle and keep a context stack on it?
+  Because that recreates exactly the hidden-global problem
+  `Battle.previousHeads` already had: a flip performed deep
+  inside one attack would be visible to unrelated code, and
+  nested resolution (a trigger firing mid-attack) would have
+  to remember to push and pop correctly. Threading an
+  immutable context makes nesting free and correct.
+end note
+
+@enduml

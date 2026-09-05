@@ -1,20 +1,56 @@
 @startuml
+title IStatus — special conditions
+
 skinparam linetype ortho
 
-interface IStatus {
+interface IStatus <<sealed>> {
     - triggers: List<ITrigger>
-    + onApplied(ITarget, Battle): void
-    + onRemoved(ITarget, Battle): void
+    - category: StatusCategory
+
+    /' Takes the resolved Pokemon, not an ITarget: by the time a status is
+       applied the target has already been resolved, and re-resolving it later
+       could pick a different card. '/
+    + onApplied(PokemonInPlay, Battle): void
+    + onRemoved(PokemonInPlay, Battle): void
 }
 
-class PoisonStatus implements IStatus {}
+/'
+  Governs stacking. PokemonInPlay.statuses is a Set, because the real rules let
+  Poisoned and Burned sit alongside exactly ONE of Asleep / Paralyzed /
+  Confused — an Optional<IStatus> could not express that.
+'/
+enum StatusCategory {
+    /' At most one at a time; applying a second replaces the first. '/
+    SPECIAL
+    /' Any number may coexist; resolved between turns. '/
+    DAMAGE_OVER_TIME
+}
 
-class SleepStatus implements IStatus {}
+class PoisonStatus <<record>> implements IStatus {}
+class BurnStatus <<record>> implements IStatus {}
 
-class ParalysisStatus implements IStatus {}
+class SleepStatus <<record>> implements IStatus {}
+class ParalysisStatus <<record>> implements IStatus {}
+class ConfusionStatus <<record>> implements IStatus {}
 
-class BurnStatus implements IStatus {}
+IStatus o-- StatusCategory
+IStatus *-- ITrigger
 
-class ConfusionStatus implements IStatus {}
+note bottom of ConfusionStatus
+  Categories: Poison and Burn are DAMAGE_OVER_TIME;
+  Sleep, Paralysis and Confusion are SPECIAL.
+
+  All of them are cleared when the Pokemon leaves the active
+  spot (retreat or switch) or evolves —
+  PokemonInPlay.clearStatuses(). See CardInstance.puml.
+
+  Each status is implemented purely as triggers, so no engine
+  special-casing is needed:
+   * Poison  — TurnEnd: 10 damage to the holder
+   * Burn    — TurnEnd: 20 damage, then flip; heads removes it
+   * Sleep   — TurnEnd: flip; heads removes it. Cannot attack or retreat
+   * Paralysis — cannot attack or retreat; removed at its owner's TurnEnd
+   * Confusion — AttackDeclared: flip; tails fails the attack
+end note
 
 @enduml

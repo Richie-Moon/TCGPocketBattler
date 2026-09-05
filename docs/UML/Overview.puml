@@ -1,0 +1,130 @@
+@startuml
+title TCG Pocket Battler — Architecture Overview
+
+skinparam packageStyle rectangle
+skinparam nodesep 25
+skinparam ranksep 35
+
+/'
+  Read this diagram top to bottom: it is a stack of layers.
+
+  The central idea is that a card's text is not code, it is DATA — an immutable
+  tree of small composable nodes. Nothing in the "Card text" layer mutates
+  anything; it is read and evaluated, and only IEffect is permitted to write to
+  the runtime state. That split is what makes the model serializable, testable,
+  and safe to seal.
+'/
+
+package "1. Drivers" #FFEBEE {
+    class TurnEngine
+    interface IPlayer
+}
+
+package "2. Runtime state — the only mutable things" #FFF3E0 {
+    class Battle
+    class Side
+    class PokemonInPlay
+}
+
+package "3. Resolution — the ambient argument" #E8F5E9 {
+    class ResolutionContext {
+        - battle: Battle
+        - controller: Side
+        - source: PokemonInPlay
+        - event: Optional<GameEvent>
+        - scope: ResolutionScope
+    }
+}
+
+package "4. Cards" #F3E5F5 {
+    interface ICard <<sealed>>
+    class CardInstance
+}
+
+package "5. Card text — immutable record trees" #E3F2FD {
+    interface IAction <<sealed>> {
+        + execute(ResolutionContext): AttemptResult
+    }
+    interface ITrigger <<sealed>> {
+        + appliesTo(GameEvent): boolean
+    }
+    interface IAttempt <<sealed>> {
+        + execute(ResolutionContext): AttemptResult
+    }
+    interface IEffect <<sealed>> {
+        + apply(ResolutionContext): EffectOutcome
+    }
+    interface ITarget <<sealed>> {
+        + resolve(ResolutionContext): PokemonInPlay
+    }
+    interface INumber <<sealed>> {
+        + evaluate(ResolutionContext): int
+    }
+    interface "ICondition<T>" as ICondition <<sealed>> {
+        + evaluate(T): boolean
+    }
+}
+
+/' --- layer 1 -> 2 --- '/
+TurnEngine *-- Battle       : drives phases
+TurnEngine ..> IPlayer      : asks for decisions
+
+/' --- layer 2 internals --- '/
+Battle *-- "2" Side
+Side   *-- PokemonInPlay    : active + bench
+Side   *-- CardInstance     : hand / deck / discard
+
+/' --- layer 3 --- '/
+ResolutionContext o-- Battle
+ResolutionContext o-- PokemonInPlay : "Self"
+
+/' --- layer 4 --- '/
+CardInstance <|-- PokemonInPlay
+CardInstance o-- ICard      : definition
+ICard *-- IAction
+
+/' --- layer 5 internals: the composition chain --- '/
+IAction  *-- IAttempt
+ITrigger *-- IAttempt
+IAttempt *-- IEffect        : ordered, short-circuits on FAILED
+IEffect  *-- ITarget        : who
+IEffect  *-- INumber        : how much
+IAction  o-- ICondition     : preconditions
+ITrigger o-- ICondition
+
+note right of TurnEngine
+  A turn is just `Decision<IAction>`:
+  `Battle.legalActions(Side)` builds every legal
+  move — attacks, retreat, evolve, play, attach,
+  ability, end turn — and `IPlayer.choose` picks
+  one. That single seam is what makes this a
+  simulator rather than a card renderer, and it
+  is the same seam used for every mid-resolution
+  choice. See GameFlow.puml and IPlayer.puml.
+end note
+
+note right of ResolutionContext
+  Replaces the bare `Battle` parameter everywhere.
+  It answers three things a bare Battle cannot:
+   * **who is "this"?** — a Tool's trigger means the
+     Pokemon it is attached to, not whoever happens
+     to be attacking (`Self`)
+   * **what just happened?** — a trigger's attempt
+     needs the event payload (`EventSource`, `EventDamage`)
+   * **what did we just flip?** — coin results scoped to
+     one resolution instead of a field on Battle
+end note
+
+note right of ICondition
+  Every node in this layer is a **record** in a
+  **sealed** hierarchy. What that buys:
+   * exhaustive switch — a later card-text renderer
+     or JSON writer needs no visitor and cannot
+     silently miss a case
+   * structural equality and toString for free,
+     which test assertions lean on
+   * trivially serializable, so the deferred JSON
+     card DSL needs no reshaping of the model
+end note
+
+@enduml

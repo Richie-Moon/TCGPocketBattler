@@ -1,0 +1,127 @@
+@startuml
+title Game flow — phases, engine and win condition
+
+skinparam linetype ortho
+
+enum Phase {
+    SETUP
+    DRAW
+    ENERGY_GENERATION
+    MAIN
+    ATTACK
+    BETWEEN_TURNS
+    GAME_OVER
+}
+
+class TurnEngine {
+    - battle: Battle
+
+    + playGame(): Side
+    + playTurn(): void
+    + setup(): void
+    + betweenTurns(): void
+}
+
+/'
+  The bridge between the model and an agent: everything a player may do this
+  turn, as one uniform list of IAction. Without it there is no simulator, only
+  a card renderer.
+'/
+class "Battle.legalActions(Side)" as LegalActions <<generates>> {
+}
+
+note right of LegalActions
+  What it offers, and the gate on each:
+
+  **Action**             attacks of the active — cost satisfied,
+                         not Asleep or Paralyzed
+  **AttachEnergyAction** currentEnergy present and not yet
+                         attached this turn
+  **PlayCardAction**     hand cards playable now; at most one
+                         Supporter per turn
+  **EvolveAction**       evolution in hand, and the target was
+                         played on an earlier turn
+  **RetreatAction**      retreat cost payable, bench not empty,
+                         not Asleep or Paralyzed
+  **UseAbilityAction**   activated abilities not yet used
+  **EndTurnAction**      always
+end note
+
+TurnEngine *-- Battle
+TurnEngine ..> LegalActions
+TurnEngine ..> IPlayer
+Battle o-- Phase
+
+@enduml
+
+@startuml
+title Game flow — one turn
+
+start
+:TurnStart dispatched;
+
+partition DRAW {
+  :draw 1 card;
+  note right: deck-out is not an instant loss in Pocket
+}
+
+partition ENERGY_GENERATION {
+  if (first player's first turn?) then (yes)
+    :skip;
+  else (no)
+    :currentEnergy = nextEnergy;
+    :nextEnergy = random from registeredTypes;
+  endif
+}
+
+partition MAIN {
+  repeat
+    :options = battle.legalActions(side);
+    :chosen = side.player.choose(Decision<IAction>(options));
+    :chosen.execute(ctx);
+  repeat while (chosen is not an attack or EndTurnAction?) is (continue)
+}
+
+partition ATTACK {
+  if (attack declared?) then (yes)
+    :dispatch AttackDeclared;
+    note right
+      Confusion listens here: flip, and on
+      tails the attempt fails. No engine
+      special-case — it is just a trigger.
+    end note
+    :action.execute(ctx);
+    :damage pipeline (Damage.puml);
+  endif
+}
+
+partition BETWEEN_TURNS {
+  :dispatch TurnEnd;
+  :poison / burn damage;
+  :sleep and paralysis recovery flips;
+  :expire ActiveModifiers past expiresOnTurn;
+  :reset per-turn flags on both Sides;
+}
+
+:checkKnockouts();
+note right
+  For each knocked-out Pokemon:
+   * award the opponent 2 points if tagged EX, else 1
+   * discard it, its tool, its attached energy and
+     its whole evolution stack
+   * dispatch Knockout
+   * if it was the active, its controller CHOOSES a
+     replacement from the bench (IPlayer.choose)
+end note
+
+if (points >= 3, or opponent has no Pokemon in play?) then (yes)
+  :phase = GAME_OVER;
+  stop
+else (no)
+  :battle.switchSides();
+  :turn++;
+endif
+
+stop
+
+@enduml

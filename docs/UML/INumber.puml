@@ -1,46 +1,99 @@
 @startuml
+title INumber — arithmetic expression tree
+
 skinparam linetype ortho
 
-interface INumber {
-    + evaluate(Battle): int
+interface INumber <<sealed>> {
+    + evaluate(ResolutionContext): int
 }
 
-class Literal implements INumber {
+class Literal <<record>> implements INumber {
     - value: int
 }
 
-class Sum implements INumber {
+class Sum <<record>> implements INumber {
     - left: INumber
     - right: INumber
 }
 
-class Difference implements INumber {
+class Difference <<record>> implements INumber {
     - left: INumber
     - right: INumber
 }
 
-class Product implements INumber {
+class Product <<record>> implements INumber {
     - left: INumber
     - right: INumber
 }
 
-class Quotient implements INumber {
+class Quotient <<record>> implements INumber {
     - left: INumber
     - right: INumber
 }
 
-class MaxHP implements INumber {
+/'
+  Replaces DealMappedDamage's Map<INumber, INumber>, whose keys were
+  expressions — hashing an expression object can never match an evaluated
+  value. Cases are tried in order; the first whose condition holds wins.
+  Living at the INumber level rather than inside one damage effect means the
+  same node also serves heal amounts, draw counts and durations.
+'/
+class Branch <<record>> implements INumber {
+    - cases: List<Case>
+    - otherwise: INumber
+}
+
+class Case <<record>> {
+    - when: ICondition<ResolutionContext>
+    - then: INumber
+}
+
+class MaxHP <<record>> implements INumber {
     - target: ITarget
 }
 
-class CurrentHP implements INumber {
+class CurrentHP <<record>> implements INumber {
     - target: ITarget
 }
 
-class Stage implements INumber {
+class DamageOn <<record>> implements INumber {
     - target: ITarget
 }
 
-class NumberHeads implements INumber {}
+class Stage <<record>> implements INumber {
+    - target: ITarget
+}
+
+class EnergyOn <<record>> implements INumber {
+    - target: ITarget
+    /' Empty counts every attached energy regardless of type. '/
+    - ofType: Optional<Type>
+}
+
+class CountCards <<record>> implements INumber {
+    - side: ISideTarget
+    - zone: Zone
+    - matching: Optional<ICondition<CardInstance>>
+}
+
+/' Reads ResolutionScope.lastFlip. '/
+class NumberHeads <<record>> implements INumber {}
+
+/' Only meaningful while a trigger is resolving; reads
+   ResolutionContext.event. Lets "when this is damaged, ..." see how much. '/
+class EventDamage <<record>> implements INumber {}
+
+class Points <<record>> implements INumber {
+    - side: ISideTarget
+}
+
+Branch *-- Case
+Case o-- INumber
+
+note bottom of Branch
+  "30 damage for each heads" is already Product(NumberHeads, Literal(30)) —
+  Branch is for the genuinely tabular cases, e.g. an attack that does
+  20 / 50 / 90 depending on how many heads, where the steps are irregular.
+end note
 
 @enduml

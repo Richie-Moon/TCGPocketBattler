@@ -1,13 +1,42 @@
 @startuml
+title IAttempt — an ordered group of effects that can fail
+
 skinparam linetype ortho
 
-interface IAttempt {
-    + execute(Battle): void
+interface IAttempt <<sealed>> {
+    + execute(ResolutionContext): AttemptResult
 }
 
-class Attempt implements IAttempt {
+class Attempt <<record>> implements IAttempt {
     - effects: List<IEffect>
 }
 
+class AttemptResult <<record>> {
+    - succeeded: boolean
+    - reason: String
+    - outcomes: List<EffectOutcome>
+}
+
+note right of Attempt
+  **Why IAttempt is not just List<IEffect>**
+
+  An Attempt applies its effects in order and STOPS at the first
+  one returning FAILED, reporting failure. That is exactly the
+  "... **If you do**, ..." clause that runs through real card text:
+
+      "Discard an Energy from this Pokemon. If you do,
+       this attack does 40 more damage."
+
+  as Attempt[ DiscardRandomEnergy(Self, 1), IncreaseDamage(...) ]
+  — the second effect must not happen when the first cannot.
+
+  NO_OP does **not** abort. Healing a Pokemon already at full HP
+  is a legal no-op, not a failed cost, and must not swallow the
+  rest of the attack.
+end note
+
+Attempt *-- IEffect
+IAttempt ..> AttemptResult
+AttemptResult o-- EffectOutcome
 
 @enduml

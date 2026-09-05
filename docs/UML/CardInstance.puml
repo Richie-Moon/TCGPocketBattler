@@ -1,0 +1,80 @@
+@startuml
+title Card definition vs. card instance
+
+skinparam linetype ortho
+
+/'
+  A deck holds duplicates — two copies of Pikachu are the same DEFINITION but
+  must take damage independently. So the definition (ICard, see ICard.puml) is
+  immutable and shared, and every physical copy in a game is a CardInstance.
+'/
+
+class CardInstance {
+    /' Identity within one Battle. Two copies of the same card are different
+       instances with the same definition. '/
+    - instanceId: int
+    - definition: ICard
+    - owner: Side
+    - zone: Zone
+}
+
+enum Zone {
+    DECK
+    HAND
+    ACTIVE
+    BENCH
+    DISCARD
+    /' A Tool is in play but attached to a Pokemon rather than occupying a slot. '/
+    ATTACHED
+}
+
+/'
+  A CardInstance that is a Pokemon on the board. All the mutable battle state
+  that used to sit on IPlayableCard lives here.
+'/
+class PokemonInPlay extends CardInstance {
+    - damage: int
+    - attachedEnergy: Map<Type, int>
+    /' A Set, not an Optional: the real rules allow Poisoned and Burned to
+       coexist with exactly ONE of Asleep / Paralyzed / Confused.
+       See IStatus.puml. '/
+    - statuses: Set<IStatus>
+    - tool: Optional<CardInstance>
+    /' Evolution and "played this turn" checks both need this. '/
+    - turnPlayed: int
+    /' Stage 1 played onto a Basic keeps the Basic underneath it. '/
+    - evolutionStack: List<PokemonCard>
+    /' Where IDurationEffect actually stores its result. See Damage.puml. '/
+    - modifiers: List<ActiveModifier>
+
+    + definition(): PokemonCard
+    + maxHp(): int
+    + currentHp(): int
+    + isKnockedOut(): boolean
+    + totalEnergy(): int
+    + hasStatus(IStatus): boolean
+    + addStatus(IStatus): void
+    /' Statuses and duration modifiers are cleared when a Pokemon leaves the
+       active spot or evolves. '/
+    + clearStatuses(): void
+}
+
+CardInstance o-- ICard : definition
+CardInstance o-- Zone
+PokemonInPlay o-- IStatus
+PokemonInPlay o-- Type : attached energy
+PokemonInPlay *-- ActiveModifier
+
+note right of CardInstance
+  ITarget.resolve returns PokemonInPlay, and the card-level
+  ICondition leaves are typed on CardInstance / PokemonInPlay
+  rather than on the definition — `IsActive`, `IsBenched` and
+  `InHand` are facts about a copy on the board, not about
+  the card as printed.
+
+  Because the instance knows its own `zone` and `owner`, those
+  conditions need no ResolutionContext, which is why
+  ICondition keeps its simple `evaluate(T)` signature.
+end note
+
+@enduml

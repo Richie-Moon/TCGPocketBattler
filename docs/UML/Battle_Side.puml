@@ -1,34 +1,78 @@
 @startuml
+title Battle and Side — the mutable runtime state
+
 skinparam linetype ortho
 
 class Battle {
     - id: int
     - turn: int
+    - phase: Phase
     - attacker: Side
     - defender: Side
-    - previousHeads: int
-    
+    /' Seeded, so a game replays identically. See Resolution.puml. '/
+    - rng: RandomSource
+    - stadium: Optional<CardInstance>
+    - winner: Optional<Side>
+
     + switchSides(): void
-    + runTriggers(): void
+    /' Walks the current board and fires every matching trigger.
+       See ITrigger.puml for why triggers are collected rather than registered. '/
+    + dispatch(GameEvent): void
+    + collectTriggers(): List<ITrigger>
+    + legalActions(Side): List<IAction>
+    + checkKnockouts(): void
+    + checkWinCondition(): Optional<Side>
+    + opponentOf(Side): Side
 }
 
 class Side {
-    - active: IPlayableCard
-    - bench: List<? extends IPlayableCard>
-    - hand: List<ICard>
-    - deck: List<ICard>
-    - discardPile: List<ICard>
+    - player: IPlayer
+    - active: Optional<PokemonInPlay>
+    - bench: List<PokemonInPlay>
+    - hand: List<CardInstance>
+    - deck: List<CardInstance>
+    - discardPile: List<CardInstance>
     - points: int
-    - numKnockedOut: int
-    
-    + shuffleDeck(): void
-    + switchActive(): void
-    + placeOnBench(): void
-    + placeOnActive(): void
-    + drawCard(): void
-    + discardCard(): void
+
+    /' --- Energy Zone (see Energy.puml) --- '/
+    - registeredTypes: Set<Type>
+    - currentEnergy: Optional<Type>
+    - nextEnergy: Optional<Type>
+    - energyAttachedThisTurn: boolean
+
+    /' --- per-turn bookkeeping --- '/
+    - supporterPlayedThisTurn: boolean
+    - retreatedThisTurn: boolean
+
+    + shuffleDeck(RandomSource): void
+    + switchActive(PokemonInPlay): void
+    + placeOnBench(CardInstance): void
+    + placeOnActive(CardInstance): void
+    + drawCard(): Optional<CardInstance>
+    + discard(CardInstance): void
+    + generateEnergy(RandomSource): void
+    + inPlay(): List<PokemonInPlay>
+    + hasPokemonInPlay(): boolean
+    + resetTurnFlags(): void
 }
 
-Battle -|> Side
+/'
+  Composition, not inheritance. A Battle HAS two Sides; it is not a kind of Side.
+'/
+Battle *-- "2" Side
+Battle *-- RandomSource
+Battle o-- Phase
+
+Side *-- PokemonInPlay : active + bench
+Side *-- CardInstance  : hand / deck / discard
+Side o-- IPlayer
+Side o-- Type          : energy zone
+
+note bottom of Side
+  `numKnockedOut` is gone: points are the win condition and are
+  awarded per knockout (2 for an EX, 1 otherwise), so a separate
+  knockout tally was a second source of truth for the same fact.
+  See GameFlow.puml.
+end note
 
 @enduml

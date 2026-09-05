@@ -1,0 +1,54 @@
+@startuml
+title IPlayer — who makes the decisions taken during resolution
+
+skinparam linetype ortho
+
+/'
+  Several things cannot be decided when a card is constructed, only when it
+  resolves: ChoiceAction picks a branch, ChosenFrom picks a bench slot, a
+  knockout forces a replacement active. All of them route through here.
+'/
+
+interface IPlayer {
+    + name(): String
+    + choose(Decision<T>): T
+}
+
+class "Decision<T>" as Decision <<record>> {
+    - prompt: String
+    - options: List<T>
+    /' Not always the controller — plenty of cards make the OPPONENT choose. '/
+    - chooser: Side
+    - context: ResolutionContext
+}
+
+/' Picks uniformly from a seeded RandomSource. Self-play, fuzzing, and a
+   baseline to measure any real AI against. '/
+class RandomPlayer implements IPlayer {
+    - rng: RandomSource
+}
+
+/' Replays a fixed list of answers, failing loudly if the game asks a question
+   the script did not anticipate. This is what makes rule tests deterministic
+   and readable. '/
+class ScriptedPlayer implements IPlayer {
+    - answers: Queue<Integer>
+}
+
+class ConsolePlayer implements IPlayer {}
+
+IPlayer ..> Decision
+Decision o-- Side
+Decision o-- ResolutionContext
+
+note bottom of IPlayer
+  One generic `choose` rather than a method per decision kind
+  (chooseBenchSlot, chooseDiscard, chooseAttack, ...): the engine
+  always presents a list of legal options and receives one back,
+  so adding a new kind of decision never widens the interface.
+
+  Battle.legalActions(Side) uses the same shape for the turn
+  itself — a turn is just Decision<IAction>. See GameFlow.puml.
+end note
+
+@enduml

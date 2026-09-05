@@ -1,87 +1,147 @@
 @startuml
+title ICondition — boolean expression tree, generic over its subject
 
 skinparam linetype ortho
 
-interface "ICondition<T>" as IConditionT
+interface "ICondition<T>" as IConditionT <<sealed>>
 
 interface IConditionT {
     + evaluate(T): boolean
 }
 
-class And<T> implements IConditionT {
+/'
+  The signature stays `evaluate(T)` with no ResolutionContext, because the two
+  kinds of subject are each self-sufficient:
+    * ICondition<ResolutionContext> — the context IS the subject
+    * ICondition<PokemonInPlay>     — an instance knows its own zone, owner,
+                                      statuses and attached energy
+  See CardInstance.puml.
+'/
+
+/' --- combinators: generic over any T --- '/
+
+class "And<T>" as And <<record>> implements IConditionT {
     - left: ICondition<T>
     - right: ICondition<T>
 }
 
-class Or<T> implements IConditionT {
+class "Or<T>" as Or <<record>> implements IConditionT {
     - left: ICondition<T>
     - right: ICondition<T>
 }
 
-class Not<T> implements IConditionT {
+class "Not<T>" as Not <<record>> implements IConditionT {
     - condition: ICondition<T>
 }
 
-class All<T> implements IConditionT {
+class "All<T>" as All <<record>> implements IConditionT {
     - conditions: List<ICondition<T>>
 }
 
-class Any<T> implements IConditionT {
+class "Any<T>" as Any <<record>> implements IConditionT {
     - conditions: List<ICondition<T>>
 }
 
-class Probability<T> implements IConditionT {
+class "Always<T>" as Always <<record>> implements IConditionT {}
+
+/' --- subject: ResolutionContext (the whole game state) --- '/
+
+interface "ICondition<ResolutionContext>" as IConditionCtx
+
+Or -[hidden]- IConditionCtx
+
+class GreaterThan <<record>> implements IConditionCtx {
+    - left: INumber
+    - right: INumber
+}
+
+class LessThan <<record>> implements IConditionCtx {
+    - left: INumber
+    - right: INumber
+}
+
+class EqualTo <<record>> implements IConditionCtx {
+    - left: INumber
+    - right: INumber
+}
+
+/' Needs the RNG, so it is context-subjected rather than generic. '/
+class Probability <<record>> implements IConditionCtx {
     - probability: INumber
 }
 
-
-interface "ICondition<INumber>" as IConditionINumber
-
-Or -[hidden]- IConditionINumber
-
-class GreaterThan implements IConditionINumber {
-    - left: INumber
-    - right: INumber
-}
-
-class LessThan implements IConditionINumber {
-    - left: INumber
-    - right: INumber
-}
-
-class EqualTo implements IConditionINumber {
-    - left: INumber
-    - right: INumber
-}
-
-interface "ICondition<IPlayableCard>" as IConditionIPlayableCard
-
-EqualTo -[hidden]- IConditionIPlayableCard
-
-class HasType implements IConditionIPlayableCard {
-    - type: Type
-}
-class IsParalyzed implements IConditionIPlayableCard {}
-class IsAsleep implements IConditionIPlayableCard {}
-class IsConfused implements IConditionIPlayableCard {}
-class IsBurned implements IConditionIPlayableCard {}
-class IsPoisoned implements IConditionIPlayableCard {}
-class IsSpecies implements IConditionIPlayableCard {
-    - species: String /' or ID: int '/ 
-}
-class IsActive implements IConditionIPlayableCard {}
-class IsBenched implements IConditionIPlayableCard {}
-class InHand implements IConditionIPlayableCard {}
-
-interface "ICondition<Battle>" as IConditionBattle
-
-Any -[hidden]- IConditionBattle
-
-class For implements IConditionBattle {
-    - condition: ICondition<IPlayableCard>
+/' The adapter that lifts a card-level condition up to the game level by
+   supplying a target. This is what lets WithPrecondition and ITrigger hold a
+   single ICondition<ResolutionContext>. '/
+class For <<record>> implements IConditionCtx {
+    - condition: ICondition<PokemonInPlay>
     - target: ITarget
 }
 
-class LastCoinTossHeads implements IConditionBattle {}
+/' Same lift over a group. '/
+class ForAny <<record>> implements IConditionCtx {
+    - condition: ICondition<PokemonInPlay>
+    - targets: IMultiTarget
+}
+
+class LastCoinTossHeads <<record>> implements IConditionCtx {}
+class AllFlipsHeads <<record>> implements IConditionCtx {}
+
+class StadiumInPlay <<record>> implements IConditionCtx {
+    - cardId: String
+}
+
+/' --- subject: PokemonInPlay --- '/
+
+interface "ICondition<PokemonInPlay>" as IConditionPokemon
+
+EqualTo -[hidden]- IConditionPokemon
+
+class HasType <<record>> implements IConditionPokemon {
+    - type: Type
+}
+class IsParalyzed <<record>> implements IConditionPokemon {}
+class IsAsleep <<record>> implements IConditionPokemon {}
+class IsConfused <<record>> implements IConditionPokemon {}
+class IsBurned <<record>> implements IConditionPokemon {}
+class IsPoisoned <<record>> implements IConditionPokemon {}
+class IsActive <<record>> implements IConditionPokemon {}
+class IsBenched <<record>> implements IConditionPokemon {}
+class IsDamaged <<record>> implements IConditionPokemon {}
+class HasTool <<record>> implements IConditionPokemon {}
+
+/' Gates an attack on its cost. Without this nothing in the model could stop a
+   Pokemon attacking with no energy attached. See Energy.puml. '/
+class HasEnergy <<record>> implements IConditionPokemon {
+    - cost: EnergyCost
+}
+
+/' --- subject: CardInstance (applies to Pokemon too, via subtyping) --- '/
+
+interface "ICondition<CardInstance>" as IConditionCard
+
+Any -[hidden]- IConditionCard
+
+class InZone <<record>> implements IConditionCard {
+    - zone: Zone
+}
+class IsSpecies <<record>> implements IConditionCard {
+    - species: String
+}
+class HasTag <<record>> implements IConditionCard {
+    - tag: CardTag
+}
+
+note bottom of IConditionCard
+  `InHand` collapsed into InZone(HAND) once CardInstance gained a
+  `zone` field — IsActive / IsBenched are kept as their own nodes
+  only because they read far more naturally in card text.
+end note
+
+note bottom of GreaterThan
+  Previously drawn as ICondition<INumber>, which did not typecheck
+  as a subject: GreaterThan holds BOTH operands and tests the game,
+  not an INumber handed to it. Re-homed under ResolutionContext.
+end note
 
 @enduml

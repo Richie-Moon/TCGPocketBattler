@@ -1,45 +1,75 @@
 @startuml
+title Card definitions (immutable, one per printed card)
+
 skinparam linetype ortho
 
-interface ICard {
+interface ICard <<sealed>> {
     - name: String
     - description: String
     - id: String
+    /' Replaces the "will also need tags to track mega, EX, ..." TODO.
+       Needed by the rules: knocking out an EX awards 2 points. '/
+    - tags: Set<CardTag>
     - actions: List<IAction>
 }
 
+enum CardTag {
+    EX
+    MEGA
+    FOSSIL
+    ULTRA_BEAST
+}
+
 interface IPlayableCard extends ICard {
-    - hp: int
-    - status: Optional<IStatus>
-    - tool: Optional<ToolCard>
+    /' Renamed from `hp`, which was ambiguous against INumber's MaxHP and
+       CurrentHP. Current HP is damage taken off maxHp, tracked per instance
+       on PokemonInPlay. Status and tool likewise moved to the instance. '/
+    - maxHp: int
 }
 
 interface ITrainerCard extends ICard {
 }
 
-/' Fossil cards, their IAction will be to discard itself '/
-class PlayableItemCard implements IPlayableCard, ITrainerCard {}
+/' Fossil cards: playable like a Basic Pokemon, but a Trainer card.
+   Their IAction is to discard themselves. '/
+class PlayableItemCard <<record>> implements IPlayableCard, ITrainerCard {}
 
-class ItemCard implements ITrainerCard {}
+class ItemCard <<record>> implements ITrainerCard {}
 
-class SupporterCard implements ITrainerCard {}
+class SupporterCard <<record>> implements ITrainerCard {}
 
-class ToolCard implements ITrainerCard {
+class ToolCard <<record>> implements ITrainerCard {
     - triggers: List<ITrigger>
 }
 
-class StadiumCard implements ITrainerCard {
+class StadiumCard <<record>> implements ITrainerCard {
     - triggers: List<ITrigger>
 }
 
-/' Will also need tags to track whether the card is a mega, EX, etc. '/
-class PokemonCard implements IPlayableCard {
+class PokemonCard <<record>> implements IPlayableCard {
     - stage: int
+    /' Basics have none; a Stage 1/2 may only be played onto this species. '/
+    - evolvesFrom: Optional<String>
     - type: Type
     - ability: Optional<IAbility>
     - retreatCost: int
     - weakness: Optional<Type>
+    /' Always +20 in Pocket; kept as an INumber so the model does not hardcode
+       one format's constant. '/
     - weaknessDamage: Optional<INumber>
 }
+
+ICard o-- CardTag
+ICard *-- IAction
+PokemonCard o-- Type
+PokemonCard o-- IAbility
+ToolCard *-- ITrigger
+StadiumCard *-- ITrigger
+
+note bottom of PokemonCard
+  Attacks live in `actions` as `Action`, which now carries an
+  EnergyCost — previously nothing could gate an attack on
+  energy at all. See IAction.puml and Energy.puml.
+end note
 
 @enduml

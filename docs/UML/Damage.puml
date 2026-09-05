@@ -1,0 +1,86 @@
+@startuml
+title Damage pipeline — where weakness and modifiers combine
+
+skinparam linetype ortho
+
+/'
+  DealDamage names only an amount and a target, so weakness, ReduceDamage and
+  IncreaseDamage had nowhere to meet, and IDurationEffect's `duration` had
+  nowhere to be stored. Both are fixed here.
+'/
+
+class DamageEvent <<record>> {
+    - source: Optional<PokemonInPlay>
+    - target: PokemonInPlay
+    - baseAmount: int
+    /' False for spread/bench damage and for between-turns poison and burn,
+       which skip weakness and most modifiers. '/
+    - isAttackDamage: boolean
+}
+
+class DamageCalculator {
+    + resolve(DamageEvent, ResolutionContext): int
+}
+
+/'
+  Installed on PokemonInPlay by an IDurationEffect and expired between turns.
+  This is the storage that IDurationEffect previously lacked.
+'/
+class ActiveModifier <<record>> {
+    - kind: ModifierKind
+    - amount: int
+    - expiresOnTurn: int
+}
+
+enum ModifierKind {
+    INCREASE_DAMAGE_DEALT
+    REDUCE_DAMAGE_TAKEN
+    PREVENT_DAMAGE
+}
+
+DamageCalculator ..> DamageEvent
+DamageCalculator ..> ActiveModifier
+ActiveModifier o-- ModifierKind
+PokemonInPlay *-- ActiveModifier
+
+@enduml
+
+@startuml
+title Damage pipeline — order of application
+
+start
+:base = DealDamage.damageAmount.evaluate(ctx);
+
+if (isAttackDamage?) then (yes)
+  :+ INCREASE_DAMAGE_DEALT modifiers on the **source**;
+  if (defender weak to attacker's type?) then (yes)
+    :+ weaknessDamage (Pocket: +20);
+  endif
+  :- REDUCE_DAMAGE_TAKEN modifiers on the **target**;
+  if (PREVENT_DAMAGE on target?) then (yes)
+    :damage = 0;
+  endif
+else (no — spread / bench / poison / burn)
+  :no weakness, no modifiers;
+endif
+
+:clamp to >= 0;
+:target.damage += amount;
+:dispatch DamageDealt;
+:Battle.checkKnockouts();
+
+stop
+
+note right
+  Order matters and is not commutative: weakness applies to the
+  already-increased base, and reduction is subtracted after
+  weakness. Getting this wrong is silently wrong — it only shows
+  up on cards that stack two of the three.
+
+  Weakness applies only to the ATTACKED ACTIVE. Bench damage,
+  spread damage and between-turns status damage all bypass it,
+  which is why isAttackDamage is on the event rather than being
+  inferred from whether a source exists.
+end note
+
+@enduml

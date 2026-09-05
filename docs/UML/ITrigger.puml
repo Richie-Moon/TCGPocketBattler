@@ -1,37 +1,122 @@
 @startuml
+title ITrigger and GameEvent — board observers
+
 skinparam linetype ortho
 
-/' Battle observer. Can change Battle to a generic type '/
-interface ITrigger<Battle> {
+/'
+  Previously: 15 empty marker classes implementing a raw ITrigger, with a
+  Battle.runTriggers() that took no argument. Nothing could actually be
+  dispatched, and an event's payload had nowhere to live.
+
+  Now: the events are the sealed hierarchy (they carry data), and there is one
+  trigger record that names the event it listens for.
+'/
+
+interface ITrigger <<sealed>> {
+    - on: Class<? extends GameEvent>
+    - condition: ICondition<ResolutionContext>
     - onTrigger: IAttempt
-    - condition: ICondition<Battle>
-    + onTrigger(Battle): void
+
+    + appliesTo(GameEvent): boolean
+    + fire(ResolutionContext): AttemptResult
 }
 
-class TurnStartTrigger implements ITrigger {}
-class TurnEndTrigger implements ITrigger {}
+class Trigger <<record>> implements ITrigger {}
 
-class SideTurnStartTrigger implements ITrigger {}
-class SideTurnEndTrigger implements ITrigger {}
+interface GameEvent <<sealed>> {
+    - battle: Battle
+}
 
-class BeforeCoinFlipTrigger implements ITrigger {}
-class AfterCoinFlipTrigger implements ITrigger {}
+/' --- turn structure --- '/
+class TurnStart <<record>> implements GameEvent {
+    - side: Side
+}
+class TurnEnd <<record>> implements GameEvent {
+    - side: Side
+}
+class PhaseEntered <<record>> implements GameEvent {
+    - phase: Phase
+}
 
-class OnMoveUsedTrigger implements ITrigger {}
-class OnDamageTrigger implements ITrigger {}
+/' --- combat --- '/
+class AttackDeclared <<record>> implements GameEvent {
+    - attacker: PokemonInPlay
+    - action: Action
+}
+class DamageDealt <<record>> implements GameEvent {
+    - source: Optional<PokemonInPlay>
+    - target: PokemonInPlay
+    - amount: int
+}
+class Knockout <<record>> implements GameEvent {
+    - knockedOut: PokemonInPlay
+    - by: Optional<PokemonInPlay>
+}
+class Healed <<record>> implements GameEvent {
+    - target: PokemonInPlay
+    - amount: int
+}
 
-class OnStatusAppliedTrigger implements ITrigger {}
-class OnStatusRemovedTrigger implements ITrigger {}
+/' --- statuses --- '/
+class StatusApplied <<record>> implements GameEvent {
+    - target: PokemonInPlay
+    - status: IStatus
+}
+class StatusRemoved <<record>> implements GameEvent {
+    - target: PokemonInPlay
+    - status: IStatus
+}
 
-class TrainerCardPlayedTrigger implements ITrigger {}
-class PlayableCardPlayedTrigger implements ITrigger {}
+/' --- cards --- '/
+class CardPlayed <<record>> implements GameEvent {
+    - side: Side
+    - card: CardInstance
+}
+class Evolved <<record>> implements GameEvent {
+    - from: PokemonCard
+    - to: PokemonInPlay
+}
+class ToolAttached <<record>> implements GameEvent {
+    - holder: PokemonInPlay
+    - tool: CardInstance
+}
+class ToolRemoved <<record>> implements GameEvent {
+    - holder: PokemonInPlay
+    - tool: CardInstance
+}
+class Retreated <<record>> implements GameEvent {
+    - from: PokemonInPlay
+    - to: PokemonInPlay
+}
+class EnergyAttached <<record>> implements GameEvent {
+    - target: PokemonInPlay
+    - type: Type
+}
 
-class ItemCardPlayedTrigger implements ITrigger {}
+/' --- misc --- '/
+class CoinFlipped <<record>> implements GameEvent {
+    - result: FlipResult
+}
 
-class SupporterCardPlayedTrigger implements ITrigger {}
+Trigger *-- IAttempt
+ITrigger ..> GameEvent : matches
 
-class ToolAttachedTrigger implements ITrigger {}
-class ToolRemovedTrigger implements ITrigger {}
+note bottom of Trigger
+  **Collection, not registration.**
+
+  Battle.collectTriggers() walks the current board on every
+  dispatch — statuses, attached tools, the stadium, and passive
+  abilities of everything in play — instead of subscribing and
+  unsubscribing as cards enter and leave.
+
+  A board is ~10 cards, so the cost is irrelevant, and it makes
+  the whole class of stale-listener bug impossible: a Tool that
+  was just discarded cannot fire, and a Pokemon that just
+  evolved brings its new ability with it for free.
+
+  Each trigger is fired with ResolutionContext.source set to its
+  HOLDER and .event set to the dispatched event, so `Self`,
+  `EventSource` and `EventDamage` all resolve correctly.
+end note
 
 @enduml
-

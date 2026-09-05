@@ -1,108 +1,189 @@
 @startuml
+title IEffect — the only thing permitted to mutate the board
+
 skinparam linetype ortho
 
-
-interface IEffect {
-    + apply(Battle): void
+interface IEffect <<sealed>> {
+    + apply(ResolutionContext): EffectOutcome
 }
 
-interface IDurationEffect extends IEffect {
+/'
+  Returning an outcome rather than void is what makes IAttempt failable.
+  See IAttempt.puml for the short-circuit rule.
+'/
+enum EffectOutcome {
+    /' Did what it said. '/
+    APPLIED
+    /' Nothing to do, and that is fine — healing a Pokemon at full HP,
+       discarding energy from a Pokemon with none. Does NOT abort. '/
+    NO_OP
+    /' Could not be done — target did not resolve, cost unpayable.
+       ABORTS the rest of the attempt. '/
+    FAILED
+}
+
+interface IDurationEffect <<sealed>> extends IEffect {
+    /' Turns; installs an ActiveModifier on the target. See Damage.puml. '/
     - duration: INumber
 }
 
-/' Coin Flips '/ 
+/' --- Coin flips --- '/
 
-interface IFlipStrategy extends IEffect {
-    /' Flips coins and records the amount of head in Battle '/
-    + flip(Battle): void
+/' Flips and records the result in ResolutionScope, where NumberHeads,
+   LastCoinTossHeads and AllFlipsHeads then read it. '/
+interface IFlipStrategy <<sealed>> extends IEffect {
+    + flip(ResolutionContext): FlipResult
 }
 
-class FlipN implements IFlipStrategy {
+class FlipN <<record>> implements IFlipStrategy {
     - n: INumber
 }
 
-class FlipUntilTails implements IFlipStrategy {}
+class FlipUntilTails <<record>> implements IFlipStrategy {}
 
-class DrawCard implements IEffect {
+/' --- Cards --- '/
+
+class DrawCard <<record>> implements IEffect {
     - cardCount: INumber
     - side: ISideTarget
 }
 
-/' Damage '/
+class ShuffleHandIntoDeck <<record>> implements IEffect {
+    - side: ISideTarget
+}
 
-class DealDamage implements IEffect {
+class DiscardFromHand <<record>> implements IEffect {
+    - side: ISideTarget
+    - cardCount: INumber
+    - matching: Optional<ICondition<CardInstance>>
+}
+
+/' --- Damage --- '/
+
+/' Amount is the BASE damage. Weakness and active modifiers are applied by the
+   damage pipeline, not here. See Damage.puml. '/
+class DealDamage <<record>> implements IEffect {
     - damageAmount: INumber
     - target: ITarget
 }
 
-' Damage that depends on the number of heads flipped, or some other variable. The map is from the variable to the damage amount.
-class DealMappedDamage implements IEffect {
-    - damageMap: Map<INumber, INumber>
-    - target: ITarget
-}
-
-' Spread Damage is distributed randomly among all Pokemon on the opponents' side.
-class SpreadDamage implements IEffect {
+/' Distributed at random across the opposing board, in 10s. '/
+class SpreadDamage <<record>> implements IEffect {
     - damageAmount: INumber
     - targets: IMultiTarget
 }
 
-class MultiHit implements IEffect {
-    - targets: IMultiTarget
+/' Same target struck repeatedly; each hit runs the full pipeline separately,
+   which matters for knockouts partway through. '/
+class MultiHit <<record>> implements IEffect {
+    - target: ITarget
     - damage: INumber
     - timesToHit: INumber
 }
 
-class HealDamage implements IEffect {
+class DamageEach <<record>> implements IEffect {
+    - damageAmount: INumber
+    - targets: IMultiTarget
+}
+
+class HealDamage <<record>> implements IEffect {
     - healAmount: INumber
     - target: ITarget
 }
 
-/' Energy '/
+/' --- Energy --- '/
 
-class AttachEnergy implements IEffect {
-    - energyType: Type
-    - target: ITarget
-}
-
-class DiscardRandomEnergy implements IEffect {
-    - energyCount: INumber
-    - target: ITarget
-}
-
-class DiscardTypeEnergy implements IEffect {
+class AttachEnergy <<record>> implements IEffect {
     - energyType: Type
     - energyCount: INumber
     - target: ITarget
 }
 
-/' Buffs/Debuffs '/
+/' Attaches from the Side's Energy Zone rather than from nowhere — the two are
+   different game actions and only one of them is limited to once per turn. '/
+class AttachFromEnergyZone <<record>> implements IEffect {
+    - target: ITarget
+}
 
-class ReduceDamage implements IDurationEffect {
+class DiscardRandomEnergy <<record>> implements IEffect {
+    - energyCount: INumber
+    - target: ITarget
+}
+
+class DiscardTypeEnergy <<record>> implements IEffect {
+    - energyType: Type
+    - energyCount: INumber
+    - target: ITarget
+}
+
+class MoveEnergy <<record>> implements IEffect {
+    - from: ITarget
+    - to: ITarget
+    - energyCount: INumber
+}
+
+/' --- Buffs / debuffs --- '/
+
+class ReduceDamage <<record>> implements IDurationEffect {
     - reductionAmount: INumber
     - target: ITarget
 }
 
-class IncreaseDamage implements IDurationEffect {
+class IncreaseDamage <<record>> implements IDurationEffect {
     - increaseAmount: INumber
     - target: ITarget
 }
 
-class SwitchActive implements IEffect {
+class PreventDamage <<record>> implements IDurationEffect {
     - target: ITarget
 }
 
-class AddStatus implements IEffect {
+/' --- Board --- '/
+
+class SwitchActive <<record>> implements IEffect {
+    - side: ISideTarget
+    /' Empty = the controller of that side chooses. See IPlayer.puml. '/
+    - replacement: Optional<ITarget>
+}
+
+class AddStatus <<record>> implements IEffect {
     - target: ITarget
     - statusToAdd: IStatus
 }
 
-class RemoveStatus implements IEffect {
+class RemoveStatus <<record>> implements IEffect {
     - target: ITarget
     - statusToRemove: IStatus
 }
 
+class AttachTool <<record>> implements IEffect {
+    - target: ITarget
+    - tool: ToolCard
+}
+
+/' --- Composition --- '/
+
+/' Applies its inner effect only if the condition holds; otherwise NO_OP.
+   Distinct from an Attempt short-circuit: this branch is expected to be
+   skipped, so it must not abort what follows. '/
+class ConditionalEffect <<record>> implements IEffect {
+    - condition: ICondition<ResolutionContext>
+    - effect: IEffect
+}
+
+class RepeatEffect <<record>> implements IEffect {
+    - times: INumber
+    - effect: IEffect
+}
+
 /' Null Object Pattern '/
-class NoEffect implements IEffect {}
+class NoEffect <<record>> implements IEffect {}
+
+note bottom of NoEffect
+  Removed: DealMappedDamage. Its Map<INumber, INumber> keyed on
+  expression objects, so lookup by evaluated value could never
+  match. Replaced by INumber.Branch, which is composable and also
+  serves heal amounts and draw counts. See INumber.puml.
+end note
 
 @enduml

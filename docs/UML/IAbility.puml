@@ -1,0 +1,40 @@
+@startuml
+title IAbility — referenced by PokemonCard, previously undrawn
+
+skinparam linetype ortho
+
+interface IAbility <<sealed>> {
+    - name: String
+    - description: String
+}
+
+/'
+  The player spends part of their turn to use it. Surfaced by
+  Battle.legalActions as a UseAbilityAction. See IAction.puml.
+'/
+class ActivatedAbility <<record>> implements IAbility {
+    - action: IAction
+    - oncePerTurn: boolean
+    - usableWhen: ICondition<ResolutionContext>
+}
+
+/'
+  Always on. Implemented entirely as triggers, exactly like ToolCard and
+  StadiumCard, so nothing new is needed to dispatch them: Battle.collectTriggers
+  walks abilities on the board along with everything else. See ITrigger.puml.
+'/
+class PassiveAbility <<record>> implements IAbility {
+    - triggers: List<ITrigger>
+}
+
+ActivatedAbility *-- IAction
+PassiveAbility *-- ITrigger
+
+note bottom of PassiveAbility
+  Both kinds need to know which Pokemon they belong to
+  ("this Pokemon takes 20 less damage"). That is the `Self`
+  target, resolved through ResolutionContext.source — the
+  ability is evaluated with the holder as the source.
+end note
+
+@enduml
