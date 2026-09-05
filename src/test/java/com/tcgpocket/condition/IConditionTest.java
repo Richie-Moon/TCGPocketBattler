@@ -275,10 +275,8 @@ class IConditionTest {
 
         @Test
         void tagsGateTheTwoPointRule() {
-            PokemonCard pikachuEx = new PokemonCard(
-                    "pikachu-ex", "Pikachu ex", "", Set.of(CardTag.EX),
-                    120, 0, Type.LIGHTNING, Optional.empty(), 1,
-                    Optional.empty(), Optional.empty());
+            PokemonCard pikachuEx = PokemonCard.basic("pikachu-ex", "Pikachu ex", 120, Type.LIGHTNING, 1)
+                    .withTags(CardTag.EX);
 
             assertTrue(new HasTag(CardTag.EX).evaluate(board.inHand(board.you, pikachuEx)));
             assertFalse(new HasTag(CardTag.EX).evaluate(board.inHand(board.you, PIKACHU)));

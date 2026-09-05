@@ -28,9 +28,8 @@ class DamageCalculatorTest {
     private static final PokemonCard PIKACHU = TestBoard.card("Pikachu", 60, Type.LIGHTNING);
 
     /** Weak to Lightning, so Pikachu triggers weakness against it. */
-    private static final PokemonCard MAROWAK = new PokemonCard(
-            "marowak", "Marowak", "", Set.<CardTag>of(), 120, 0, Type.FIGHTING,
-            Optional.empty(), 2, Optional.of(Type.LIGHTNING), Optional.empty());
+    private static final PokemonCard MAROWAK = PokemonCard.basic("marowak", "Marowak", 120, Type.FIGHTING, 2)
+            .withWeakness(Type.LIGHTNING);
 
     private final TestBoard board = new TestBoard();
     private final PokemonInPlay attacker = board.active(board.you, PIKACHU);

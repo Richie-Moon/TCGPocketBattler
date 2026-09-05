@@ -42,9 +42,8 @@ class IEffectTest {
     private static final PokemonCard SNORLAX = TestBoard.card("Snorlax", 150, Type.COLORLESS);
 
     /** Weak to Lightning. */
-    private static final PokemonCard MAROWAK = new PokemonCard(
-            "marowak", "Marowak", "", Set.<CardTag>of(), 120, 0, Type.FIGHTING,
-            Optional.empty(), 2, Optional.of(Type.LIGHTNING), Optional.empty());
+    private static final PokemonCard MAROWAK = PokemonCard.basic("marowak", "Marowak", 120, Type.FIGHTING, 2)
+            .withWeakness(Type.LIGHTNING);
 
     @Nested
     @DisplayName("outcome semantics")

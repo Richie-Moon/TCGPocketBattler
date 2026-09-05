@@ -1,5 +1,8 @@
 package com.tcgpocket.card;
 
+import com.tcgpocket.action.IAction;
+
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,9 +23,15 @@ public sealed interface ICard permits IPlayableCard, ITrainerCard {
 
     Set<CardTag> tags();
 
+    /**
+     * What this card can do: a Pokemon's attacks, a Trainer's single effect.
+     *
+     * <p>This is the whole point of the design — a card's behaviour is a list
+     * of values, not a branch in a switch somewhere.
+     */
+    List<IAction> actions();
+
     default boolean hasTag(CardTag tag) {
         return tags().contains(tag);
     }
-
-    // TODO: List<IAction> actions() — awaits the IAction hierarchy.
 }

@@ -4,6 +4,9 @@ import com.tcgpocket.card.ICard;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
+import com.tcgpocket.player.IPlayer;
+import com.tcgpocket.player.RandomPlayer;
+import com.tcgpocket.resolve.RandomSource;
 import com.tcgpocket.resolve.SeededRandom;
 import com.tcgpocket.state.Battle;
 import com.tcgpocket.state.CardInstance;
@@ -24,8 +27,8 @@ public final class TestBoard {
     /** Arbitrary but fixed, so a run is repeatable. */
     public static final long DEFAULT_SEED = 1L;
 
-    public final Side you = new Side("you");
-    public final Side them = new Side("them");
+    public final Side you;
+    public final Side them;
     public final Battle battle;
 
     private int nextInstanceId = 1;
@@ -35,7 +38,20 @@ public final class TestBoard {
     }
 
     public TestBoard(long seed) {
-        this.battle = new Battle(you, them, new SeededRandom(seed));
+        this(new RandomPlayer("you", new SeededRandom(seed)),
+             new RandomPlayer("them", new SeededRandom(seed + 1)),
+             new SeededRandom(seed));
+    }
+
+    /** For tests that need to control what the players decide. */
+    public TestBoard(IPlayer yours, IPlayer theirs) {
+        this(yours, theirs, new SeededRandom(DEFAULT_SEED));
+    }
+
+    private TestBoard(IPlayer yours, IPlayer theirs, RandomSource rng) {
+        this.you = new Side("you", yours);
+        this.them = new Side("them", theirs);
+        this.battle = new Battle(you, them, rng);
     }
 
     public static PokemonCard card(String name, int maxHp, Type type) {

@@ -1,6 +1,7 @@
 package com.tcgpocket.state;
 
 import com.tcgpocket.energy.Type;
+import com.tcgpocket.player.IPlayer;
 import com.tcgpocket.resolve.RandomSource;
 
 import java.util.ArrayList;
@@ -18,9 +19,11 @@ import java.util.Set;
  */
 public final class Side {
 
-    // TODO: IPlayer player — awaits the agent seam.
+    /** How many Pokemon may sit on the bench at once. */
+    public static final int BENCH_LIMIT = 3;
 
     private final String name;
+    private final IPlayer player;
     private final List<PokemonInPlay> bench = new ArrayList<>();
     private final List<CardInstance> hand = new ArrayList<>();
     private final List<CardInstance> deck = new ArrayList<>();
@@ -36,13 +39,24 @@ public final class Side {
     private Type nextEnergy;
     private boolean energyAttachedThisTurn;
     private boolean supporterPlayedThisTurn;
+    private boolean retreatedThisTurn;
 
-    public Side(String name) {
+    public Side(String name, IPlayer player) {
         this.name = name;
+        this.player = java.util.Objects.requireNonNull(player, "player");
     }
 
     public String name() {
         return name;
+    }
+
+    /** Who decides for this side when the rules ask. */
+    public IPlayer player() {
+        return player;
+    }
+
+    public boolean benchIsFull() {
+        return bench.size() >= BENCH_LIMIT;
     }
 
     /* ------------------------------------------------------------------ */
@@ -231,9 +245,19 @@ public final class Side {
         supporterPlayedThisTurn = true;
     }
 
+    public boolean retreatedThisTurn() {
+        return retreatedThisTurn;
+    }
+
+    public void markRetreated() {
+        retreatedThisTurn = true;
+    }
+
     public void resetTurnFlags() {
         energyAttachedThisTurn = false;
         supporterPlayedThisTurn = false;
+        retreatedThisTurn = false;
+        inPlay().forEach(PokemonInPlay::resetTurnFlags);
     }
 
     /* ------------------------------------------------------------------ */

@@ -23,23 +23,66 @@ import java.util.Set;
  */
 public final class PokemonInPlay extends CardInstance {
 
-    // TODO: List<PokemonCard> evolutionStack — awaits evolution.
-
     private final Map<Type, Integer> attachedEnergy = new EnumMap<>(Type.class);
     private final Set<IStatus> statuses = new LinkedHashSet<>();
     private final List<ActiveModifier> modifiers = new ArrayList<>();
+    /** What this used to be, oldest first; a Stage 1 keeps its Basic underneath. */
+    private final List<PokemonCard> evolutionStack = new ArrayList<>();
+
+    /**
+     * The card currently on top. Held separately from the inherited definition
+     * because evolving changes it, and the instance persists across the change
+     * so damage and energy carry over.
+     */
+    private PokemonCard current;
+
     private CardInstance tool;
     private int damage;
     private int turnPlayed;
+    private boolean abilityUsedThisTurn;
 
     public PokemonInPlay(int instanceId, PokemonCard definition, Side owner, Zone zone, int turnPlayed) {
         super(instanceId, definition, owner, zone);
+        this.current = definition;
         this.turnPlayed = turnPlayed;
     }
 
     @Override
     public PokemonCard definition() {
-        return (PokemonCard) super.definition();
+        return current;
+    }
+
+    public List<PokemonCard> evolutionStack() {
+        return Collections.unmodifiableList(evolutionStack);
+    }
+
+    /**
+     * Evolves onto this Pokemon.
+     *
+     * <p>Damage, attached energy and the Tool all carry over; statuses and
+     * temporary modifiers do not, which is why evolving is a way out of a
+     * special condition. The turn counter resets, so the evolution cannot
+     * itself evolve on the same turn.
+     */
+    public void evolveInto(PokemonCard evolution, int currentTurn) {
+        evolutionStack.add(current);
+        current = evolution;
+        turnPlayed = currentTurn;
+        statuses.clear();
+        modifiers.clear();
+    }
+
+    /** Whether this Pokemon has already used its ability this turn. */
+    public boolean abilityUsedThisTurn() {
+        return abilityUsedThisTurn;
+    }
+
+    public void markAbilityUsed() {
+        abilityUsedThisTurn = true;
+    }
+
+    public void resetTurnFlags() {
+        abilityUsedThisTurn = false;
     }
 
     public int maxHp() {
