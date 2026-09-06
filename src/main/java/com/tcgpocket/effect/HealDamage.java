@@ -4,6 +4,8 @@ import com.tcgpocket.number.INumber;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.Healed;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -34,7 +36,13 @@ public record HealDamage(INumber healAmount, ITarget target) implements IEffect 
             return EffectOutcome.NO_OP;
         }
 
+        int before = pokemon.damage();
         pokemon.heal(amount);
+
+        // What actually came off, not what was asked for: healing 50 off a
+        // Pokemon with 20 damage on it heals 20, and a listener wants the 20.
+        TriggerDispatcher.dispatch(
+                context.battle(), new Healed(pokemon, before - pokemon.damage()));
         return EffectOutcome.APPLIED;
     }
 }

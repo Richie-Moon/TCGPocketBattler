@@ -20,7 +20,7 @@ class ActivatedAbility <<record>> implements IAbility {
 
 /'
   Always on. Implemented entirely as triggers, exactly like ToolCard and
-  StadiumCard, so nothing new is needed to dispatch them: Battle.collectTriggers
+  StadiumCard, so nothing new is needed to dispatch them: TriggerDispatcher.collect
   walks abilities on the board along with everything else. See ITrigger.puml.
 '/
 class PassiveAbility <<record>> implements IAbility {

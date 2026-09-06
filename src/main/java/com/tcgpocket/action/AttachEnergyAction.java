@@ -3,9 +3,12 @@ package com.tcgpocket.action;
 import com.tcgpocket.effect.AttachFromEnergyZone;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
+import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.EnergyAttached;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,12 +40,17 @@ public record AttachEnergyAction(ITarget target) implements IAction {
             return AttemptResult.failure("cannot attach energy", List.of());
         }
 
+        // Read before applying: the effect consumes the zone on its way past.
+        Type attached = context.controller().currentEnergy().orElseThrow();
+
         EffectOutcome outcome = new AttachFromEnergyZone(target).apply(context);
         if (outcome.isFailure()) {
             return AttemptResult.failure("energy zone was empty", List.of(outcome));
         }
 
         context.controller().markEnergyAttached();
+        target.resolve(context).ifPresent(pokemon -> TriggerDispatcher.dispatch(
+                context.battle(), new EnergyAttached(pokemon, attached)));
         return AttemptResult.success(List.of(outcome));
     }
 }

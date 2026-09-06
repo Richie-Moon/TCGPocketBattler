@@ -6,6 +6,8 @@ import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.ToolAttached;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -39,8 +41,12 @@ public record AttachTool(ITarget target, ToolCard tool) implements IEffect {
             return EffectOutcome.FAILED;
         }
 
-        controller.removeFromHand(inHand.get());
-        resolved.get().attachTool(inHand.get());
+        PokemonInPlay holder = resolved.get();
+        CardInstance card = inHand.get();
+        controller.removeFromHand(card);
+        holder.attachTool(card);
+
+        TriggerDispatcher.dispatch(context.battle(), new ToolAttached(holder, card));
         return EffectOutcome.APPLIED;
     }
 }

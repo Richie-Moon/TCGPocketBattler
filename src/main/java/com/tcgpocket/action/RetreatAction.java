@@ -8,6 +8,8 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.Retreated;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +63,7 @@ public record RetreatAction(ITarget replacement) implements IAction {
         side.setActive(incoming);
         side.markRetreated();
 
+        TriggerDispatcher.dispatch(context.battle(), new Retreated(retreating, incoming));
         return AttemptResult.success(List.of(EffectOutcome.APPLIED));
     }
 

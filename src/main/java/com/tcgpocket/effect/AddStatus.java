@@ -4,6 +4,8 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.IStatus;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.StatusApplied;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -34,6 +36,7 @@ public record AddStatus(ITarget target, IStatus statusToAdd) implements IEffect 
         }
 
         pokemon.addStatus(statusToAdd);
+        TriggerDispatcher.dispatch(context.battle(), new StatusApplied(pokemon, statusToAdd));
         return EffectOutcome.APPLIED;
     }
 }

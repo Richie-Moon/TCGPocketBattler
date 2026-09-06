@@ -4,11 +4,16 @@ import com.tcgpocket.condition.HasEnergy;
 import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
+import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.trigger.AttackDeclared;
+import com.tcgpocket.trigger.DispatchResult;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -51,8 +56,25 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
                 && new HasEnergy(cost).evaluate(pokemon);
     }
 
+    /**
+     * Announces the attack, then resolves it unless a trigger cancelled it.
+     *
+     * <p>The announcement happens here rather than in the turn loop so that an
+     * attack is self-contained: executing one runs the whole of it, Confusion
+     * included, without an engine to sequence the two halves.
+     */
     @Override
     public AttemptResult execute(ResolutionContext context) {
+        Optional<PokemonInPlay> attacker = context.source();
+        if (attacker.isPresent()) {
+            DispatchResult declared = TriggerDispatcher.dispatch(
+                    context.battle(), new AttackDeclared(attacker.get(), this));
+            if (declared.vetoed()) {
+                return AttemptResult.failure(
+                        name + " was cancelled", List.of(EffectOutcome.FAILED));
+            }
+        }
+
         return attempt.execute(context);
     }
 }

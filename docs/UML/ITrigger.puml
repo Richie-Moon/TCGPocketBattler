@@ -23,8 +23,36 @@ interface ITrigger <<sealed>> {
 
 class Trigger <<record>> implements ITrigger {}
 
+/'
+  Where dispatch lives. Not on Battle: Battle is a state holder, and giving it
+  the job would pull the engine into the model's dependency cycle.
+'/
+class TriggerDispatcher <<static>> {
+    + dispatch(Battle, GameEvent): DispatchResult
+    + collect(Battle): List<TriggerSource>
+}
+
+/' A trigger plus the Pokemon that supplied it, which becomes
+   ResolutionContext.source when it fires. Empty for a Stadium. '/
+class TriggerSource <<record>> {
+    - trigger: ITrigger
+    - holder: Optional<PokemonInPlay>
+    - controller: Side
+}
+
+class DispatchResult <<record>> {
+    - results: List<AttemptResult>
+    + vetoed(): boolean
+}
+
+/'
+  Every event answers "who was that about?", so a trigger can ask the one
+  question it almost always needs to ask without a condition per event type.
+  See EventConcerns and EventSideIs in ICondition.puml.
+'/
 interface GameEvent <<sealed>> {
-    - battle: Battle
+    + subject(): Optional<PokemonInPlay>
+    + side(): Optional<Side>
 }
 
 /' --- turn structure --- '/
@@ -34,6 +62,7 @@ class TurnStart <<record>> implements GameEvent {
 class TurnEnd <<record>> implements GameEvent {
     - side: Side
 }
+/' NOT BUILT: needs the Phase enum, which arrives with TurnEngine. '/
 class PhaseEntered <<record>> implements GameEvent {
     - phase: Phase
 }
@@ -48,6 +77,8 @@ class DamageDealt <<record>> implements GameEvent {
     - target: PokemonInPlay
     - amount: int
 }
+/' Built, but nothing dispatches it yet: the knockout procedure (points,
+   discarding the stack, choosing a replacement) is TurnEngine work. '/
 class Knockout <<record>> implements GameEvent {
     - knockedOut: PokemonInPlay
     - by: Optional<PokemonInPlay>
@@ -93,18 +124,25 @@ class EnergyAttached <<record>> implements GameEvent {
     - type: Type
 }
 
-/' --- misc --- '/
+/'
+  NOT BUILT. Nothing could consume it — a trigger fires with a fresh
+  ResolutionScope, so it cannot read the flip back — and dispatching on every
+  flip would walk the board constantly for a card pattern Pocket does not have.
+'/
 class CoinFlipped <<record>> implements GameEvent {
     - result: FlipResult
 }
 
 Trigger *-- IAttempt
 ITrigger ..> GameEvent : matches
+TriggerDispatcher ..> TriggerSource
+TriggerDispatcher ..> DispatchResult
+TriggerSource *-- ITrigger
 
 note bottom of Trigger
   **Collection, not registration.**
 
-  Battle.collectTriggers() walks the current board on every
+  TriggerDispatcher.collect() walks the current board on every
   dispatch — statuses, attached tools, the stadium, and passive
   abilities of everything in play — instead of subscribing and
   unsubscribing as cards enter and leave.
@@ -116,7 +154,28 @@ note bottom of Trigger
 
   Each trigger is fired with ResolutionContext.source set to its
   HOLDER and .event set to the dispatched event, so `Self`,
-  `EventSource` and `EventDamage` all resolve correctly.
+  `EventConcerns` and `EventDamage` all resolve correctly.
 end note
+
+note as NotBuilt #FFE0E0
+  **Modelled, not built.**
+
+  **PhaseEntered** — waits on the Phase enum, which arrives
+  with TurnEngine.
+
+  **CoinFlipped** — nothing could consume it. A trigger fires
+  with a fresh ResolutionScope, so it cannot read the flip
+  back, and dispatching on every flip would walk the board
+  constantly for a pattern Pocket does not have.
+
+  **Knockout** is built and cards may listen for it, but the
+  procedure that dispatches it — points, discarding the
+  stack, choosing a replacement — is TurnEngine work. Same
+  for **TurnStart** and **TurnEnd**: the types are built and
+  the statuses listen, but the engine is what will announce
+  them each turn.
+end note
+
+NotBuilt .. CoinFlipped
 
 @enduml

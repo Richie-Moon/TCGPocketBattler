@@ -9,6 +9,8 @@ import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.state.Zone;
+import com.tcgpocket.trigger.CardPlayed;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.List;
 import java.util.Objects;
@@ -47,6 +49,7 @@ public record PlayCardAction(CardInstance card) implements IAction {
 
         Side side = context.controller();
         side.removeFromHand(card);
+        TriggerDispatcher.dispatch(context.battle(), new CardPlayed(side, card));
 
         if (card.definition() instanceof PokemonCard pokemon) {
             side.addToBench(new PokemonInPlay(

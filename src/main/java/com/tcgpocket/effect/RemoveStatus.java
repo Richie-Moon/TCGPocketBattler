@@ -4,6 +4,8 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.IStatus;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.StatusRemoved;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -28,8 +30,12 @@ public record RemoveStatus(ITarget target, IStatus statusToRemove) implements IE
             return EffectOutcome.FAILED;
         }
 
-        return resolved.get().removeStatus(statusToRemove)
-                ? EffectOutcome.APPLIED
-                : EffectOutcome.NO_OP;
+        PokemonInPlay pokemon = resolved.get();
+        if (!pokemon.removeStatus(statusToRemove)) {
+            return EffectOutcome.NO_OP;
+        }
+
+        TriggerDispatcher.dispatch(context.battle(), new StatusRemoved(pokemon, statusToRemove));
+        return EffectOutcome.APPLIED;
     }
 }

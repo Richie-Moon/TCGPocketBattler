@@ -84,7 +84,7 @@ is exactly the "…**If you do**, …" clause that runs through real card text.
 `NO_OP` (healing something already at full HP) does *not* abort — the
 distinction is the whole point of the enum.
 
-**Triggers are collected, not registered.** `Battle.collectTriggers()` walks
+**Triggers are collected, not registered.** `TriggerDispatcher.collect()` walks
 the board on every dispatch instead of subscribing and unsubscribing as cards
 come and go. A board is ~10 cards, so the cost is nil, and it makes stale
 listeners impossible: a discarded Tool cannot fire, and a Pokémon that just

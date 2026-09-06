@@ -4,6 +4,8 @@ import com.tcgpocket.damage.DamageCalculator;
 import com.tcgpocket.damage.DamageEvent;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.trigger.DamageDealt;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.Optional;
 
@@ -19,7 +21,7 @@ final class Damage {
     }
 
     /**
-     * Runs one packet of damage through the pipeline and applies the result.
+     * Damage from whoever is currently resolving, run through the pipeline.
      *
      * <p>The weakness bonus is evaluated here rather than inside the
      * calculator, because it is printed as an {@code INumber} and only this
@@ -32,13 +34,31 @@ final class Damage {
                 .map(printed -> printed.evaluate(context))
                 .orElse(DamageCalculator.DEFAULT_WEAKNESS_BONUS);
 
-        DamageEvent event = new DamageEvent(source, target, base, isAttackDamage, weaknessBonus);
+        apply(context, new DamageEvent(source, target, base, isAttackDamage, weaknessBonus));
+    }
+
+    /**
+     * Damage nobody dealt — poison, burn, recoil.
+     *
+     * <p>Distinct from {@link #deal} with {@code isAttackDamage} false: that
+     * still names the resolving Pokemon as the source, which is right for an
+     * attack that splashes onto the bench and wrong for a status ticking.
+     */
+    static void place(ResolutionContext context, PokemonInPlay target, int amount) {
+        apply(context, DamageEvent.incidental(target, amount));
+    }
+
+    private static void apply(ResolutionContext context, DamageEvent event) {
         int landed = DamageCalculator.calculate(event, context.battle().turn());
+        event.target().takeDamage(landed);
 
-        target.takeDamage(landed);
+        TriggerDispatcher.dispatch(
+                context.battle(),
+                new DamageDealt(event.source(), event.target(), landed));
 
-        // TODO: dispatch DamageDealt and run Battle.checkKnockouts() once
-        //       ITrigger and the turn engine exist. Both are engine concerns:
-        //       an effect applies damage, it does not run the game.
+        // TODO: the knockout procedure — points, discarding the evolution stack
+        //       and the tool, and the replacement its controller has to choose —
+        //       lands with TurnEngine.checkKnockouts(), which then dispatches
+        //       Knockout. An effect applies damage; it does not run the game.
     }
 }

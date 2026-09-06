@@ -18,7 +18,6 @@ class Battle {
     /' Walks the current board and fires every matching trigger.
        See ITrigger.puml for why triggers are collected rather than registered. '/
     + dispatch(GameEvent): void
-    + collectTriggers(): List<ITrigger>
     + legalActions(Side): List<IAction>
     + checkKnockouts(): void
     + checkWinCondition(): Optional<Side>

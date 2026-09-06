@@ -23,10 +23,10 @@ import com.tcgpocket.resolve.ResolutionContext;
 public sealed interface IEffect permits
         IDurationEffect, IFlipStrategy,
         DrawCard, ShuffleHandIntoDeck, DiscardFromHand,
-        DealDamage, DamageEach, SpreadDamage, MultiHit, HealDamage,
+        DealDamage, DamageEach, SpreadDamage, MultiHit, HealDamage, PlaceDamage,
         AttachEnergy, AttachFromEnergyZone, DiscardRandomEnergy, DiscardTypeEnergy, MoveEnergy,
         SwitchActive, AddStatus, RemoveStatus, AttachTool,
-        ConditionalEffect, RepeatEffect, NoEffect {
+        ConditionalEffect, RepeatEffect, NoEffect, Fail {
 
     EffectOutcome apply(ResolutionContext context);
 }

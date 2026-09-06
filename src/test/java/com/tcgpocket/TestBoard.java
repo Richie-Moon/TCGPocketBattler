@@ -43,6 +43,13 @@ public final class TestBoard {
              new SeededRandom(seed));
     }
 
+    /** For tests that need to control the coin flips. */
+    public TestBoard(RandomSource rng) {
+        this(new RandomPlayer("you", new SeededRandom(DEFAULT_SEED)),
+             new RandomPlayer("them", new SeededRandom(DEFAULT_SEED + 1)),
+             rng);
+    }
+
     /** For tests that need to control what the players decide. */
     public TestBoard(IPlayer yours, IPlayer theirs) {
         this(yours, theirs, new SeededRandom(DEFAULT_SEED));

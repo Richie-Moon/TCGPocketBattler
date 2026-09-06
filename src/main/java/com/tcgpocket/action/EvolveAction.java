@@ -7,6 +7,8 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.trigger.Evolved;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.List;
 import java.util.Objects;
@@ -57,9 +59,11 @@ public record EvolveAction(CardInstance evolution, ITarget onto) implements IAct
         }
 
         PokemonInPlay pokemon = onto.resolve(context).orElseThrow();
+        PokemonCard was = pokemon.definition();
         context.controller().removeFromHand(evolution);
         pokemon.evolveInto((PokemonCard) evolution.definition(), context.battle().turn());
 
+        TriggerDispatcher.dispatch(context.battle(), new Evolved(was, pokemon));
         return AttemptResult.success(List.of(EffectOutcome.APPLIED));
     }
 }

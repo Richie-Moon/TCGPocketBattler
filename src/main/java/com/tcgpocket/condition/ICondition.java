@@ -13,7 +13,8 @@ import com.tcgpocket.state.PokemonInPlay;
  * <ul>
  *   <li>{@code ICondition<ResolutionContext>} — the context <em>is</em> the
  *       subject, so these can ask about anything on the board
- *       ({@link GreaterThan}, {@link Probability}, {@link StadiumInPlay})
+ *       ({@link GreaterThan}, {@link Probability}, {@link StadiumInPlay},
+ *       {@link EventConcerns})
  *   <li>{@code ICondition<PokemonInPlay>} — an instance already knows its own
  *       zone, statuses, damage and attached energy ({@link IsActive},
  *       {@link IsBurned}, {@link HasEnergy})
@@ -38,6 +39,7 @@ public sealed interface ICondition<T> permits
         // subject: ResolutionContext
         GreaterThan, LessThan, EqualTo, Probability, For, ForAny,
         LastCoinTossHeads, AllFlipsHeads, StadiumInPlay,
+        EventConcerns, EventSideIs,
         // subject: PokemonInPlay
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
         IsActive, IsBenched, IsDamaged, HasTool, HasEnergy,
