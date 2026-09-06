@@ -1,4 +1,4 @@
-package com.tcgpocket.pool.a1;
+package com.tcgpocket.pool.A1;
 
 import com.tcgpocket.card.ICard;
 

@@ -1,7 +1,7 @@
 package com.tcgpocket.pool;
 
 import com.tcgpocket.card.ICard;
-import com.tcgpocket.pool.a1.GeneticApex;
+import com.tcgpocket.pool.A1.GeneticApex;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

@@ -1,8 +1,8 @@
 package com.tcgpocket.pool;
 
 import com.tcgpocket.card.ICard;
-import com.tcgpocket.pool.a1.GeneticApex;
-import com.tcgpocket.pool.a1.Lightning;
+import com.tcgpocket.pool.A1.GeneticApex;
+import com.tcgpocket.pool.A1.Lightning;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package com.tcgpocket.pool.a1;
+package com.tcgpocket.pool.A1;
 
 import com.tcgpocket.action.Action;
 import com.tcgpocket.action.PlainAction;
@@ -19,7 +19,6 @@ import com.tcgpocket.status.SleepStatus;
 import com.tcgpocket.target.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Genetic Apex — Grass.
@@ -453,7 +452,7 @@ public final class Grass {
                     "Leaf Supply", "Take a Grass Energy from your Energy Zone and attach it to 1 of your Benched Grass Pokémon.", EnergyCost.of(Type.GRASS, 2), new Attempt(List.of(
                     new DealDamage(new Literal(50), new OpponentActive()),
                     new AttachEnergy(Type.GRASS, new Literal(1), new ChosenFrom(
-                            new AttackerBench(), new AttackerSide(), Optional.of(new IsType(Type.GRASS)), "Please choose a Grass-type Pokémon to attach an Energy to.")
+                            new AttackerBench(), new AttackerSide(), new IsType(Type.GRASS), "Please choose a Grass-type Pokémon to attach an Energy to.")
                     )))
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.FIRE);
@@ -497,6 +496,5 @@ public final class Grass {
             EXEGGCUTE, EXEGGUTOR, EXEGGUTOR_EX, TANGELA, SCYTHER, PINSIR, COTTONEE, WHIMSICOTT, PETILIL, LILLIGANT,
             SKIDDO, GOGOAT);
 
-    private Grass() {
-    }
+    private Grass() {}
 }
