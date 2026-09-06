@@ -11,6 +11,7 @@ import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.condition.Always;
 import com.tcgpocket.condition.IsSpecies;
+import com.tcgpocket.condition.IsType;
 import com.tcgpocket.condition.Not;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
@@ -22,6 +23,7 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.ParalysisStatus;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.status.SleepStatus;
+import com.tcgpocket.target.AttackerAll;
 import com.tcgpocket.target.AttackerBenchSpecific;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.target.OpponentActive;
@@ -29,6 +31,7 @@ import com.tcgpocket.target.OpponentBench;
 import com.tcgpocket.target.OpponentSide;
 import com.tcgpocket.target.Self;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -39,6 +42,7 @@ import org.junit.jupiter.api.Test;
 class IEffectTest {
 
     private static final PokemonCard PIKACHU = TestBoard.card("Pikachu", 60, Type.LIGHTNING);
+    private static final PokemonCard ODDISH = TestBoard.card("Oddish", 60, Type.GRASS);
     private static final PokemonCard SNORLAX = TestBoard.card("Snorlax", 150, Type.COLORLESS);
 
     /** Weak to Lightning. */
@@ -518,6 +522,140 @@ class IEffectTest {
 
             assertEquals(first.definition(), second.definition());
             assertFalse(first.instanceId() == second.instanceId());
+        }
+    }
+
+    @Nested
+    @DisplayName("SearchDeck — reaching into the deck")
+    class Searching {
+
+        private final TestBoard board = new TestBoard();
+        private final ResolutionContext context = board.contextWithoutSource();
+
+        private static final PokemonCard CHARMANDER =
+                TestBoard.card("Charmander", 60, com.tcgpocket.energy.Type.FIRE);
+
+        @Test
+        @DisplayName("takes a matching card out of the deck and into hand")
+        void findsWhatItIsLookingFor() {
+            board.inDeck(board.you, CHARMANDER);
+            CardInstance oddish = board.inDeck(board.you, ODDISH);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new SearchDeck(new AttackerSide(), new Literal(1),
+                            new IsType(com.tcgpocket.energy.Type.GRASS)).apply(context));
+
+            assertEquals(List.of(oddish), board.you.hand());
+            assertEquals(1, board.you.deck().size(), "and it left the deck");
+        }
+
+        @Test
+        @DisplayName("finding nothing is a no-op, so it cannot abort an attempt")
+        void noMatchIsANoOp() {
+            board.inDeck(board.you, CHARMANDER);
+
+            assertEquals(EffectOutcome.NO_OP,
+                    new SearchDeck(new AttackerSide(), new Literal(1),
+                            new IsType(com.tcgpocket.energy.Type.GRASS)).apply(context));
+
+            assertTrue(board.you.hand().isEmpty());
+            assertEquals(1, board.you.deck().size());
+        }
+
+        @Test
+        void anEmptyDeckIsANoOp() {
+            assertEquals(EffectOutcome.NO_OP,
+                    new SearchDeck(new AttackerSide(), new Literal(1),
+                            new IsType(com.tcgpocket.energy.Type.GRASS)).apply(context));
+        }
+
+        @Test
+        @DisplayName("asking for two never picks the same card twice")
+        void takesDistinctCards() {
+            board.inDeck(board.you, ODDISH);
+            board.inDeck(board.you, ODDISH);
+            board.inDeck(board.you, ODDISH);
+
+            new SearchDeck(new AttackerSide(), new Literal(2),
+                    new IsType(com.tcgpocket.energy.Type.GRASS)).apply(context);
+
+            assertEquals(2, board.you.hand().size());
+            assertEquals(2, board.you.hand().stream().distinct().count());
+            assertEquals(1, board.you.deck().size());
+        }
+
+        @Test
+        @DisplayName("finding fewer than asked for takes what is there")
+        void takesWhatItCan() {
+            board.inDeck(board.you, ODDISH);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new SearchDeck(new AttackerSide(), new Literal(3),
+                            new IsType(com.tcgpocket.energy.Type.GRASS)).apply(context));
+
+            assertEquals(1, board.you.hand().size());
+        }
+
+        @Test
+        void noConditionMeansAnyCard() {
+            board.inDeck(board.you, CHARMANDER);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new SearchDeck(new AttackerSide(), new Literal(1), Optional.empty())
+                            .apply(context));
+
+            assertEquals(1, board.you.hand().size());
+        }
+
+        @Test
+        @DisplayName("a Trainer card has no type, so IsType passes it over")
+        void trainersAreNotGrassPokemon() {
+            CardInstance potion = board.inDeck(
+                    board.you, ToolCard.named("giant-cape", "Giant Cape"));
+
+            assertFalse(new IsType(com.tcgpocket.energy.Type.GRASS).evaluate(potion));
+
+            assertEquals(EffectOutcome.NO_OP,
+                    new SearchDeck(new AttackerSide(), new Literal(1),
+                            new IsType(com.tcgpocket.energy.Type.GRASS)).apply(context));
+        }
+    }
+
+    @Nested
+    @DisplayName("HealEach — healing a group")
+    class GroupHealing {
+
+        private final TestBoard board = new TestBoard();
+
+        @Test
+        @DisplayName("a group already at full HP is a no-op, not a failure")
+        void nothingToHealIsANoOp() {
+            board.active(board.you, PIKACHU);
+            board.bench(board.you, PIKACHU);
+
+            assertEquals(EffectOutcome.NO_OP,
+                    new HealEach(new Literal(20), new AttackerAll())
+                            .apply(board.contextWithoutSource()));
+        }
+
+        @Test
+        @DisplayName("one Pokemon healing is enough to count as applied")
+        void appliesWhenAnyoneHeals() {
+            board.active(board.you, PIKACHU);
+            PokemonInPlay benched = board.bench(board.you, PIKACHU);
+            benched.takeDamage(30);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new HealEach(new Literal(20), new AttackerAll())
+                            .apply(board.contextWithoutSource()));
+            assertEquals(10, benched.damage());
+        }
+
+        @Test
+        void anEmptyGroupIsANoOp() {
+            assertEquals(EffectOutcome.NO_OP,
+                    new HealEach(new Literal(20), new OpponentBench())
+                            .apply(board.contextWithoutSource()));
         }
     }
 }

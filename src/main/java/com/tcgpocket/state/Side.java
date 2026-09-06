@@ -135,6 +135,16 @@ public final class Side {
     }
 
     /**
+     * Takes a specific card out of the deck.
+     *
+     * <p>Distinct from {@link #drawCard()}, which takes the top one. Card text
+     * that reaches into the deck for something particular needs to name it.
+     */
+    public boolean removeFromDeck(CardInstance card) {
+        return deck.remove(card);
+    }
+
+    /**
      * Draws the top card, or empty when the deck is out.
      *
      * <p>Running out of cards is not a loss in Pocket, so this reports nothing

@@ -19,7 +19,8 @@ import com.tcgpocket.state.PokemonInPlay;
  *       zone, statuses, damage and attached energy ({@link IsActive},
  *       {@link IsBurned}, {@link HasEnergy})
  *   <li>{@code ICondition<CardInstance>} — the same, for cards that are not in
- *       play ({@link InZone}, {@link IsSpecies}, {@link HasTag}). By subtyping
+ *       play ({@link InZone}, {@link IsSpecies}, {@link HasTag},
+ *       {@link IsType}). By subtyping
  *       these accept a {@link PokemonInPlay} too.
  * </ul>
  *
@@ -44,7 +45,7 @@ public sealed interface ICondition<T> permits
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
         IsActive, IsBenched, IsDamaged, HasTool, HasEnergy,
         // subject: CardInstance
-        InZone, IsSpecies, HasTag {
+        InZone, IsSpecies, HasTag, IsType {
 
     boolean evaluate(T subject);
 }

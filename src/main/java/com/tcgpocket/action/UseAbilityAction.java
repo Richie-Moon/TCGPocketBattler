@@ -31,7 +31,7 @@ public record UseAbilityAction(PokemonInPlay source, IAbility ability) implement
         if (!(ability instanceof ActivatedAbility activated)) {
             return false;
         }
-        if (!source.definition().ability().filter(ability::equals).isPresent()) {
+        if (source.definition().ability().filter(ability::equals).isEmpty()) {
             return false;
         }
         if (activated.oncePerTurn() && source.abilityUsedThisTurn()) {

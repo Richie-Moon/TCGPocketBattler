@@ -1,13 +1,11 @@
 package com.tcgpocket.card;
 
 import com.tcgpocket.action.IAction;
+import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.INumber;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Pokemon as printed.
@@ -29,10 +27,11 @@ public record PokemonCard(
         int stage,
         Type type,
         Optional<String> evolvesFrom,
-        int retreatCost,
+        EnergyCost retreatCost,
         Optional<Type> weakness,
         Optional<INumber> weaknessDamage,
-        Optional<IAbility> ability) implements IPlayableCard {
+        Optional<IAbility> ability,
+        CardRarity rarity) implements IPlayableCard {
 
     public PokemonCard {
         Objects.requireNonNull(id, "id");
@@ -48,9 +47,6 @@ public record PokemonCard(
         if (stage < 0) {
             throw new IllegalArgumentException("stage must not be negative, was " + stage);
         }
-        if (retreatCost < 0) {
-            throw new IllegalArgumentException("retreatCost must not be negative, was " + retreatCost);
-        }
         if (stage == 0 && evolvesFrom.isPresent()) {
             throw new IllegalArgumentException("a Basic cannot evolve from anything: " + name);
         }
@@ -64,42 +60,72 @@ public record PokemonCard(
     }
 
     /** Minimal Basic, for tests and for cards with nothing unusual about them. */
-    public static PokemonCard basic(String id, String name, int maxHp, Type type, int retreatCost) {
+    public static PokemonCard basic(String id, String name, String description, int maxHp, Type type, EnergyCost retreatCost, CardRarity rarity) {
         return new PokemonCard(
-                id, name, "", Set.of(), List.of(), maxHp, 0, type,
-                Optional.empty(), retreatCost, Optional.empty(), Optional.empty(), Optional.empty());
+                id, name, description, Set.of(), List.of(), maxHp, 0, type,
+                Optional.empty(), retreatCost, Optional.empty(), Optional.empty(), Optional.empty(), rarity);
     }
 
     /** The same, with attacks. */
     public static PokemonCard basic(
-            String id, String name, int maxHp, Type type, int retreatCost, List<IAction> actions) {
+            String id, String name, String description, int maxHp, Type type, EnergyCost retreatCost, List<IAction> actions, CardRarity rarity) {
         return new PokemonCard(
-                id, name, "", Set.of(), actions, maxHp, 0, type,
-                Optional.empty(), retreatCost, Optional.empty(), Optional.empty(), Optional.empty());
+                id, name, description, Set.of(), actions, maxHp, 0, type,
+                Optional.empty(), retreatCost, Optional.empty(), Optional.empty(), Optional.empty(), rarity);
     }
 
     /** A Stage 1 or 2, which may only be played onto the species it evolves from. */
     public static PokemonCard evolution(
+            String id, String name, String description, int stage, String evolvesFrom,
+            int maxHp, Type type, EnergyCost retreatCost, List<IAction> actions, CardRarity rarity) {
+        return new PokemonCard(
+                id, name, description, Set.of(), actions, maxHp, stage, type,
+                Optional.of(evolvesFrom), retreatCost, Optional.empty(), Optional.empty(), Optional.empty(), rarity);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Terse forms                                                         */
+    /*                                                                     */
+    /* For tests and for sketching a card before its printed detail is     */
+    /* transcribed. Flavour text is empty, the rarity is COMMON, and the   */
+    /* retreat cost is the colorless count that every Pocket printing so   */
+    /* far actually uses. They disambiguate from the full forms on the     */
+    /* third parameter: int here, String there.                            */
+    /* ------------------------------------------------------------------ */
+
+    public static PokemonCard basic(String id, String name, int maxHp, Type type, int retreatCost) {
+        return basic(id, name, maxHp, type, retreatCost, List.of());
+    }
+
+    public static PokemonCard basic(
+            String id, String name, int maxHp, Type type, int retreatCost, List<IAction> actions) {
+        return basic(id, name, "", maxHp, type, colorless(retreatCost), actions, CardRarity.COMMON);
+    }
+
+    public static PokemonCard evolution(
             String id, String name, int stage, String evolvesFrom,
             int maxHp, Type type, int retreatCost, List<IAction> actions) {
-        return new PokemonCard(
-                id, name, "", Set.of(), actions, maxHp, stage, type,
-                Optional.of(evolvesFrom), retreatCost, Optional.empty(), Optional.empty(),
-                Optional.empty());
+        return evolution(id, name, "", stage, evolvesFrom, maxHp, type,
+                colorless(retreatCost), actions, CardRarity.COMMON);
+    }
+
+    /** A retreat cost of n, payable by any n energy — which is every one so far. */
+    private static EnergyCost colorless(int count) {
+        return count == 0 ? EnergyCost.free() : EnergyCost.of(Type.COLORLESS, count);
     }
 
     public PokemonCard withAbility(IAbility newAbility) {
         return new PokemonCard(id, name, description, tags, actions, maxHp, stage, type,
-                evolvesFrom, retreatCost, weakness, weaknessDamage, Optional.of(newAbility));
+                evolvesFrom, retreatCost, weakness, weaknessDamage, Optional.of(newAbility), rarity);
     }
 
     public PokemonCard withTags(CardTag... newTags) {
         return new PokemonCard(id, name, description, Set.of(newTags), actions, maxHp, stage, type,
-                evolvesFrom, retreatCost, weakness, weaknessDamage, ability);
+                evolvesFrom, retreatCost, weakness, weaknessDamage, ability, rarity);
     }
 
     public PokemonCard withWeakness(Type weakTo) {
         return new PokemonCard(id, name, description, tags, actions, maxHp, stage, type,
-                evolvesFrom, retreatCost, Optional.of(weakTo), weaknessDamage, ability);
+                evolvesFrom, retreatCost, Optional.of(weakTo), weaknessDamage, ability, rarity);
     }
 }

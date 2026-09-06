@@ -4,6 +4,7 @@ import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
+import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
@@ -41,7 +42,7 @@ public record RetreatAction(ITarget replacement) implements IAction {
             return false;
         }
 
-        return retreating.totalEnergy() >= retreating.definition().retreatCost()
+        return retreatCostOf(retreating).isSatisfiedBy(retreating.attachedEnergy())
                 && replacement.resolve(context).filter(side.bench()::contains).isPresent();
     }
 
@@ -67,8 +68,20 @@ public record RetreatAction(ITarget replacement) implements IAction {
         return AttemptResult.success(List.of(EffectOutcome.APPLIED));
     }
 
+    /**
+     * The printed retreat cost, read as an {@link EnergyCost}.
+     *
+     * <p>A retreat cost is a cost like any other — colorless in every Pocket
+     * printing so far, but the same wildcard rule applies either way, so it is
+     * worth going through the type that already knows the rule rather than
+     * comparing totals.
+     */
+    private static EnergyCost retreatCostOf(PokemonInPlay retreating) {
+        return retreating.definition().retreatCost();
+    }
+
     private static void payRetreatCost(ResolutionContext context, PokemonInPlay retreating) {
-        int cost = retreating.definition().retreatCost();
+        int cost = retreatCostOf(retreating).total();
         for (int i = 0; i < cost; i++) {
             List<com.tcgpocket.energy.Type> units = retreating.attachedEnergy().entrySet().stream()
                     .flatMap(entry -> java.util.stream.IntStream.range(0, entry.getValue())
