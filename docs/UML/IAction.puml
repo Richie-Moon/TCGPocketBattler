@@ -22,7 +22,14 @@ class Action <<record>> implements IAction {
     - attempt: IAttempt
 }
 
-class TrainerAction <<record>> implements IAction {
+/'
+  No cost and no gate: an attempt, and nothing else. Serves a Trainer card AND
+  an ActivatedAbility, which look unrelated but are the same shape once the
+  gating is taken out. The gating lives in PlayCardAction and UseAbilityAction
+  respectively, which is why isLegal here is unconditionally true.
+  (Was TrainerAction, which read wrong on a Pokemon ability.)
+'/
+class PlainAction <<record>> implements IAction {
     - description: String
     - attempt: IAttempt
 }
@@ -81,7 +88,7 @@ class EndTurnAction <<record>> implements IAction {}
 
 Action *-- IAttempt
 Action o-- EnergyCost
-TrainerAction *-- IAttempt
+PlainAction *-- IAttempt
 WithPrecondition o-- IAction
 MultiAttempt *-- IAttempt
 ChoiceAction o-- IAction

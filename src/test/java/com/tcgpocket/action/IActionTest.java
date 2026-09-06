@@ -386,10 +386,10 @@ class IActionTest {
         @DisplayName("only one Supporter a turn, but Items are unlimited")
         void supporterLimit() {
             SupporterCard professor = SupporterCard.of("professor", "Professor",
-                    new TrainerAction("Draw 2", new Attempt(
+                    new PlainAction("Draw 2", new Attempt(
                             new DrawCard(new Literal(2), new AttackerSide()))));
             ItemCard potion = ItemCard.of("potion", "Potion",
-                    new TrainerAction("Heal", new Attempt(
+                    new PlainAction("Heal", new Attempt(
                             new HealDamage(new Literal(20), new Self()))));
 
             CardInstance first = board.inHand(board.you, professor);
@@ -434,7 +434,7 @@ class IActionTest {
         void oncePerTurnPerPokemon() {
             ActivatedAbility heal = new ActivatedAbility(
                     "Powder Heal",
-                    new TrainerAction("Heal 20", new Attempt(
+                    new PlainAction("Heal 20", new Attempt(
                             new HealDamage(new Literal(20), new Self()))));
             PokemonCard butterfree = PokemonCard.basic(
                     "butterfree", "Butterfree", 120, Type.GRASS, 1).withAbility(heal);
@@ -461,7 +461,7 @@ class IActionTest {
         @Test
         void anAbilityTheCardDoesNotHaveIsIllegal() {
             ActivatedAbility notMine = new ActivatedAbility(
-                    "Borrowed", new TrainerAction("", new Attempt()));
+                    "Borrowed", new PlainAction("", new Attempt()));
 
             TestBoard board = new TestBoard();
             PokemonInPlay pokemon = board.active(board.you, PIKACHU);
@@ -475,7 +475,7 @@ class IActionTest {
         void abilityResolvesWithItsHolderAsSource() {
             ActivatedAbility heal = new ActivatedAbility(
                     "Self Care",
-                    new TrainerAction("Heal 30", new Attempt(
+                    new PlainAction("Heal 30", new Attempt(
                             new HealDamage(new Literal(30), new Self()))));
             PokemonCard healer = PokemonCard.basic("healer", "Healer", 90, Type.WATER, 1)
                     .withAbility(heal);
