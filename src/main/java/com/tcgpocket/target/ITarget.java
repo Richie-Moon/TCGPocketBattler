@@ -16,10 +16,11 @@ import java.util.Optional;
  */
 public sealed interface ITarget permits
         AttackerActive, OpponentActive, Self,
-        AttackerBenchSpecific, OpponentBenchSpecific {
+        AttackerBenchSpecific, OpponentBenchSpecific,
+        ChosenFrom {
 
     // TODO: AttackerBenchRandom, OpponentBenchRandom, AttackerRandom,
-    //       OpponentRandom, ChosenFrom, EventSource — ChosenFrom needs IPlayer.
+    //       OpponentRandom, EventSource.
 
     Optional<PokemonInPlay> resolve(ResolutionContext context);
 }

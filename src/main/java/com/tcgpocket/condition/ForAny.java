@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * <p>False for an empty group.
  */
-public record ForAny(ICondition<PokemonInPlay> condition, IMultiTarget targets)
+public record ForAny(ICondition<? super PokemonInPlay> condition, IMultiTarget targets)
         implements ICondition<ResolutionContext> {
 
     public ForAny {

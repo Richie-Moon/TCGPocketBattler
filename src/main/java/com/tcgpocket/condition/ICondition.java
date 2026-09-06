@@ -45,7 +45,7 @@ public sealed interface ICondition<T> permits
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
         IsActive, IsBenched, IsDamaged, HasTool, HasEnergy,
         // subject: CardInstance
-        InZone, IsSpecies, HasTag, IsType {
+        InZone, IsSpecies, HasTag, IsType, IsBasic {
 
     boolean evaluate(T subject);
 }

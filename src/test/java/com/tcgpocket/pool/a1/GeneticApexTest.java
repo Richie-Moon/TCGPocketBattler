@@ -5,6 +5,7 @@ import com.tcgpocket.TestBoard;
 import com.tcgpocket.action.IAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.card.IAbility;
+import com.tcgpocket.player.ScriptedPlayer;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.energy.Type;
@@ -13,12 +14,15 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.trigger.TriggerDispatcher;
 import com.tcgpocket.trigger.TurnEnd;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -179,14 +183,215 @@ class GeneticApexTest {
         }
 
         @Test
-        @DisplayName("usable with nothing to heal, and still spent")
-        void healingNothingIsStillAUse() {
-            AttemptResult result = new UseAbilityAction(butterfree, ability)
+        @DisplayName("not offered with nothing to heal, so the use is not wasted")
+        void healingNothingIsNotOffered() {
+            IAction use = new UseAbilityAction(butterfree, ability);
+
+            assertFalse(use.isLegal(board.contextWithoutSource()));
+            assertTrue(use.execute(board.contextWithoutSource()).failed());
+            assertFalse(butterfree.abilityUsedThisTurn(), "a refused use is not spent");
+        }
+
+        @Test
+        @DisplayName("their damage is not yours: it does not unlock the ability")
+        void onlyYourOwnDamageCounts() {
+            PokemonInPlay theirs = board.active(board.them, WALL);
+            theirs.takeDamage(50);
+
+            assertFalse(new UseAbilityAction(butterfree, ability)
+                    .isLegal(board.contextWithoutSource()));
+        }
+    }
+
+    @Nested
+    @DisplayName("Grass — Victreebel's Fragrance Trap")
+    class FragranceTrap {
+
+        /** You pick option 1 whenever you are asked; they are never asked. */
+        private final ScriptedPlayer you = new ScriptedPlayer("you", 1);
+        private final TestBoard board = new TestBoard(you, new ScriptedPlayer("them"));
+        private final PokemonInPlay victreebel = board.active(board.you, Grass.VICTREEBEL);
+        private final IAbility ability = Grass.VICTREEBEL.ability().orElseThrow();
+
+        private static final PokemonCard EVOLVED = PokemonCard.evolution(
+                "gloom", "Gloom", 1, "Oddish", 90, Type.GRASS, 2, List.of());
+
+        @Test
+        @DisplayName("you choose which Basic comes up, not your opponent")
+        void dragsUpTheBasicYouPicked() {
+            PokemonInPlay theirActive = board.active(board.them, WALL);
+            board.bench(board.them, Grass.BULBASAUR);
+            PokemonInPlay wanted = board.bench(board.them, Grass.CATERPIE);
+
+            AttemptResult result = new UseAbilityAction(victreebel, ability)
                     .execute(board.contextWithoutSource());
 
             assertTrue(result.succeeded());
-            assertFalse(result.changedTheBoard());
-            assertTrue(butterfree.abilityUsedThisTurn());
+            assertSame(wanted, board.them.active().orElseThrow(), "your pick, option 1");
+            assertTrue(board.them.bench().contains(theirActive), "the old Active went down");
+        }
+
+        @Test
+        @DisplayName("evolutions on their bench are not offered")
+        void onlyBasicsCanBeDragged() {
+            board.active(board.them, WALL);
+            PokemonInPlay onlyBasic = board.bench(board.them, Grass.BULBASAUR);
+            board.bench(board.them, EVOLVED);
+
+            new UseAbilityAction(victreebel, ability).execute(board.contextWithoutSource());
+
+            assertSame(onlyBasic, board.them.active().orElseThrow());
+            assertEquals(1, you.remaining(), "one candidate, so nothing was asked");
+        }
+
+        @Test
+        @DisplayName("not offered at all when there is no Basic to drag up")
+        void illegalWithNothingToDrag() {
+            board.active(board.them, WALL);
+            board.bench(board.them, EVOLVED);
+
+            assertFalse(new UseAbilityAction(victreebel, ability)
+                    .isLegal(board.contextWithoutSource()));
+        }
+
+        @Test
+        @DisplayName("only works from the Active spot")
+        void mustBeActive() {
+            TestBoard benched = new TestBoard(new ScriptedPlayer("you", 0), new ScriptedPlayer("them"));
+            PokemonInPlay onTheBench = benched.bench(benched.you, Grass.VICTREEBEL);
+            benched.active(benched.you, WALL);
+            benched.active(benched.them, WALL);
+            benched.bench(benched.them, Grass.BULBASAUR);
+
+            assertFalse(new UseAbilityAction(onTheBench, ability)
+                    .isLegal(benched.contextWithoutSource()));
+        }
+
+        @Test
+        void onceDuringYourTurn() {
+            board.active(board.them, WALL);
+            board.bench(board.them, Grass.BULBASAUR);
+            IAction use = new UseAbilityAction(victreebel, ability);
+
+            assertTrue(use.execute(board.contextWithoutSource()).succeeded());
+            assertFalse(use.isLegal(board.contextWithoutSource()));
+        }
+    }
+
+    @Nested
+    @DisplayName("Grass — Exeggutor's Stomp")
+    class Stomp {
+
+        /** Weak to Grass, so one hit is 20 bigger than the printed number. */
+        private static final PokemonCard STRAW_MAN =
+                TestBoard.card("StrawMan", 500, Type.WATER).withWeakness(Type.GRASS);
+
+        private int stomp(ScriptedRandom coin) {
+            TestBoard board = new TestBoard(coin);
+            PokemonInPlay exeggutor = board.active(board.you, Grass.EXEGGUTOR);
+            PokemonInPlay wall = board.active(board.them, WALL);
+
+            attack(Grass.EXEGGUTOR, "Stomp").execute(board.contextFor(exeggutor));
+            return wall.damage();
+        }
+
+        @Test
+        @DisplayName("tails is the printed 30")
+        void tailsDoes30() {
+            assertEquals(30, stomp(ScriptedRandom.alwaysTails()));
+        }
+
+        @Test
+        @DisplayName("heads is 30 more, not a second attack")
+        void headsDoes60() {
+            assertEquals(60, stomp(ScriptedRandom.alwaysHeads()));
+        }
+
+        @Test
+        @DisplayName("one coin, whatever the result")
+        void flipsExactlyOnce() {
+            ScriptedRandom coin = ScriptedRandom.alwaysHeads();
+            stomp(coin);
+            assertEquals(1, coin.flipsTaken());
+        }
+
+        @Test
+        @DisplayName("weakness is added once, because the damage lands once")
+        void isASingleInstanceOfDamage() {
+            TestBoard board = new TestBoard(ScriptedRandom.alwaysHeads());
+            PokemonInPlay exeggutor = board.active(board.you, Grass.EXEGGUTOR);
+            PokemonInPlay weak = board.active(board.them, STRAW_MAN);
+
+            attack(Grass.EXEGGUTOR, "Stomp").execute(board.contextFor(exeggutor));
+
+            // 60 + 20. Split into two DealDamage effects it would be
+            // (30 + 20) twice, which is 100 - a different card.
+            assertEquals(80, weak.damage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Grass — Skiddo's Surprise Attack")
+    class SurpriseAttack {
+
+        /** Weak to Grass, and wearing something that answers being hit. */
+        private static final PokemonCard STRAW_MAN =
+                TestBoard.card("StrawMan", 500, Type.WATER).withWeakness(Type.GRASS);
+
+        @Test
+        @DisplayName("heads is the printed 30, weakness and all")
+        void headsAttacks() {
+            TestBoard board = new TestBoard(ScriptedRandom.alwaysHeads());
+            PokemonInPlay skiddo = board.active(board.you, Grass.SKIDDO);
+            PokemonInPlay wall = board.active(board.them, STRAW_MAN);
+
+            AttemptResult result =
+                    attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
+
+            assertTrue(result.succeeded());
+            assertEquals(50, wall.damage(), "30 + 20 weakness");
+        }
+
+        @Test
+        @DisplayName("tails leaves the attempt failed, not merely empty")
+        void tailsDoesNotAttack() {
+            TestBoard board = new TestBoard(ScriptedRandom.alwaysTails());
+            PokemonInPlay skiddo = board.active(board.you, Grass.SKIDDO);
+            PokemonInPlay wall = board.active(board.them, STRAW_MAN);
+
+            AttemptResult result =
+                    attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
+
+            assertTrue(result.failed());
+            assertEquals(0, wall.damage());
+        }
+
+        @Test
+        @DisplayName("no attack means nothing answers it - the difference from 0 damage")
+        void tailsWakesNothingUp() {
+            TestBoard board = new TestBoard(ScriptedRandom.alwaysTails());
+            PokemonInPlay skiddo = board.active(board.you, Grass.SKIDDO);
+            PokemonInPlay wall = board.active(board.them, STRAW_MAN);
+            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+
+            attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
+
+            // Dealing 0 would still dispatch DamageDealt, and the Helmet would
+            // hit back for 20. Nothing was dealt at all, so it stays quiet.
+            assertEquals(0, skiddo.damage(), "the Helmet had nothing to answer");
+        }
+
+        @Test
+        @DisplayName("the Helmet does answer when the attack lands")
+        void headsWakesTheHelmet() {
+            TestBoard board = new TestBoard(ScriptedRandom.alwaysHeads());
+            PokemonInPlay skiddo = board.active(board.you, Grass.SKIDDO);
+            PokemonInPlay wall = board.active(board.them, STRAW_MAN);
+            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+
+            attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
+
+            assertEquals(20, skiddo.damage());
         }
     }
 

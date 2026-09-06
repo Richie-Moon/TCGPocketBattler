@@ -1,11 +1,13 @@
 package com.tcgpocket.effect;
 
+import com.tcgpocket.player.Decision;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.target.ISideTarget;
 import com.tcgpocket.target.ITarget;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,6 +29,11 @@ public record SwitchActive(ISideTarget side, Optional<ITarget> replacement) impl
     /** The controller of that side chooses who comes up. */
     public SwitchActive(ISideTarget side) {
         this(side, Optional.empty());
+    }
+
+    /** A named replacement, which may itself be a {@code ChosenFrom}. */
+    public SwitchActive(ISideTarget side, ITarget replacement) {
+        this(side, Optional.of(replacement));
     }
 
     @Override
@@ -54,13 +61,24 @@ public record SwitchActive(ISideTarget side, Optional<ITarget> replacement) impl
         return EffectOutcome.APPLIED;
     }
 
+    /**
+     * Who comes up.
+     *
+     * <p>With no replacement named, it is the switched side's own player who
+     * decides — the Sabrina reading, and the default because it is the one the
+     * rules fall back to. A card that takes the choice away from them says so
+     * by naming a {@code ChosenFrom} whose chooser is somebody else.
+     */
     private Optional<PokemonInPlay> chooseReplacement(ResolutionContext context, Side target) {
         if (replacement.isPresent()) {
             return replacement.get().resolve(context);
         }
-        // TODO: this is a decision for that side's IPlayer. Until the agent
-        //       seam exists, take the first benched Pokemon so the effect is
-        //       usable and testable rather than dead.
-        return Optional.of(target.bench().get(0));
+
+        List<PokemonInPlay> bench = target.bench();
+        if (bench.size() == 1) {
+            return Optional.of(bench.get(0));
+        }
+        return Optional.of(target.player().choose(
+                new Decision<>("Choose a Pokemon to bring up", bench, target, context)));
     }
 }

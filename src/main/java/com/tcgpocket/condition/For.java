@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p>An unresolvable target evaluates false: nothing satisfies a condition when
  * there is nothing there.
  */
-public record For(ICondition<PokemonInPlay> condition, ITarget target)
+public record For(ICondition<? super PokemonInPlay> condition, ITarget target)
         implements ICondition<ResolutionContext> {
 
     public For {
