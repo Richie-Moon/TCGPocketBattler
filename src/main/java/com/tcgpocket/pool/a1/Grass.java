@@ -484,18 +484,17 @@ public final class Grass {
      * A1-032 - Gogoat
      */
     public static final PokemonCard GOGOAT = PokemonCard.evolution(
-            "A1-032", "Gogoat", "It can sense the feelings of others by touching them with its horns. This species has assissted people with their work since 5000 years ago.",
+            "A1-032", "Gogoat", "It can sense the feelings of others by touching them with its horns. This species has assisted people with their work since 5000 years ago.",
             1, "Skiddo", 120, Type.GRASS, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
                     "Razor Leaf", "", EnergyCost.of(Type.GRASS, 1, Type.COLORLESS, 2), new Attempt(List.of(
-                    new DealDamage(new Literal(70), new OpponentActive())
-            ))
+                    new DealDamage(new Literal(70), new OpponentActive())))
             )), CardRarity.COMMON
     ).withWeakness(Type.FIRE);
 
     static final List<PokemonCard> CARDS = List.of(
-            BULBASAUR, IVYSAUR, VENUSAUR, VENUSAUR_EX, CATERPIE, METAPOD, BUTTERFREE, WEEDLE, KAKUNA, 
-            BEEDRILL, ODDISH, GLOOM, VILEPLUME, PARAS, PARASECT, VENONAT, VENOMOTH, BELLSPROUT, WEEPINBELL, VICTREEBEL, 
-            EXEGGCUTE, EXEGGUTOR, EXEGGUTOR_EX, TANGELA, SCYTHER, PINSIR, COTTONEE, WHIMSICOTT, PETILIL, LILLIGANT, 
+            BULBASAUR, IVYSAUR, VENUSAUR, VENUSAUR_EX, CATERPIE, METAPOD, BUTTERFREE, WEEDLE, KAKUNA,
+            BEEDRILL, ODDISH, GLOOM, VILEPLUME, PARAS, PARASECT, VENONAT, VENOMOTH, BELLSPROUT, WEEPINBELL, VICTREEBEL,
+            EXEGGCUTE, EXEGGUTOR, EXEGGUTOR_EX, TANGELA, SCYTHER, PINSIR, COTTONEE, WHIMSICOTT, PETILIL, LILLIGANT,
             SKIDDO, GOGOAT);
 
     private Grass() {
