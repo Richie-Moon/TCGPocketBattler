@@ -8,10 +8,12 @@ import com.tcgpocket.card.IAbility;
 import com.tcgpocket.player.ScriptedPlayer;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.effect.AttemptResult;
+import com.tcgpocket.effect.SwitchActive;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.PoisonStatus;
+import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.trigger.TriggerDispatcher;
 import com.tcgpocket.trigger.TurnEnd;
 
@@ -576,6 +578,74 @@ class GeneticApexTest {
             attack(Grass.BULBASAUR, "Vine Whip").execute(board.contextFor(attacker));
 
             assertEquals(0, attacker.damage());
+        }
+    }
+
+    @Nested
+    @DisplayName("A1-037 Vulpix — Tail Whip")
+    class TailWhip {
+
+        /** Vine Whip costs one Grass and one Colorless, so two Grass pays it. */
+        private static TestBoard boardWith(ScriptedRandom rng) {
+            TestBoard board = new TestBoard(rng);
+            board.active(board.you, Fire.VULPIX);
+            board.active(board.them, Grass.BULBASAUR).attachEnergy(Type.GRASS, 2);
+            return board;
+        }
+
+        private static boolean defenderCanAttack(TestBoard board) {
+            PokemonInPlay defender = board.them.active().orElseThrow();
+            return attack(Grass.BULBASAUR, "Vine Whip")
+                    .isLegal(board.contextFor(defender).withController(board.them));
+        }
+
+        @Test
+        @DisplayName("heads locks the defender's attack for its next turn only")
+        void headsLocksTheDefendersAttack() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysHeads());
+            PokemonInPlay vulpix = board.you.active().orElseThrow();
+
+            assertTrue(attack(Fire.VULPIX, "Tail Whip")
+                    .execute(board.contextFor(vulpix)).succeeded());
+
+            board.battle.switchSides();
+            assertFalse(defenderCanAttack(board));
+
+            board.battle.switchSides();
+            board.battle.switchSides();
+            assertTrue(defenderCanAttack(board), "one turn, not for the rest of the game");
+        }
+
+        @Test
+        @DisplayName("tails locks nothing, and is still a successful attack")
+        void tailsLocksNothing() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysTails());
+            PokemonInPlay vulpix = board.you.active().orElseThrow();
+
+            assertTrue(attack(Fire.VULPIX, "Tail Whip")
+                    .execute(board.contextFor(vulpix)).succeeded(),
+                    "the flip failing is a no-op, not a failed attack");
+
+            board.battle.switchSides();
+            assertTrue(defenderCanAttack(board));
+        }
+
+        @Test
+        @DisplayName("retreating out of the lock is the way around it")
+        void retreatingShedsTheLock() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysHeads());
+            PokemonInPlay vulpix = board.you.active().orElseThrow();
+            PokemonInPlay bulbasaur = board.them.active().orElseThrow();
+            board.bench(board.them, Grass.ODDISH);
+
+            attack(Fire.VULPIX, "Tail Whip").execute(board.contextFor(vulpix));
+            board.battle.switchSides();
+
+            // They are the attacker now, so it is their own turn they switch on.
+            new SwitchActive(new AttackerSide()).apply(board.contextWithoutSource());
+
+            assertTrue(board.them.bench().contains(bulbasaur));
+            assertTrue(bulbasaur.modifiers().isEmpty(), "leaving the active spot sheds it");
         }
     }
 

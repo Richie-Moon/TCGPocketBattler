@@ -334,6 +334,24 @@ class IEffectTest {
             assertEquals(com.tcgpocket.state.ModifierKind.PREVENT_DAMAGE,
                     pokemon.modifiers().get(0).kind());
         }
+
+        @Test
+        @DisplayName("an attack lock is a modifier, not a special condition")
+        void preventingAnAttackInstallsItsOwnKind() {
+            assertEquals(EffectOutcome.APPLIED,
+                    new PreventAttack(new Self(), new Literal(1)).apply(context));
+
+            assertEquals(com.tcgpocket.state.ModifierKind.CANNOT_ATTACK,
+                    pokemon.modifiers().get(0).kind());
+            assertTrue(pokemon.statuses().isEmpty(), "Paralysis would also stop it retreating");
+        }
+
+        @Test
+        void anAttackLockNeedsSomeoneToLock() {
+            assertEquals(EffectOutcome.FAILED,
+                    new PreventAttack(new OpponentActive(), new Literal(1))
+                            .apply(board.contextWithoutSource()));
+        }
     }
 
     @Nested

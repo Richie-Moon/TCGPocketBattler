@@ -24,7 +24,6 @@ import java.util.List;
  * Genetic Apex — Grass.
  */
 public final class Grass {
-
     /**
      * A1-001 · Bulbasaur — Vine Whip: 40 damage.
      */
@@ -496,5 +495,6 @@ public final class Grass {
             EXEGGCUTE, EXEGGUTOR, EXEGGUTOR_EX, TANGELA, SCYTHER, PINSIR, COTTONEE, WHIMSICOTT, PETILIL, LILLIGANT,
             SKIDDO, GOGOAT);
 
-    private Grass() {}
+    private Grass() {
+    }
 }

@@ -200,6 +200,18 @@ public final class PokemonInPlay extends CardInstance {
         modifiers.add(modifier);
     }
 
+    /**
+     * Whether a modifier of that kind is live on the given turn.
+     *
+     * <p>Asks the modifiers directly rather than trusting
+     * {@link #expireModifiers} to have run, because legality is checked
+     * mid-turn and expiry happens between turns.
+     */
+    public boolean hasModifier(ModifierKind kind, int currentTurn) {
+        return modifiers.stream()
+                .anyMatch(modifier -> modifier.kind() == kind && modifier.isActiveOn(currentTurn));
+    }
+
     /** Drops modifiers whose duration has run out. Called between turns. */
     public void expireModifiers(int currentTurn) {
         modifiers.removeIf(modifier -> !modifier.isActiveOn(currentTurn));

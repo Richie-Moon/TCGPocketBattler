@@ -8,6 +8,7 @@ import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.resolve.ResolutionContext;
+import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.trigger.AttackDeclared;
 import com.tcgpocket.trigger.DispatchResult;
@@ -39,7 +40,8 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
 
     /**
      * Legal when the attacking Pokemon is the active one, has the energy, and
-     * is not held down by a special condition.
+     * is neither held down by a special condition nor under a
+     * {@code CANNOT_ATTACK} modifier.
      */
     @Override
     public boolean isLegal(ResolutionContext context) {
@@ -49,7 +51,9 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
         }
 
         PokemonInPlay pokemon = attacker.get();
-        boolean heldDown = new IsAsleep().evaluate(pokemon) || new IsParalyzed().evaluate(pokemon);
+        boolean heldDown = new IsAsleep().evaluate(pokemon)
+                || new IsParalyzed().evaluate(pokemon)
+                || pokemon.hasModifier(ModifierKind.CANNOT_ATTACK, context.battle().turn());
 
         return !heldDown
                 && context.controller().active().filter(pokemon::equals).isPresent()

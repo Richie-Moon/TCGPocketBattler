@@ -20,6 +20,7 @@ import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DrawCard;
 import com.tcgpocket.effect.HealDamage;
 import com.tcgpocket.effect.IAttempt;
+import com.tcgpocket.effect.PreventAttack;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
@@ -94,6 +95,26 @@ class IActionTest {
 
             attacker.addStatus(new ParalysisStatus());
             assertFalse(thunderShock.isLegal(context));
+        }
+
+        @Test
+        @DisplayName("an attack lock stops attacking only, and lifts after the locked turn")
+        void anAttackLockForbidsAttackingButNotRetreating() {
+            attacker.attachEnergy(Type.LIGHTNING, 2);
+            board.bench(board.you, SNORLAX);
+
+            new PreventAttack(new Self(), new Literal(1)).apply(context);
+
+            assertFalse(thunderShock.isLegal(context));
+            assertTrue(new RetreatAction(new AttackerBenchSpecific(0))
+                            .isLegal(board.contextWithoutSource()),
+                    "retreating, attaching and Trainers all stay legal");
+
+            board.battle.switchSides();
+            assertFalse(thunderShock.isLegal(context), "still locked through the next turn");
+
+            board.battle.switchSides();
+            assertTrue(thunderShock.isLegal(context), "and no longer after it");
         }
 
         @Test

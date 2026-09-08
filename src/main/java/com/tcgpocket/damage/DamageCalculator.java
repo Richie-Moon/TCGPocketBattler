@@ -51,7 +51,7 @@ public final class DamageCalculator {
 
         amount -= sumModifiers(event.target(), ModifierKind.REDUCE_DAMAGE_TAKEN, currentTurn);
 
-        if (hasModifier(event.target(), ModifierKind.PREVENT_DAMAGE, currentTurn)) {
+        if (event.target().hasModifier(ModifierKind.PREVENT_DAMAGE, currentTurn)) {
             return 0;
         }
 
@@ -74,10 +74,5 @@ public final class DamageCalculator {
                 .filter(modifier -> modifier.isActiveOn(currentTurn))
                 .mapToInt(ActiveModifier::amount)
                 .sum();
-    }
-
-    private static boolean hasModifier(PokemonInPlay pokemon, ModifierKind kind, int currentTurn) {
-        return pokemon.modifiers().stream()
-                .anyMatch(modifier -> modifier.kind() == kind && modifier.isActiveOn(currentTurn));
     }
 }
