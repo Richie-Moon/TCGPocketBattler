@@ -14,7 +14,12 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.trigger.TriggerDispatcher;
 import com.tcgpocket.trigger.TurnEnd;
+
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -349,7 +354,7 @@ class GeneticApexTest {
                     attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
 
             assertTrue(result.succeeded());
-            assertEquals(50, wall.damage(), "30 + 20 weakness");
+            assertEquals(60, wall.damage(), "40 + 20 weakness");
         }
 
         @Test
@@ -572,5 +577,22 @@ class GeneticApexTest {
 
             assertEquals(0, attacker.damage());
         }
+    }
+
+    @Test
+    @DisplayName("all grass cards are correctly added to list")
+    void grassCardsInList() {
+        Set<String> cards = Grass.CARDS.stream()
+                .map(PokemonCard::name)
+                .map(String::toUpperCase)
+                .map(s -> s.replace(" ", "_"))
+                .collect(Collectors.toSet());
+
+        Set<String> fields = Stream.of(Grass.class.getDeclaredFields())
+                .map(Field::getName)
+                .filter(name -> !name.equals("CARDS"))
+                .collect(Collectors.toSet());
+
+        assertEquals(cards, fields);
     }
 }
