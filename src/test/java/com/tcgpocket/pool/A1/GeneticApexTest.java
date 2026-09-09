@@ -4,6 +4,7 @@ import com.tcgpocket.ScriptedRandom;
 import com.tcgpocket.TestBoard;
 import com.tcgpocket.action.IAction;
 import com.tcgpocket.action.UseAbilityAction;
+import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.IAbility;
 import com.tcgpocket.player.ScriptedPlayer;
 import com.tcgpocket.card.PokemonCard;
@@ -647,6 +648,292 @@ class GeneticApexTest {
             assertTrue(board.them.bench().contains(bulbasaur));
             assertTrue(bulbasaur.modifiers().isEmpty(), "leaving the active spot sheds it");
         }
+    }
+
+    @Nested
+    @DisplayName("Fire — the Charmander line")
+    class CharmanderLine {
+
+        private final TestBoard board = new TestBoard();
+
+        @Test
+        @DisplayName("Ember does 30 and eats a Fire Energy")
+        void emberDiscardsItsOwnEnergy() {
+            PokemonInPlay charmander = board.active(board.you, Fire.CHARMANDER);
+            PokemonInPlay wall = board.active(board.them, WALL);
+            charmander.attachEnergy(Type.FIRE, 2);
+
+            AttemptResult result =
+                    attack(Fire.CHARMANDER, "Ember").execute(board.contextFor(charmander));
+
+            assertTrue(result.succeeded());
+            assertEquals(30, wall.damage());
+            assertEquals(1, charmander.energyOf(Type.FIRE));
+        }
+
+        @Test
+        @DisplayName("the damage lands before the discard, so an unpayable discard costs nothing")
+        void damageFirstThenTheCost() {
+            PokemonInPlay charmander = board.active(board.you, Fire.CHARMANDER);
+            PokemonInPlay wall = board.active(board.them, WALL);
+
+            AttemptResult result =
+                    attack(Fire.CHARMANDER, "Ember").execute(board.contextFor(charmander));
+
+            assertTrue(result.failed(), "there was no Fire Energy to discard");
+            assertEquals(30, wall.damage(), "but the damage was already dealt");
+        }
+
+        @Test
+        void fireSpinDoes150AndDiscardsTwo() {
+            PokemonInPlay charizard = board.active(board.you, Fire.CHARIZARD);
+            PokemonInPlay wall = board.active(board.them, WALL);
+            charizard.attachEnergy(Type.FIRE, 4);
+
+            attack(Fire.CHARIZARD, "Fire Spin").execute(board.contextFor(charizard));
+
+            assertEquals(150, wall.damage());
+            assertEquals(2, charizard.energyOf(Type.FIRE));
+        }
+
+        @Test
+        @DisplayName("Charizard ex picks between a cheap Slash and Crimson Storm")
+        void charizardExHasTwoAttacks() {
+            PokemonInPlay charizard = board.active(board.you, Fire.CHARIZARD_EX);
+            PokemonInPlay wall = board.active(board.them, WALL);
+            charizard.attachEnergy(Type.FIRE, 4);
+
+            attack(Fire.CHARIZARD_EX, "Slash").execute(board.contextFor(charizard));
+            assertEquals(60, wall.damage());
+            assertEquals(4, charizard.energyOf(Type.FIRE), "Slash discards nothing");
+
+            attack(Fire.CHARIZARD_EX, "Crimson Storm").execute(board.contextFor(charizard));
+            assertEquals(260, wall.damage());
+            assertEquals(2, charizard.energyOf(Type.FIRE));
+        }
+
+        @Test
+        void theLineEvolvesInOrder() {
+            assertTrue(Fire.CHARMANDER.isBasic());
+            assertEquals("Charmander", Fire.CHARMELEON.evolvesFrom().orElseThrow());
+            assertEquals("Charmeleon", Fire.CHARIZARD.evolvesFrom().orElseThrow());
+            assertEquals("Charmeleon", Fire.CHARIZARD_EX.evolvesFrom().orElseThrow());
+            assertEquals(2, Fire.CHARIZARD_EX.stage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Fire — Arcanine's recoil")
+    class HeatTackle {
+
+        private final TestBoard board = new TestBoard();
+
+        @Test
+        @DisplayName("90 to them, 20 to itself")
+        void hurtsItself() {
+            PokemonInPlay arcanine = board.active(board.you, Fire.ARCANINE);
+            PokemonInPlay wall = board.active(board.them, WALL);
+
+            AttemptResult result =
+                    attack(Fire.ARCANINE, "Heat Tackle").execute(board.contextFor(arcanine));
+
+            assertTrue(result.succeeded(), "hurting yourself is not a failure");
+            assertEquals(90, wall.damage());
+            assertEquals(20, arcanine.damage());
+        }
+
+        @Test
+        @DisplayName("the recoil is its own damage, on top of anything the defender answers with")
+        void recoilAndRetaliationBothLand() {
+            PokemonInPlay arcanine = board.active(board.you, Fire.ARCANINE);
+            PokemonInPlay wall = board.active(board.them, WALL);
+            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+
+            attack(Fire.ARCANINE, "Heat Tackle").execute(board.contextFor(arcanine));
+
+            assertEquals(40, arcanine.damage(), "20 recoil + 20 Helmet");
+        }
+
+        @Test
+        @DisplayName("Arcanine ex pays the same 20 for 120")
+        void arcanineExIsTheSameShape() {
+            PokemonInPlay arcanine = board.active(board.you, Fire.ARCANINE_EX);
+            PokemonInPlay wall = board.active(board.them, WALL);
+
+            attack(Fire.ARCANINE_EX, "Inferno Onrush").execute(board.contextFor(arcanine));
+
+            assertEquals(120, wall.damage());
+            assertEquals(20, arcanine.damage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Fire — Moltres's Sky Attack")
+    class SkyAttack {
+
+        private static TestBoard boardWith(ScriptedRandom coin) {
+            TestBoard board = new TestBoard(coin);
+            board.active(board.you, Fire.MOLTRES);
+            board.active(board.them, WALL);
+            return board;
+        }
+
+        @Test
+        void headsDoes130() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysHeads());
+            PokemonInPlay moltres = board.you.active().orElseThrow();
+
+            AttemptResult result =
+                    attack(Fire.MOLTRES, "Sky Attack").execute(board.contextFor(moltres));
+
+            assertTrue(result.succeeded());
+            assertEquals(130, board.them.active().orElseThrow().damage());
+        }
+
+        @Test
+        @DisplayName("tails fails the attempt rather than dealing 0")
+        void tailsDoesNothingAtAll() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysTails());
+            PokemonInPlay moltres = board.you.active().orElseThrow();
+            PokemonInPlay wall = board.them.active().orElseThrow();
+            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+
+            AttemptResult result =
+                    attack(Fire.MOLTRES, "Sky Attack").execute(board.contextFor(moltres));
+
+            assertTrue(result.failed());
+            assertEquals(0, wall.damage());
+            assertEquals(0, moltres.damage(), "no damage was dealt, so the Helmet stayed quiet");
+        }
+
+        @Test
+        @DisplayName("one coin, whatever the result")
+        void flipsExactlyOnce() {
+            ScriptedRandom coin = ScriptedRandom.alwaysTails();
+            TestBoard board = boardWith(coin);
+
+            attack(Fire.MOLTRES, "Sky Attack")
+                    .execute(board.contextFor(board.you.active().orElseThrow()));
+
+            assertEquals(1, coin.flipsTaken());
+        }
+    }
+
+    @Nested
+    @DisplayName("Fire — Moltres ex's Inferno Dance")
+    class InfernoDance {
+
+        /** You take the first placement offered; they are never asked. */
+        private final ScriptedPlayer you = new ScriptedPlayer("you", 0);
+        private final ScriptedPlayer them = new ScriptedPlayer("them");
+
+        private TestBoard boardWith(ScriptedRandom coin) {
+            TestBoard board = new TestBoard(you, them, coin);
+            board.active(board.you, Fire.MOLTRES_EX);
+            board.active(board.them, WALL);
+            return board;
+        }
+
+        private AttemptResult dance(TestBoard board) {
+            return attack(Fire.MOLTRES_EX, "Inferno Dance")
+                    .execute(board.contextFor(board.you.active().orElseThrow()));
+        }
+
+        @Test
+        @DisplayName("as many Energy as there were heads, on the only Fire Pokemon on the bench")
+        void oneHeadsPerEnergy() {
+            TestBoard board = boardWith(ScriptedRandom.flipping(true, false, true));
+            PokemonInPlay benched = board.bench(board.you, Fire.CHARMANDER);
+
+            assertTrue(dance(board).succeeded());
+            assertEquals(2, benched.energyOf(Type.FIRE));
+            assertEquals(1, you.remaining(), "one candidate, so nothing was asked");
+        }
+
+        @Test
+        @DisplayName("three tails attaches nothing and is still a successful attack")
+        void noHeadsIsANoOp() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysTails());
+            PokemonInPlay benched = board.bench(board.you, Fire.CHARMANDER);
+
+            assertTrue(dance(board).succeeded());
+            assertEquals(0, benched.energyOf(Type.FIRE));
+            assertEquals(1, you.remaining(), "no Energy, so no placement to choose");
+        }
+
+        @Test
+        @DisplayName("only Fire Pokemon on your own bench are candidates")
+        void skipsTheRestOfTheBoard() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysHeads());
+            PokemonInPlay water = board.bench(board.you, TestBoard.card("Squirtle", 60, Type.WATER));
+            PokemonInPlay fire = board.bench(board.you, Fire.CHARMANDER);
+            PokemonInPlay theirs = board.bench(board.them, Fire.CHARMANDER);
+
+            dance(board);
+
+            assertEquals(3, fire.energyOf(Type.FIRE));
+            assertEquals(0, water.energyOf(Type.FIRE));
+            assertEquals(0, theirs.energyOf(Type.FIRE));
+        }
+
+        @Test
+        @DisplayName("in any way you like is one decision over the whole placement")
+        void asksOnceForAllOfIt() {
+            TestBoard board = boardWith(ScriptedRandom.flipping(true, true, false));
+            PokemonInPlay first = board.bench(board.you, Fire.CHARMANDER);
+            PokemonInPlay second = board.bench(board.you, Fire.PONYTA);
+
+            assertTrue(dance(board).succeeded());
+
+            // Option 0 of [first,first], [first,second], [second,second]: both
+            // Energy may land on one Pokemon, which is the point of the node.
+            assertEquals(2, first.energyOf(Type.FIRE));
+            assertEquals(0, second.energyOf(Type.FIRE));
+            assertEquals(0, you.remaining(), "asked exactly once, not once per Energy");
+        }
+
+        @Test
+        @DisplayName("nowhere to put them is a failed attack")
+        void failsWithNoFireOnTheBench() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysHeads());
+
+            assertTrue(dance(board).failed());
+        }
+
+        @Test
+        void heatBlastIsTheOtherOption() {
+            TestBoard board = boardWith(ScriptedRandom.alwaysHeads());
+
+            attack(Fire.MOLTRES_EX, "Heat Blast")
+                    .execute(board.contextFor(board.you.active().orElseThrow()));
+
+            assertEquals(70, board.them.active().orElseThrow().damage());
+        }
+    }
+
+    @Test
+    @DisplayName("all fire cards are correctly added to list")
+    void fireCardsInList() {
+        Set<String> cards = Fire.CARDS.stream()
+                .map(PokemonCard::name)
+                .map(String::toUpperCase)
+                .map(s -> s.replace(" ", "_"))
+                .collect(Collectors.toSet());
+
+        Set<String> fields = Stream.of(Fire.class.getDeclaredFields())
+                .map(Field::getName)
+                .filter(name -> !name.equals("CARDS"))
+                .collect(Collectors.toSet());
+
+        assertEquals(cards, fields);
+    }
+
+    @Test
+    @DisplayName("every Fire ex is tagged EX, because a knockout is worth two points")
+    void fireExCardsAreTagged() {
+        Fire.CARDS.stream()
+                .filter(card -> card.name().endsWith(" ex"))
+                .forEach(card -> assertTrue(card.tags().contains(CardTag.EX), card.name()));
     }
 
     @Test

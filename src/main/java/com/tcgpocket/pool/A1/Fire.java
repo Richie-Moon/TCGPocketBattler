@@ -37,7 +37,7 @@ public final class Fire {
      */
     public static final PokemonCard CHARMELEON = PokemonCard.evolution(
             "A1-034", "Charmeleon", "It has a barbaric nature. In the battle, it whips its fiery tail around and slashes away with sharp claws.",
-            1, "Charmeleon", 90, Type.FIRE, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
+            1, "Charmander", 90, Type.FIRE, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
                     "Fire Claws", "", EnergyCost.of(Type.FIRE, 1, Type.COLORLESS, 2), new Attempt(List.of(
                     new DealDamage(new Literal(60), new OpponentActive())))
             )), CardRarity.UNCOMMON
@@ -133,7 +133,7 @@ public final class Fire {
                                     new DealDamage(new Literal(120), new OpponentActive()),
                                     new DealDamage(new Literal(20), new Self())
                             )))), CardRarity.DOUBLE_RARE)
-            .withWeakness(Type.WATER);
+            .withWeakness(Type.WATER).withTags(CardTag.EX);
 
     /**
      * A1-042 - Ponyta
@@ -226,7 +226,7 @@ public final class Fire {
                                     new Attempt(List.of(
                                             new DealDamage(new Literal(70), new OpponentActive()))))),
                     CardRarity.DOUBLE_RARE)
-            .withWeakness(Type.LIGHTNING);
+            .withWeakness(Type.LIGHTNING).withTags(CardTag.EX);
 
     /**
      * A1-048 - Heatmor

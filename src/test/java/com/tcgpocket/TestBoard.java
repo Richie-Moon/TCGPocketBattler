@@ -55,7 +55,8 @@ public final class TestBoard {
         this(yours, theirs, new SeededRandom(DEFAULT_SEED));
     }
 
-    private TestBoard(IPlayer yours, IPlayer theirs, RandomSource rng) {
+    /** For tests that need to control both the decisions and the flips. */
+    public TestBoard(IPlayer yours, IPlayer theirs, RandomSource rng) {
         this.you = new Side("you", yours);
         this.them = new Side("them", theirs);
         this.battle = new Battle(you, them, rng);
