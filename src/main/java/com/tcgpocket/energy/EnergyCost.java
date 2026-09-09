@@ -37,6 +37,10 @@ public record EnergyCost(Map<Type, Integer> requirements) {
     public static EnergyCost of(Type type, int count, Type otherType, int otherCount) {
         return new EnergyCost(Map.of(type, count, otherType, otherCount));
     }
+    
+    public static EnergyCost of(Type type, int count, Type secondType, int secondCount, Type thirdType, int thirdCount) {
+        return new EnergyCost(Map.of(type, count, secondType, secondCount, thirdType, thirdCount));
+    }
 
     /** Total energy needed, typed and colorless together. */
     public int total() {

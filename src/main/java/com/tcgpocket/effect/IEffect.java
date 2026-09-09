@@ -20,7 +20,7 @@ import com.tcgpocket.resolve.ResolutionContext;
  *       would let an attempt abort with the payment already made.
  * </ul>
  */
-public sealed interface IEffect permits AddStatus, AttachEnergy, AttachFromEnergyZone, AttachTool, ConditionalEffect, DamageEach, DealDamage, DiscardFromHand, DiscardRandomEnergy, DiscardTypeEnergy, DrawCard, Fail, HealDamage, HealEach, IDurationEffect, IFlipStrategy, MoveEnergy, MultiHit, NoEffect, PlaceDamage, RemoveStatus, RepeatEffect, SearchDeck, ShuffleDeck, ShuffleHandIntoDeck, SpreadDamage, SwitchActive {
+public sealed interface IEffect permits AddStatus, AttachEnergy, AttachFromEnergyZone, AttachTool, ConditionalEffect, DamageEach, DealDamage, DiscardFromHand, DiscardRandomEnergy, DiscardTypeEnergy, DistributeEnergy, DrawCard, Fail, HealDamage, HealEach, IDurationEffect, IFlipStrategy, MoveEnergy, MultiHit, NoEffect, PlaceDamage, RemoveStatus, RepeatEffect, SearchDeck, ShuffleDeck, ShuffleHandIntoDeck, SpreadDamage, SwitchActive {
 
     EffectOutcome apply(ResolutionContext context);
 }

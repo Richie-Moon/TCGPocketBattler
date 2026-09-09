@@ -12,11 +12,13 @@ import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.condition.Always;
 import com.tcgpocket.condition.IsSpecies;
 import com.tcgpocket.condition.IsType;
+import com.tcgpocket.condition.HasType;
 import com.tcgpocket.condition.Not;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
 import com.tcgpocket.number.NumberHeads;
 import com.tcgpocket.number.Product;
+import com.tcgpocket.player.ScriptedPlayer;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
@@ -24,8 +26,10 @@ import com.tcgpocket.status.ParalysisStatus;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.status.SleepStatus;
 import com.tcgpocket.target.AttackerAll;
+import com.tcgpocket.target.AttackerBench;
 import com.tcgpocket.target.AttackerBenchSpecific;
 import com.tcgpocket.target.AttackerSide;
+import com.tcgpocket.target.Matching;
 import com.tcgpocket.target.OpponentActive;
 import com.tcgpocket.target.OpponentBench;
 import com.tcgpocket.target.OpponentSide;
@@ -283,6 +287,59 @@ class IEffectTest {
         void attachingFromAnEmptyZoneFails() {
             assertEquals(EffectOutcome.FAILED,
                     new AttachFromEnergyZone(new Self()).apply(context));
+        }
+
+        @Test
+        @DisplayName("a whole placement is one question, however many Energy it holds")
+        void distributesInOneDecision() {
+            ScriptedPlayer picking = new ScriptedPlayer("you", 1);
+            TestBoard board = new TestBoard(picking, new ScriptedPlayer("them"));
+            board.active(board.you, PIKACHU);
+            PokemonInPlay first = board.bench(board.you, PIKACHU);
+            PokemonInPlay second = board.bench(board.you, PIKACHU);
+
+            // Placements of two Energy over two Pokemon: [1,1], [1,2], [2,2].
+            assertEquals(EffectOutcome.APPLIED,
+                    new DistributeEnergy(Type.LIGHTNING, new Literal(2),
+                            new Matching(new AttackerBench(), new HasType(Type.LIGHTNING)), "place them")
+                            .apply(board.contextWithoutSource()));
+
+            assertEquals(1, first.energyOf(Type.LIGHTNING));
+            assertEquals(1, second.energyOf(Type.LIGHTNING));
+            assertEquals(0, picking.remaining(), "asked exactly once");
+        }
+
+        @Test
+        @DisplayName("a group of one is not worth asking about")
+        void placesWithoutAskingWhenThereIsOnlyOneWay() {
+            TestBoard board = new TestBoard(new ScriptedPlayer("you"), new ScriptedPlayer("them"));
+            board.active(board.you, PIKACHU);
+            PokemonInPlay only = board.bench(board.you, PIKACHU);
+            board.bench(board.you, ODDISH);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new DistributeEnergy(Type.LIGHTNING, new Literal(3),
+                            new Matching(new AttackerBench(), new HasType(Type.LIGHTNING)), "place them")
+                            .apply(board.contextWithoutSource()));
+
+            assertEquals(3, only.energyOf(Type.LIGHTNING));
+        }
+
+        @Test
+        @DisplayName("nothing to place asks nothing")
+        void zeroEnergyIsANoOp() {
+            board.bench(board.you, PIKACHU);
+
+            assertEquals(EffectOutcome.NO_OP,
+                    new DistributeEnergy(Type.LIGHTNING, new Literal(0), new AttackerBench(), "place them")
+                            .apply(context));
+        }
+
+        @Test
+        void distributingOverAnEmptyGroupFails() {
+            assertEquals(EffectOutcome.FAILED,
+                    new DistributeEnergy(Type.LIGHTNING, new Literal(2), new AttackerBench(), "place them")
+                            .apply(context));
         }
 
         @Test

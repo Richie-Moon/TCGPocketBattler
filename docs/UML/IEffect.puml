@@ -105,6 +105,17 @@ class AttachFromEnergyZone <<record>> implements IEffect {
     - target: ITarget
 }
 
+/' "Attach them to your Benched Fire Pokemon in any way you like." One
+   Decision over every placement of the Energy rather than one question per
+   Energy, so a player — or an interface with a confirm button — commits to a
+   whole placement at once. '/
+class DistributeEnergy <<record>> implements IEffect {
+    - energyType: Type
+    - amount: INumber
+    - among: IMultiTarget
+    - prompt: String
+}
+
 class DiscardRandomEnergy <<record>> implements IEffect {
     - energyCount: INumber
     - target: ITarget

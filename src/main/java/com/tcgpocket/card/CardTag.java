@@ -8,7 +8,7 @@ package com.tcgpocket.card;
  */
 public enum CardTag {
     EX,
-    MEGA,
+    MEGA_EX,
     FOSSIL,
     ULTRA_BEAST
 }
