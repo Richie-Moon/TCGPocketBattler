@@ -32,8 +32,8 @@ public final class GeneticApex {
     private static List<ICard> assemble() {
         List<ICard> cards = new ArrayList<>();
         cards.addAll(Grass.CARDS);
-        // TODO: Fire, Water once transcribed.
         cards.addAll(Fire.CARDS);
+        cards.addAll(Water.CARDS);
         cards.addAll(Lightning.CARDS);
         cards.addAll(Psychic.CARDS);
         // TODO: Fighting.

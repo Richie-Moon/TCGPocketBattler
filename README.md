@@ -25,6 +25,9 @@ mvn package    # build the jar
 - `GameEvent`/`Trigger` → turn engine and `legalActions` →
 `RandomPlayer`/`ScriptedPlayer`.
 
+### To Do
+- All prompts need to match in game text (e.g. A1-071 Seadra: This attack does 50 damage to 1 of your opponent's Pokémon.)
+
 ## Credits
 
 [TCGDex](https://github.com/tcgdex) for card data. 
