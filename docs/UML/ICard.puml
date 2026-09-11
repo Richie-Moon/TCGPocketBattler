@@ -50,7 +50,8 @@ class PokemonCard <<record>> implements IPlayableCard {
     - stage: int
     /' Basics have none; a Stage 1/2 may only be played onto this species. '/
     - evolvesFrom: Optional<String>
-    - type: Type
+    /' One or more; most cards print one, a dual-type card two. '/
+    - types: Set<Type>
     - ability: Optional<IAbility>
     - retreatCost: int
     - weakness: Optional<Type>
@@ -70,6 +71,12 @@ note bottom of PokemonCard
   Attacks live in `actions` as `Action`, which now carries an
   EnergyCost — previously nothing could gate an attack on
   energy at all. See IAction.puml and Energy.puml.
+
+  `types` is a set because a dual-type card counts as both types
+  for every card text that names one (HasType/IsType match on
+  either). It still prints a single `weakness`, and weakness
+  applies if the defender is weak to *any* of the attacker's
+  types — added once, never per matching type.
 end note
 
 @enduml

@@ -65,6 +65,32 @@ class DamageCalculatorTest {
     }
 
     @Test
+    @DisplayName("a dual-type attacker triggers weakness on either of its types")
+    void weaknessMatchesEitherTypeOfADualTypeAttacker() {
+        // Marowak is weak to Lightning, which is this attacker's second type.
+        PokemonCard grassLightning = TestBoard.card("Zapleaf", 90, Type.GRASS)
+                .withTypes(Type.GRASS, Type.LIGHTNING);
+        PokemonInPlay dual = board.bench(board.you, grassLightning);
+        DamageEvent event = new DamageEvent(Optional.of(dual), defender, 30, true, 20);
+
+        assertTrue(DamageCalculator.weaknessApplies(event));
+        assertEquals(50, DamageCalculator.calculate(event, 1),
+                "30 + 20 weakness, added once — not once per matching type");
+    }
+
+    @Test
+    @DisplayName("a dual-type attacker gets nothing when neither type is the weakness")
+    void weaknessNeedsOneOfTheDualTypesToMatch() {
+        PokemonCard grassWater = TestBoard.card("Seaweed", 90, Type.GRASS)
+                .withTypes(Type.GRASS, Type.WATER);
+        PokemonInPlay dual = board.bench(board.you, grassWater);
+        DamageEvent event = new DamageEvent(Optional.of(dual), defender, 30, true, 20);
+
+        assertFalse(DamageCalculator.weaknessApplies(event));
+        assertEquals(30, DamageCalculator.calculate(event, 1));
+    }
+
+    @Test
     void weaknessNeedsAMatchingType() {
         PokemonInPlay notWeak = board.bench(board.them, PIKACHU);
         DamageEvent event = new DamageEvent(Optional.of(attacker), notWeak, 30, true, 20);

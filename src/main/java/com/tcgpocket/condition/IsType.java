@@ -10,7 +10,8 @@ import java.util.Objects;
  * Whether a card is a Pokemon of a given type — "1 random Grass Pokemon from
  * your deck".
  *
- * <p>False for a Trainer card, which has no type at all.
+ * <p>False for a Trainer card, which has no type at all. True for either type
+ * of a dual-type Pokemon.
  *
  * <p>The card-level twin of {@link HasType}. The split is not ideal: they ask
  * the same question, but {@code HasType} is subjected on {@code PokemonInPlay}
@@ -27,6 +28,6 @@ public record IsType(Type type) implements ICondition<CardInstance> {
 
     @Override
     public boolean evaluate(CardInstance subject) {
-        return subject.definition() instanceof PokemonCard pokemon && pokemon.type() == type;
+        return subject.definition() instanceof PokemonCard pokemon && pokemon.types().contains(type);
     }
 }

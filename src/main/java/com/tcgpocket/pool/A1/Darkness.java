@@ -45,7 +45,7 @@ public final class Darkness {
                                     new ConditionalEffect(
                                             new LastCoinTossHeads(),
                                             new AddStatus(
-                                                    new OpponentActive(), new PoisonStatus())))))),
+                                                    new PoisonStatus(), new OpponentActive())))))),
                     CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
 

@@ -58,13 +58,19 @@ public final class DamageCalculator {
         return Math.max(0, amount);
     }
 
-    /** Whether the defender is weak to the attacker's type. */
+    /**
+     * Whether the defender is weak to the attacker's type.
+     *
+     * <p>A dual-type attacker triggers weakness if the defender is weak to
+     * either of its types. The bonus is still added once — it is this boolean
+     * that gates it, not a count.
+     */
     public static boolean weaknessApplies(DamageEvent event) {
         if (!event.isAttackDamage() || event.source().isEmpty()) {
             return false;
         }
         return event.target().definition().weakness()
-                .map(weakness -> weakness == event.source().get().definition().type())
+                .map(weakness -> event.source().get().definition().types().contains(weakness))
                 .orElse(false);
     }
 

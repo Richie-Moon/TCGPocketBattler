@@ -211,7 +211,7 @@ public final class Grass {
                     "Soothing Scent", "Your opponent's active Pokémon is now Asleep.", EnergyCost.of(Type.GRASS, 2, Type.COLORLESS, 1),
                     new Attempt(List.of(
                             new DealDamage(new Literal(80), new OpponentActive()),
-                            new AddStatus(new OpponentActive(), new SleepStatus())
+                            new AddStatus(new SleepStatus(), new OpponentActive())
                     ))
             )), CardRarity.RARE
     ).withWeakness(Type.FIRE);
@@ -264,7 +264,7 @@ public final class Grass {
                     "Poison Powder", "Your opponent's Active Pokémon is now Poisoned.", EnergyCost.of(Type.GRASS, 2, Type.COLORLESS, 1),
                     new Attempt(List.of(
                             new DealDamage(new Literal(30), new OpponentActive()),
-                            new AddStatus(new OpponentActive(), new PoisonStatus())
+                            new AddStatus(new PoisonStatus(), new OpponentActive())
                     ))
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.FIRE);

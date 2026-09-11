@@ -12,6 +12,10 @@ import java.util.*;
  *
  * @param actions        its attacks
  * @param stage          0 for a Basic, 1 and 2 for the evolutions
+ * @param types          one or more printed types. A dual-type card counts as
+ *                       both for every type-specific card text — it satisfies
+ *                       {@code HasType}/{@code IsType} for either — but still
+ *                       prints a single {@code weakness}.
  * @param evolvesFrom    species this evolves from; empty for a Basic
  * @param weaknessDamage extra damage when weakness applies. Always 20 in
  *                       Pocket, but kept as an {@link INumber} so the model
@@ -25,7 +29,7 @@ public record PokemonCard(
         List<IAction> actions,
         int maxHp,
         int stage,
-        Type type,
+        Set<Type> types,
         Optional<String> evolvesFrom,
         EnergyCost retreatCost,
         Optional<Type> weakness,
@@ -36,10 +40,18 @@ public record PokemonCard(
     public PokemonCard {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(name, "name");
-        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(types, "types");
         Objects.requireNonNull(ability, "ability");
         tags = Set.copyOf(tags);
         actions = List.copyOf(actions);
+
+        if (types.isEmpty()) {
+            throw new IllegalArgumentException("a Pokemon must have at least one type: " + name);
+        }
+        // An EnumSet rather than Set.copyOf: it iterates in the enum's declaration
+        // order, which is the order the types are printed in, and it collapses a
+        // duplicate instead of rejecting it.
+        types = Collections.unmodifiableSet(EnumSet.copyOf(types));
 
         if (maxHp <= 0) {
             throw new IllegalArgumentException("maxHp must be positive, was " + maxHp);
@@ -62,7 +74,7 @@ public record PokemonCard(
     /** Minimal Basic, for tests and for cards with nothing unusual about them. */
     public static PokemonCard basic(String id, String name, String description, int maxHp, Type type, EnergyCost retreatCost, CardRarity rarity) {
         return new PokemonCard(
-                id, name, description, Set.of(), List.of(), maxHp, 0, type,
+                id, name, description, Set.of(), List.of(), maxHp, 0, Set.of(type),
                 Optional.empty(), retreatCost, Optional.empty(), Optional.empty(), Optional.empty(), rarity);
     }
 
@@ -70,7 +82,7 @@ public record PokemonCard(
     public static PokemonCard basic(
             String id, String name, String description, int maxHp, Type type, EnergyCost retreatCost, List<IAction> actions, CardRarity rarity) {
         return new PokemonCard(
-                id, name, description, Set.of(), actions, maxHp, 0, type,
+                id, name, description, Set.of(), actions, maxHp, 0, Set.of(type),
                 Optional.empty(), retreatCost, Optional.empty(), Optional.empty(), Optional.empty(), rarity);
     }
 
@@ -79,7 +91,7 @@ public record PokemonCard(
             String id, String name, String description, int stage, String evolvesFrom,
             int maxHp, Type type, EnergyCost retreatCost, List<IAction> actions, CardRarity rarity) {
         return new PokemonCard(
-                id, name, description, Set.of(), actions, maxHp, stage, type,
+                id, name, description, Set.of(), actions, maxHp, stage, Set.of(type),
                 Optional.of(evolvesFrom), retreatCost, Optional.empty(), Optional.empty(), Optional.empty(), rarity);
     }
 
@@ -115,17 +127,31 @@ public record PokemonCard(
     }
 
     public PokemonCard withAbility(IAbility newAbility) {
-        return new PokemonCard(id, name, description, tags, actions, maxHp, stage, type,
+        return new PokemonCard(id, name, description, tags, actions, maxHp, stage, types,
                 evolvesFrom, retreatCost, weakness, weaknessDamage, Optional.of(newAbility), rarity);
     }
 
     public PokemonCard withTags(CardTag... newTags) {
-        return new PokemonCard(id, name, description, Set.of(newTags), actions, maxHp, stage, type,
+        return new PokemonCard(id, name, description, Set.of(newTags), actions, maxHp, stage, types,
                 evolvesFrom, retreatCost, weakness, weaknessDamage, ability, rarity);
     }
 
     public PokemonCard withWeakness(Type weakTo) {
-        return new PokemonCard(id, name, description, tags, actions, maxHp, stage, type,
+        return new PokemonCard(id, name, description, tags, actions, maxHp, stage, types,
                 evolvesFrom, retreatCost, Optional.of(weakTo), weaknessDamage, ability, rarity);
+    }
+
+    /**
+     * Replaces the printed types — a dual-type card is written as a single-typed
+     * one with this chained onto it, in the style of {@link #withWeakness}.
+     *
+     * <p>A dual type still prints one weakness, so {@code withWeakness} is
+     * unaffected; what changes is that the card now counts as both types for
+     * every card text that names a type.
+     */
+    public PokemonCard withTypes(Type... newTypes) {
+        return new PokemonCard(id, name, description, tags, actions, maxHp, stage,
+                new LinkedHashSet<>(Arrays.asList(newTypes)),
+                evolvesFrom, retreatCost, weakness, weaknessDamage, ability, rarity);
     }
 }

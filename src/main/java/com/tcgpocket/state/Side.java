@@ -39,6 +39,7 @@ public final class Side {
     private Type nextEnergy;
     private boolean energyAttachedThisTurn;
     private boolean supporterPlayedThisTurn;
+    private int supportersLockedUntilTurn = -1;
     private boolean retreatedThisTurn;
 
     public Side(String name, IPlayer player) {
@@ -253,6 +254,24 @@ public final class Side {
 
     public void markSupporterPlayed() {
         supporterPlayedThisTurn = true;
+    }
+
+    /**
+     * Whether an opponent's effect has shut this side out of Supporters.
+     *
+     * <p>A turn stamp rather than a flag, and deliberately not one of the
+     * {@link #resetTurnFlags} set: the lock is imposed on the opponent's turn
+     * and has to survive the reset that starts this one. Its Pokemon-level
+     * cousin is {@code ActiveModifier}, which cannot serve here because the
+     * restriction outlives any Pokemon on the board.
+     */
+    public boolean supportersLocked(int currentTurn) {
+        return currentTurn <= supportersLockedUntilTurn;
+    }
+
+    /** Extends the lock; a shorter one never shortens a longer one already set. */
+    public void lockSupportersUntil(int turn) {
+        supportersLockedUntilTurn = Math.max(supportersLockedUntilTurn, turn);
     }
 
     public boolean retreatedThisTurn() {

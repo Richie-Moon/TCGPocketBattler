@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tcgpocket.TestBoard;
+import com.tcgpocket.action.PlayCardAction;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.card.ToolCard;
@@ -19,6 +20,7 @@ import com.tcgpocket.number.Literal;
 import com.tcgpocket.number.NumberHeads;
 import com.tcgpocket.number.Product;
 import com.tcgpocket.player.ScriptedPlayer;
+import com.tcgpocket.pool.A1.Trainers;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
@@ -409,6 +411,32 @@ class IEffectTest {
                     new PreventAttack(new OpponentActive(), new Literal(1))
                             .apply(board.contextWithoutSource()));
         }
+
+        @Test
+        @DisplayName("a Supporter lock lands on the opponent's side, not on a Pokemon")
+        void supporterLockLandsOnTheOpponentSide() {
+            assertEquals(EffectOutcome.APPLIED,
+                    new PreventSupporter(new Literal(1)).apply(context));
+
+            int turn = board.battle.turn();
+            assertTrue(board.them.supportersLocked(turn));
+            assertTrue(board.them.supportersLocked(turn + 1), "through their next turn");
+            assertFalse(board.them.supportersLocked(turn + 2));
+            assertFalse(board.you.supportersLocked(turn), "the caster keeps their own Supporters");
+            assertTrue(pokemon.modifiers().isEmpty(), "a knockout must not clear it");
+        }
+
+        @Test
+        @DisplayName("a locked side cannot play a Supporter")
+        void aLockedSideCannotPlayASupporter() {
+            CardInstance supporter = board.inHand(board.them, Trainers.PROFESSORS_RESEARCH);
+            ResolutionContext theirs = context.withController(board.them);
+            assertTrue(new PlayCardAction(supporter).isLegal(theirs));
+
+            new PreventSupporter(new Literal(1)).apply(context);
+
+            assertFalse(new PlayCardAction(supporter).isLegal(theirs));
+        }
     }
 
     @Nested
@@ -442,11 +470,11 @@ class IEffectTest {
         @Test
         void statusesGoOnAndComeOff() {
             assertEquals(EffectOutcome.APPLIED,
-                    new AddStatus(new OpponentActive(), new SleepStatus()).apply(context));
+                    new AddStatus(new SleepStatus(), new OpponentActive()).apply(context));
             assertTrue(active.hasStatus(new SleepStatus()));
 
             assertEquals(EffectOutcome.NO_OP,
-                    new AddStatus(new OpponentActive(), new SleepStatus()).apply(context),
+                    new AddStatus(new SleepStatus(), new OpponentActive()).apply(context),
                     "applying the same status twice changes nothing");
 
             assertEquals(EffectOutcome.APPLIED,
@@ -680,6 +708,23 @@ class IEffectTest {
                             .apply(context));
 
             assertEquals(1, board.you.hand().size());
+        }
+
+        @Test
+        @DisplayName("a dual-type Pokemon is found by a search for either of its types")
+        void dualTypeIsFoundByEitherType() {
+            PokemonCard grassWater = TestBoard.card("Steamvine", 90, com.tcgpocket.energy.Type.GRASS)
+                    .withTypes(com.tcgpocket.energy.Type.GRASS, com.tcgpocket.energy.Type.WATER);
+            CardInstance steamvine = board.inDeck(board.you, grassWater);
+
+            assertTrue(new IsType(com.tcgpocket.energy.Type.GRASS).evaluate(steamvine));
+            assertTrue(new IsType(com.tcgpocket.energy.Type.WATER).evaluate(steamvine));
+            assertFalse(new IsType(com.tcgpocket.energy.Type.FIRE).evaluate(steamvine));
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new SearchDeck(new AttackerSide(), new Literal(1),
+                            new IsType(com.tcgpocket.energy.Type.WATER)).apply(context));
+            assertEquals(List.of(steamvine), board.you.hand());
         }
 
         @Test

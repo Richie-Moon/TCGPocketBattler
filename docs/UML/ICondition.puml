@@ -131,6 +131,14 @@ class IsSpecies <<record>> implements IConditionCard {
 class HasTag <<record>> implements IConditionCard {
     - tag: CardTag
 }
+/' The card-level twin of HasType: same question, but subjected on a
+   CardInstance so it also works on a card sitting in a deck. Both match
+   either type of a dual-type Pokemon. '/
+class IsType <<record>> implements IConditionCard {
+    - type: Type
+}
+class IsBasic <<record>> implements IConditionCard {
+}
 
 note bottom of IConditionCard
   `InHand` collapsed into InZone(HAND) once CardInstance gained a

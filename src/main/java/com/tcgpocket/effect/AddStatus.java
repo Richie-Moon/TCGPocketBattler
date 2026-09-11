@@ -16,7 +16,7 @@ import java.util.Optional;
  * <p>Stacking is the Pokemon's business: applying a second special condition
  * replaces the first, while poison and burn accumulate alongside it.
  */
-public record AddStatus(ITarget target, IStatus statusToAdd) implements IEffect {
+public record AddStatus(IStatus statusToAdd, ITarget target) implements IEffect {
 
     public AddStatus {
         Objects.requireNonNull(target, "target");

@@ -265,7 +265,7 @@ class IStatusTest {
                             new Attempt(List.of(new PlaceDamage(new Literal(20), new AttackerActive())))));
             theirs.attachTool(board.loose(board.them, alarm));
 
-            new com.tcgpocket.effect.AddStatus(new OpponentActive(), new PoisonStatus())
+            new com.tcgpocket.effect.AddStatus(new PoisonStatus(), new OpponentActive())
                     .apply(board.contextFor(mine));
             assertEquals(10, mine.damage());
 

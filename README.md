@@ -20,8 +20,7 @@ mvn package    # build the jar
 
 ## Next
 
-- Model all cards in-game. 
-  - Dual Type Cards were previewed, and will need to be implemented.
+- Model all cards in-game.
 - Game client and server to host battles (probably in a separate repository)
 - `GameEvent`/`Trigger` → turn engine and `legalActions` →
 `RandomPlayer`/`ScriptedPlayer`.

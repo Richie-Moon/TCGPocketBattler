@@ -38,7 +38,11 @@ public record PlayCardAction(CardInstance card) implements IAction {
             return pokemon.isBasic() && !side.benchIsFull();
         }
 
-        return !(card.definition() instanceof SupporterCard) || !side.supporterPlayedThisTurn();
+        if (card.definition() instanceof SupporterCard) {
+            return !side.supporterPlayedThisTurn()
+                    && !side.supportersLocked(context.battle().turn());
+        }
+        return true;
     }
 
     @Override

@@ -261,6 +261,17 @@ class IConditionTest {
         }
 
         @Test
+        @DisplayName("a dual-type Pokemon has both of its types, and no others")
+        void dualTypeHasEitherType() {
+            PokemonInPlay pokemon = board.active(board.you,
+                    TestBoard.card("Steamvine", 90, Type.GRASS).withTypes(Type.GRASS, Type.WATER));
+
+            assertTrue(new HasType(Type.GRASS).evaluate(pokemon));
+            assertTrue(new HasType(Type.WATER).evaluate(pokemon));
+            assertFalse(new HasType(Type.FIRE).evaluate(pokemon));
+        }
+
+        @Test
         @DisplayName("CardInstance-subjected conditions accept a Pokemon by subtyping")
         void cardLevelConditions() {
             CardInstance inHand = board.inHand(board.you, PIKACHU);
