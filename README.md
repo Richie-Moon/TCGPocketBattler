@@ -27,6 +27,7 @@ mvn package    # build the jar
 
 ### To Do
 - All prompts need to match in game text (e.g. A1-071 Seadra: This attack does 50 damage to 1 of your opponent's Pokémon.)
+- Check whether coin flips run when the condition is already met (e.g. coin flip attack applies status to opponent, but the status is already applied. Does the coin flip still happen?)
 
 ## Credits
 

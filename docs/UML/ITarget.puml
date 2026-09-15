@@ -17,10 +17,6 @@ interface ITarget <<sealed>> {
 /' --- turn-relative --- '/
 class AttackerActive <<record>> implements ITarget {}
 class OpponentActive <<record>> implements ITarget {}
-class AttackerBenchRandom <<record>> implements ITarget {}
-class OpponentBenchRandom <<record>> implements ITarget {}
-class AttackerRandom <<record>> implements ITarget {}
-class OpponentRandom <<record>> implements ITarget {}
 
 /' --- source-relative --- '/
 /' The card whose text is resolving. Without this, a Tool's trigger could not
@@ -51,8 +47,15 @@ class ChosenFrom <<record>> implements ITarget {
     - prompt: String
 }
 
+/' --- chance-addressed: drawn from Battle.rng at resolution time --- '/
+/' "1 of your Benched Pokemon at random". One node over any group instead of a
+   *Random record per group. Like ChosenFrom, never resolve it from isLegal. '/
+class RandomFrom <<record>> implements ITarget {
+    - from: IMultiTarget
+}
+
 /' Formatting only, these are not real relationships. '/
-AttackerBenchRandom -[hidden]- IMultiTarget
+RandomFrom -[hidden]- IMultiTarget
 ChosenFrom -[hidden]- ISideTarget
 
 interface IMultiTarget <<sealed>> {

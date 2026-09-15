@@ -51,4 +51,19 @@ final class Energies {
         }
         return taken;
     }
+
+    /**
+     * Removes all attached energy.
+     * @return the types removed, or empty if there was no attached energy
+     */
+    static List<Type> takeAll(PokemonInPlay pokemon) {
+        List<Type> units = asUnits(pokemon);
+        if (units.isEmpty()) {
+            return List.of();
+        }
+        for (Type type : units) {
+            pokemon.discardEnergy(type, 1);
+        }
+        return units;
+    }
 }

@@ -3,6 +3,7 @@ package com.tcgpocket.damage;
 import com.tcgpocket.state.ActiveModifier;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.state.Zone;
 
 /**
  * Turns a base damage amount into the number that actually lands.
@@ -64,9 +65,12 @@ public final class DamageCalculator {
      * <p>A dual-type attacker triggers weakness if the defender is weak to
      * either of its types. The bonus is still added once — it is this boolean
      * that gates it, not a count.
+     *
+     * <p>Only the Active Pokemon has weakness applied; an attack that also hits
+     * the Bench (Zapdos's Raging Thunder) does its printed damage there.
      */
     public static boolean weaknessApplies(DamageEvent event) {
-        if (!event.isAttackDamage() || event.source().isEmpty()) {
+        if (!event.isAttackDamage() || event.source().isEmpty() || event.target().zone() != Zone.ACTIVE) {
             return false;
         }
         return event.target().definition().weakness()

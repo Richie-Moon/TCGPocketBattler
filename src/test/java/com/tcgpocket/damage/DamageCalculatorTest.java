@@ -65,6 +65,16 @@ class DamageCalculatorTest {
     }
 
     @Test
+    @DisplayName("attack damage to a Benched Pokemon skips weakness")
+    void weaknessOnlyOnTheActive() {
+        PokemonInPlay benched = board.bench(board.them, MAROWAK);
+        DamageEvent event = new DamageEvent(Optional.of(attacker), benched, 30, true, 20);
+
+        assertFalse(DamageCalculator.weaknessApplies(event));
+        assertEquals(30, DamageCalculator.calculate(event, 1));
+    }
+
+    @Test
     @DisplayName("a dual-type attacker triggers weakness on either of its types")
     void weaknessMatchesEitherTypeOfADualTypeAttacker() {
         // Marowak is weak to Lightning, which is this attacker's second type.
