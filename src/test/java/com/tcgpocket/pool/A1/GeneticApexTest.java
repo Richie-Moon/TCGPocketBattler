@@ -428,14 +428,14 @@ class GeneticApexTest {
 
             attack(Lightning.PIKACHU_EX, "Circle Circuit").execute(context);
 
-            assertEquals(90, wall.damage(), "a full bench of three");
+            assertEquals(0, wall.damage(), "a full bench of 0 Lightning types");
         }
 
         @Test
         @DisplayName("the opponent's bench does not count")
         void countsYourOwnBenchOnly() {
-            board.bench(board.you, WALL);
-            board.bench(board.them, WALL);
+            board.bench(board.you, Lightning.PIKACHU);
+            board.bench(board.them, Lightning.PIKACHU);
             board.bench(board.them, WALL);
 
             attack(Lightning.PIKACHU_EX, "Circle Circuit").execute(context);
