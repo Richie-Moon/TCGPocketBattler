@@ -3,15 +3,27 @@ package com.tcgpocket.pool.A1;
 import com.tcgpocket.ScriptedRandom;
 import com.tcgpocket.TestBoard;
 import com.tcgpocket.action.IAction;
+import com.tcgpocket.action.PlayCardAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.IAbility;
 import com.tcgpocket.player.ScriptedPlayer;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.card.SupporterCard;
+import com.tcgpocket.card.ToolCard;
+import com.tcgpocket.condition.EventConcerns;
+import com.tcgpocket.effect.Attempt;
+import com.tcgpocket.effect.PlaceDamage;
+import com.tcgpocket.number.Literal;
+import com.tcgpocket.target.AttackerActive;
+import com.tcgpocket.target.Self;
+import com.tcgpocket.trigger.DamageDealt;
+import com.tcgpocket.trigger.Trigger;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.SwitchActive;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
+import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.ParalysisStatus;
 import com.tcgpocket.status.PoisonStatus;
@@ -45,6 +57,11 @@ class GeneticApexTest {
 
     /** A wall to attack into, so nothing dies mid-test and confuses the numbers. */
     private static final PokemonCard WALL = TestBoard.card("Snorlax", 500, Type.COLORLESS);
+
+    /** A Tool whose trigger is easy to see: 20 back at whoever damages its wearer. Not an A1 card. */
+    private static final ToolCard ROCKY_HELMET = ToolCard.of("test-rocky-helmet", "Rocky Helmet",
+            new Trigger(DamageDealt.class, new EventConcerns(new Self()),
+                    new Attempt(List.of(new PlaceDamage(new Literal(20), new AttackerActive())))));
 
     private static IAction attack(PokemonCard card, String name) {
         return card.actions().stream()
@@ -413,7 +430,7 @@ class GeneticApexTest {
             TestBoard board = new TestBoard(ScriptedRandom.alwaysTails());
             PokemonInPlay skiddo = board.active(board.you, Grass.SKIDDO);
             PokemonInPlay wall = board.active(board.them, STRAW_MAN);
-            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+            wall.attachTool(board.loose(board.them, ROCKY_HELMET));
 
             attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
 
@@ -428,7 +445,7 @@ class GeneticApexTest {
             TestBoard board = new TestBoard(ScriptedRandom.alwaysHeads());
             PokemonInPlay skiddo = board.active(board.you, Grass.SKIDDO);
             PokemonInPlay wall = board.active(board.them, STRAW_MAN);
-            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+            wall.attachTool(board.loose(board.them, ROCKY_HELMET));
 
             attack(Grass.SKIDDO, "Surprise Attack").execute(board.contextFor(skiddo));
 
@@ -611,26 +628,123 @@ class GeneticApexTest {
 
         private final TestBoard board = new TestBoard();
 
-        @Test
-        void potionHeals20() {
-            PokemonInPlay pokemon = board.active(board.you, WALL);
-            pokemon.takeDamage(50);
-
-            Trainers.POTION.actions().get(0).execute(board.contextWithoutSource());
-
-            assertEquals(30, pokemon.damage());
+        private static IAction play(SupporterCard card) {
+            return card.actions().get(0);
         }
 
         @Test
-        void professorsResearchDrawsTwo() {
-            board.inDeck(board.you, WALL);
-            board.inDeck(board.you, WALL);
-            board.inDeck(board.you, WALL);
+        @DisplayName("Erika is dragged onto a Grass Pokémon and heals 50 from it; a Snorlax is no drop target")
+        void erikaHealsOnlyGrass() {
+            PokemonInPlay wall = board.active(board.you, WALL);
+            PokemonInPlay bulbasaur = board.bench(board.you, Grass.BULBASAUR);
+            wall.takeDamage(60);
+            bulbasaur.takeDamage(60);
+            CardInstance erika = board.inHand(board.you, Trainers.ERIKA);
+            ResolutionContext context = board.contextWithoutSource();
 
-            Trainers.PROFESSORS_RESEARCH.actions().get(0).execute(board.contextWithoutSource());
+            assertEquals(List.of(new PlayCardAction(erika, bulbasaur)), PlayCardAction.all(erika, context));
+            assertTrue(new PlayCardAction(erika, bulbasaur).execute(context).succeeded());
 
-            assertEquals(2, board.you.hand().size());
-            assertEquals(1, board.you.deck().size());
+            assertEquals(60, wall.damage());
+            assertEquals(10, bulbasaur.damage());
+        }
+
+        @Test
+        @DisplayName("Misty's Water Pokémon is chosen when she is played, so every heads lands on it")
+        void mistyAttachesToTheDropTarget() {
+            TestBoard coins = new TestBoard(ScriptedRandom.flipping(true, true, false));
+            coins.active(coins.you, Water.LAPRAS);
+            PokemonInPlay staryu = coins.bench(coins.you, Water.STARYU);
+            CardInstance misty = coins.inHand(coins.you, Trainers.MISTY);
+
+            assertTrue(new PlayCardAction(misty, staryu).execute(coins.contextWithoutSource()).succeeded());
+
+            assertEquals(2, staryu.energyOf(Type.WATER));
+            assertEquals(0, coins.you.active().orElseThrow().energyOf(Type.WATER));
+        }
+
+        @Test
+        @DisplayName("Misty with no Water Pokémon in play has no moves, rather than flipping and failing")
+        void mistyNeedsAWaterPokemon() {
+            board.active(board.you, WALL);
+            CardInstance misty = board.inHand(board.you, Trainers.MISTY);
+
+            assertTrue(PlayCardAction.all(misty, board.contextWithoutSource()).isEmpty());
+        }
+
+        @Test
+        void brockAttachesOneFightingToOnix() {
+            board.active(board.you, WALL);
+            PokemonInPlay onix = board.bench(board.you, Fighting.ONIX);
+            CardInstance brock = board.inHand(board.you, Trainers.BROCK);
+
+            assertTrue(new PlayCardAction(brock, onix).execute(board.contextWithoutSource()).succeeded());
+
+            assertEquals(1, onix.energyOf(Type.FIGHTING));
+        }
+
+        @Test
+        @DisplayName("Giovanni's +10 belongs to the side, so it reaches a Pokémon switched in afterwards")
+        void giovanniFollowsTheSide() {
+            board.active(board.you, WALL);
+            PokemonInPlay bulbasaur = board.bench(board.you, Grass.BULBASAUR);
+            PokemonInPlay target = board.active(board.them, WALL);
+
+            play(Trainers.GIOVANNI).execute(board.contextWithoutSource());
+            new SwitchActive(new AttackerSide()).apply(board.contextWithoutSource());
+            attack(Grass.BULBASAUR, "Vine Whip").execute(board.contextFor(bulbasaur));
+
+            assertEquals(50, target.damage());
+        }
+
+        @Test
+        @DisplayName("Blaine's +30 goes to Magmar but not to a Pokémon it does not name")
+        void blaineOnlyBoostsNamedPokemon() {
+            PokemonInPlay magmar = board.active(board.you, Fire.MAGMAR);
+            PokemonInPlay bulbasaur = board.bench(board.you, Grass.BULBASAUR);
+            PokemonInPlay target = board.active(board.them, WALL);
+
+            play(Trainers.BLAINE).execute(board.contextWithoutSource());
+            attack(Fire.MAGMAR, "Magma Punch").execute(board.contextFor(magmar));
+            assertEquals(80, target.damage());
+
+            new SwitchActive(new AttackerSide()).apply(board.contextWithoutSource());
+            attack(Grass.BULBASAUR, "Vine Whip").execute(board.contextFor(bulbasaur));
+            assertEquals(120, target.damage());
+        }
+
+        @Test
+        @DisplayName("Koga returns an Active Muk to hand, and cannot be played for anything else")
+        void kogaReturnsMuk() {
+            board.active(board.you, Darkness.MUK);
+            PokemonInPlay benched = board.bench(board.you, WALL);
+            ResolutionContext context = board.contextWithoutSource();
+            CardInstance koga = board.inHand(board.you, Trainers.KOGA);
+            CardInstance another = board.inHand(board.you, Trainers.KOGA);
+
+            assertTrue(new PlayCardAction(koga).execute(context).succeeded());
+
+            assertSame(benched, board.you.active().orElseThrow());
+            assertTrue(board.you.hand().stream().anyMatch(card -> card.definition() == Darkness.MUK));
+            board.you.resetTurnFlags();
+            assertFalse(new PlayCardAction(another).isLegal(context), "a Snorlax is not a Muk");
+        }
+
+        @Test
+        @DisplayName("Lt. Surge moves every Lightning Energy off the Bench and nothing else")
+        void ltSurgeMovesOnlyLightning() {
+            PokemonInPlay raichu = board.active(board.you, Lightning.RAICHU);
+            PokemonInPlay first = board.bench(board.you, WALL);
+            PokemonInPlay second = board.bench(board.you, WALL);
+            first.attachEnergy(Type.LIGHTNING, 2);
+            first.attachEnergy(Type.WATER, 1);
+            second.attachEnergy(Type.LIGHTNING, 1);
+
+            play(Trainers.LT_SURGE).execute(board.contextWithoutSource());
+
+            assertEquals(3, raichu.energyOf(Type.LIGHTNING));
+            assertEquals(0, first.energyOf(Type.LIGHTNING) + second.energyOf(Type.LIGHTNING));
+            assertEquals(1, first.energyOf(Type.WATER));
         }
 
         @Test
@@ -638,7 +752,7 @@ class GeneticApexTest {
         void rockyHelmetRetaliates() {
             PokemonInPlay attacker = board.active(board.you, Grass.BULBASAUR);
             PokemonInPlay defender = board.active(board.them, WALL);
-            defender.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+            defender.attachTool(board.loose(board.them, ROCKY_HELMET));
 
             attack(Grass.BULBASAUR, "Vine Whip").execute(board.contextFor(attacker));
 
@@ -652,7 +766,7 @@ class GeneticApexTest {
             PokemonInPlay attacker = board.active(board.you, Grass.BULBASAUR);
             board.active(board.them, WALL);
             PokemonInPlay benched = board.bench(board.them, WALL);
-            benched.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+            benched.attachTool(board.loose(board.them, ROCKY_HELMET));
 
             attack(Grass.BULBASAUR, "Vine Whip").execute(board.contextFor(attacker));
 
@@ -825,7 +939,7 @@ class GeneticApexTest {
         void recoilAndRetaliationBothLand() {
             PokemonInPlay arcanine = board.active(board.you, Fire.ARCANINE);
             PokemonInPlay wall = board.active(board.them, WALL);
-            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+            wall.attachTool(board.loose(board.them, ROCKY_HELMET));
 
             attack(Fire.ARCANINE, "Heat Tackle").execute(board.contextFor(arcanine));
 
@@ -874,7 +988,7 @@ class GeneticApexTest {
             TestBoard board = boardWith(ScriptedRandom.alwaysTails());
             PokemonInPlay moltres = board.you.active().orElseThrow();
             PokemonInPlay wall = board.them.active().orElseThrow();
-            wall.attachTool(board.loose(board.them, Trainers.ROCKY_HELMET));
+            wall.attachTool(board.loose(board.them, ROCKY_HELMET));
 
             AttemptResult result =
                     attack(Fire.MOLTRES, "Sky Attack").execute(board.contextFor(moltres));

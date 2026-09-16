@@ -34,6 +34,15 @@ class PlainAction <<record>> implements IAction {
     - attempt: IAttempt
 }
 
+/' A Trainer played by dragging it onto a Pokemon (Misty, Erika, Brock). The
+   drop is part of the move: PlayCardAction carries it, one move per candidate,
+   and the attempt reads it through PlayTarget. isLegal checks the drop. '/
+class PlayedOnto <<record>> implements IAction {
+    - candidates: IMultiTarget
+    - description: String
+    - attempt: IAttempt
+}
+
 /' --- combinators --- '/
 
 class WithPrecondition <<record>> implements IAction {
@@ -73,6 +82,9 @@ class EvolveAction <<record>> implements IAction {
 
 class PlayCardAction <<record>> implements IAction {
     - card: CardInstance
+    /' Where a PlayedOnto card was dropped; empty for every other card. '/
+    - onto: Optional<PokemonInPlay>
+    + {static} all(CardInstance, ResolutionContext): List<PlayCardAction>
 }
 
 class AttachEnergyAction <<record>> implements IAction {
@@ -89,6 +101,7 @@ class EndTurnAction <<record>> implements IAction {}
 Action *-- IAttempt
 Action o-- EnergyCost
 PlainAction *-- IAttempt
+PlayedOnto *-- IAttempt
 WithPrecondition o-- IAction
 MultiAttempt *-- IAttempt
 ChoiceAction o-- IAction

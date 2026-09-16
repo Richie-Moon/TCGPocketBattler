@@ -38,7 +38,8 @@ That API will return a JSON object in the format of:
   "weakness": "FIRE",
   "retreatCost": 1,
   "ex": false,
-  "megaEx": false
+  "megaEx": false,
+  "trainerEffect": null
 }
 ```
 Then, take this JSON data and write Java code to convert it into the object-oriented model for this project.

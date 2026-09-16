@@ -12,6 +12,7 @@ import com.tcgpocket.card.ItemCard;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.card.SupporterCard;
 import com.tcgpocket.condition.Always;
+import com.tcgpocket.condition.HasType;
 import com.tcgpocket.condition.ICondition;
 import com.tcgpocket.condition.Not;
 import com.tcgpocket.effect.Attempt;
@@ -32,9 +33,12 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.ParalysisStatus;
 import com.tcgpocket.status.SleepStatus;
 import com.tcgpocket.target.AttackerActive;
+import com.tcgpocket.target.AttackerAll;
 import com.tcgpocket.target.AttackerBenchSpecific;
 import com.tcgpocket.target.AttackerSide;
+import com.tcgpocket.target.Matching;
 import com.tcgpocket.target.OpponentActive;
+import com.tcgpocket.target.PlayTarget;
 import com.tcgpocket.target.Self;
 
 import java.util.List;
@@ -436,6 +440,62 @@ class IActionTest {
             assertTrue(new PlayCardAction(first).execute(context).succeeded());
             assertFalse(new PlayCardAction(second).isLegal(context));
             assertTrue(new PlayCardAction(item).isLegal(context), "Items are not limited");
+        }
+
+        /** "Heal 50 from 1 of your Lightning Pokemon", played by dragging it onto one. */
+        private final SupporterCard dragged = SupporterCard.of("medic", "Medic",
+                new PlayedOnto(new Matching(new AttackerAll(), new HasType(Type.LIGHTNING)), "Heal 50",
+                        new Attempt(new HealDamage(new Literal(50), new PlayTarget()))));
+
+        @Test
+        @DisplayName("a dragged Trainer is one move per Pokemon it can be dropped on")
+        void oneMovePerDropTarget() {
+            PokemonInPlay active = board.active(board.you, PIKACHU);
+            PokemonInPlay benched = board.bench(board.you, PIKACHU);
+            board.bench(board.you, TestBoard.card("Snorlax", 150, Type.COLORLESS));
+            CardInstance card = board.inHand(board.you, dragged);
+
+            assertEquals(
+                    List.of(new PlayCardAction(card, active), new PlayCardAction(card, benched)),
+                    PlayCardAction.all(card, context));
+        }
+
+        @Test
+        @DisplayName("the drop is the target: only the Pokemon it was dragged onto is healed")
+        void theDropIsTheTarget() {
+            PokemonInPlay active = board.active(board.you, PIKACHU);
+            PokemonInPlay benched = board.bench(board.you, PIKACHU);
+            active.takeDamage(50);
+            benched.takeDamage(50);
+            CardInstance card = board.inHand(board.you, dragged);
+
+            assertTrue(new PlayCardAction(card, benched).execute(context).succeeded());
+
+            assertEquals(50, active.damage());
+            assertEquals(0, benched.damage());
+        }
+
+        @Test
+        @DisplayName("not dropping a dragged card, or dropping it somewhere it does not fit, is not a move")
+        void aDraggedCardNeedsAValidDrop() {
+            board.active(board.you, PIKACHU);
+            PokemonInPlay snorlax = board.bench(board.you, TestBoard.card("Snorlax", 150, Type.COLORLESS));
+            CardInstance card = board.inHand(board.you, dragged);
+            CardInstance plain = board.inHand(board.you, ItemCard.of("potion", "Potion",
+                    new PlainAction("Heal", new Attempt(new HealDamage(new Literal(20), new AttackerActive())))));
+
+            assertFalse(new PlayCardAction(card).isLegal(context), "dragged cards must be dropped");
+            assertFalse(new PlayCardAction(card, snorlax).isLegal(context), "not a Lightning Pokemon");
+            assertFalse(new PlayCardAction(plain, snorlax).isLegal(context), "a plain Item is not dragged");
+        }
+
+        @Test
+        @DisplayName("with nothing to drop it on, a dragged card has no moves at all")
+        void noCandidatesNoMoves() {
+            board.active(board.you, TestBoard.card("Snorlax", 150, Type.COLORLESS));
+            CardInstance card = board.inHand(board.you, dragged);
+
+            assertTrue(PlayCardAction.all(card, context).isEmpty());
         }
 
         @Test

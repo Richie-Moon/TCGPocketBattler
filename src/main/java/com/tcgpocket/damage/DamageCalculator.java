@@ -44,7 +44,8 @@ public final class DamageCalculator {
 
         amount += event.source()
                 .map(source -> sumModifiers(source, ModifierKind.INCREASE_DAMAGE_DEALT, currentTurn)
-                        - sumModifiers(source, ModifierKind.REDUCE_DAMAGE_DEALT, currentTurn))
+                        - sumModifiers(source, ModifierKind.REDUCE_DAMAGE_DEALT, currentTurn)
+                        + sideBonus(source, event.target(), currentTurn))
                 .orElse(0);
 
         if (weaknessApplies(event)) {
@@ -77,6 +78,18 @@ public final class DamageCalculator {
         return event.target().definition().weakness()
                 .map(weakness -> event.source().get().definition().types().contains(weakness))
                 .orElse(false);
+    }
+
+    /**
+     * The attacking side's bonus from Giovanni and the like, which card text
+     * confines to "your opponent's Active Pokemon" — not the Bench, and not
+     * the attacker's own side.
+     */
+    private static int sideBonus(PokemonInPlay source, PokemonInPlay target, int currentTurn) {
+        if (target.zone() != Zone.ACTIVE || target.owner() == source.owner()) {
+            return 0;
+        }
+        return source.owner().attackBonusFor(source, currentTurn);
     }
 
     private static int sumModifiers(PokemonInPlay pokemon, ModifierKind kind, int currentTurn) {

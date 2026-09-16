@@ -24,6 +24,10 @@ class OpponentActive <<record>> implements ITarget {}
    turn it is, which is not the same thing once triggers exist. '/
 class Self <<record>> implements ITarget {}
 
+/' The Pokemon a Trainer was dragged onto, fixed when the card was played, so
+   it asks nobody anything. Reads ResolutionContext.playTarget. '/
+class PlayTarget <<record>> implements ITarget {}
+
 /' Only while a trigger is resolving; reads ResolutionContext.event.
    Lets a card retaliate against whatever just hit it. '/
 class EventSource <<record>> implements ITarget {}

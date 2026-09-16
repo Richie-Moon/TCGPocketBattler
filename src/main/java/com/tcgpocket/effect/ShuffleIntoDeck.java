@@ -6,13 +6,13 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
-import com.tcgpocket.state.Zone;
 import com.tcgpocket.target.ITarget;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Shuffles a Pokemon in play, with every card under it and its Tool, into its
@@ -36,11 +36,26 @@ public record ShuffleIntoDeck(ITarget target) implements IEffect {
             return EffectOutcome.FAILED;
         }
 
-        PokemonInPlay pokemon = resolved.get();
+        Side owner = resolved.get().owner();
+        if (!leavePlay(context, resolved.get(), owner::addToDeck)) {
+            return EffectOutcome.FAILED;
+        }
+        owner.shuffleDeck(context.battle().rng());
+        return EffectOutcome.APPLIED;
+    }
+
+    /**
+     * Takes a Pokemon out of play and hands every card in its stack, and its
+     * Tool, to {@code destination}. Shared with {@link DiscardFromPlay}, which
+     * differs only in where the cards land.
+     *
+     * @return false, with nothing moved, when an Active has no Bench to replace it
+     */
+    static boolean leavePlay(ResolutionContext context, PokemonInPlay pokemon, Consumer<CardInstance> destination) {
         Side owner = pokemon.owner();
         boolean wasActive = owner.active().filter(pokemon::equals).isPresent();
         if (wasActive && owner.bench().isEmpty()) {
-            return EffectOutcome.FAILED;
+            return false;
         }
 
         if (wasActive) {
@@ -58,10 +73,9 @@ public record ShuffleIntoDeck(ITarget target) implements IEffect {
         List<PokemonCard> cards = new ArrayList<>(pokemon.evolutionStack());
         cards.add(pokemon.definition());
         for (PokemonCard card : cards) {
-            owner.addToDeck(new CardInstance(pokemon.instanceId(), card, owner, Zone.DECK));
+            destination.accept(new CardInstance(pokemon.instanceId(), card, owner, pokemon.zone()));
         }
-        pokemon.removeTool().ifPresent(owner::addToDeck);
-        owner.shuffleDeck(context.battle().rng());
-        return EffectOutcome.APPLIED;
+        pokemon.removeTool().ifPresent(destination);
+        return true;
     }
 }

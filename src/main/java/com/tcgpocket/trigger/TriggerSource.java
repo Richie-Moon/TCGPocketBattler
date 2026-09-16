@@ -48,6 +48,6 @@ public record TriggerSource(ITrigger trigger, Optional<PokemonInPlay> holder, Si
      */
     public ResolutionContext contextFor(Battle battle, GameEvent event) {
         return new ResolutionContext(
-                battle, controller, holder, Optional.of(event), new ResolutionScope());
+                battle, controller, holder, Optional.empty(), Optional.of(event), new ResolutionScope());
     }
 }

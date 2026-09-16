@@ -10,8 +10,5 @@ package com.tcgpocket.card;
  * once and going to the discard pile.
  */
 public sealed interface ITrainerCard extends ICard
-        permits ItemCard, SupporterCard, ToolCard, StadiumCard {
-
-    // TODO: the Fossil branch (PlayableItemCard) — a card that is both a
-    //       Trainer and something that sits on the bench like a Pokemon.
+        permits ItemCard, SupporterCard, ToolCard, StadiumCard, PlayableItemCard {
 }

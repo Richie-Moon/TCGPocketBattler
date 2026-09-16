@@ -15,6 +15,9 @@ class ResolutionContext <<record>> {
        through this, which is how a Tool or Ability trigger can mean
        "the Pokemon I am attached to". '/
     - source: PokemonInPlay
+    /' The Pokemon a Trainer was dragged onto (PlayedOnto). Separate from
+       source, which is whose text is resolving; PlayTarget resolves this. '/
+    - playTarget: Optional<PokemonInPlay>
     /' Present only while a trigger is resolving; carries the payload of the
        event that fired it. '/
     - event: Optional<GameEvent>
@@ -22,6 +25,7 @@ class ResolutionContext <<record>> {
 
     + withSource(PokemonInPlay): ResolutionContext
     + withEvent(GameEvent): ResolutionContext
+    + withPlayTarget(Optional<PokemonInPlay>): ResolutionContext
     + opponentOf(Side): Side
     + rng(): RandomSource
     + choose(Decision<T>): T

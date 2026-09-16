@@ -440,7 +440,7 @@ class IEffectTest {
         @Test
         @DisplayName("a locked side cannot play a Supporter")
         void aLockedSideCannotPlayASupporter() {
-            CardInstance supporter = board.inHand(board.them, Trainers.PROFESSORS_RESEARCH);
+            CardInstance supporter = board.inHand(board.them, Trainers.GIOVANNI);
             ResolutionContext theirs = context.withController(board.them);
             assertTrue(new PlayCardAction(supporter).isLegal(theirs));
 
@@ -608,6 +608,20 @@ class IEffectTest {
             assertEquals(EffectOutcome.FAILED, new ShuffleIntoDeck(new OpponentActive()).apply(context));
             assertTrue(board.them.active().isPresent());
             assertEquals(0, board.them.deck().size());
+        }
+
+        @Test
+        @DisplayName("discarding from play is the same departure, landing in the discard pile with no shuffle")
+        void discardFromPlayGoesToTheDiscardPile() {
+            board.active(board.them, PIKACHU);
+            PokemonInPlay benched = board.bench(board.them, SNORLAX);
+
+            assertEquals(EffectOutcome.APPLIED, new DiscardFromPlay(new OpponentActive()).apply(context));
+
+            assertSame(benched, board.them.active().orElseThrow());
+            assertEquals(1, board.them.discardPile().size());
+            assertEquals(0, board.them.deck().size());
+            assertEquals(0, board.them.points() + board.you.points(), "not a knockout");
         }
     }
 

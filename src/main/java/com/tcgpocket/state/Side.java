@@ -10,6 +10,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * One player's half of the board.
@@ -41,6 +42,7 @@ public final class Side {
     private boolean supporterPlayedThisTurn;
     private int supportersLockedUntilTurn = -1;
     private boolean retreatedThisTurn;
+    private final List<AttackBonus> attackBonuses = new ArrayList<>();
 
     public Side(String name, IPlayer player) {
         this.name = name;
@@ -272,6 +274,32 @@ public final class Side {
     /** Extends the lock; a shorter one never shortens a longer one already set. */
     public void lockSupportersUntil(int turn) {
         supportersLockedUntilTurn = Math.max(supportersLockedUntilTurn, turn);
+    }
+
+    /**
+     * A damage bonus for this side's attacks — Giovanni, Blaine.
+     *
+     * <p>On the {@code Side} for the reason {@link #supportersLocked} is: it
+     * belongs to the player, so it must reach a Pokemon that retreats, switches
+     * in or is benched after the card was played. A {@link Predicate} rather
+     * than an {@code ICondition} keeps {@code state} out of the model's
+     * dependency cycle, as {@code ActiveModifier} does.
+     */
+    public record AttackBonus(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
+    }
+
+    public void addAttackBonus(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
+        attackBonuses.add(new AttackBonus(amount, appliesTo, expiresOnTurn));
+    }
+
+    /** The bonus one of this side's Pokemon attacks with this turn. */
+    public int attackBonusFor(PokemonInPlay attacker, int currentTurn) {
+        // ponytail: expired bonuses are never pruned; a handful per game, prune if that changes.
+        return attackBonuses.stream()
+                .filter(bonus -> currentTurn <= bonus.expiresOnTurn())
+                .filter(bonus -> bonus.appliesTo().test(attacker))
+                .mapToInt(AttackBonus::amount)
+                .sum();
     }
 
     public boolean retreatedThisTurn() {

@@ -14,7 +14,7 @@ import java.util.Objects;
  * vocabulary of filters, which is why {@code ICondition} is generic over its
  * subject.
  */
-public record Matching(IMultiTarget from, ICondition<PokemonInPlay> condition) implements IMultiTarget {
+public record Matching(IMultiTarget from, ICondition<? super PokemonInPlay> condition) implements IMultiTarget {
 
     public Matching {
         Objects.requireNonNull(from, "from");

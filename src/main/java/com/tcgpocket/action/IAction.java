@@ -26,7 +26,7 @@ import com.tcgpocket.resolve.ResolutionContext;
  * <p>Both answer {@link #isLegal} so a single list can be offered to an agent.
  */
 public sealed interface IAction permits
-        Action, PlainAction,
+        Action, PlainAction, PlayedOnto,
         WithPrecondition, MultiAttempt, ChoiceAction,
         RetreatAction, EvolveAction, PlayCardAction,
         AttachEnergyAction, UseAbilityAction, EndTurnAction {

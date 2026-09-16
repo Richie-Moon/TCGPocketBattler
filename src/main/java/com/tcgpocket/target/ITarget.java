@@ -17,7 +17,7 @@ import java.util.Optional;
 public sealed interface ITarget permits
         AttackerActive, OpponentActive, Self,
         AttackerBenchSpecific, OpponentBenchSpecific,
-        ChosenFrom, RandomFrom {
+        ChosenFrom, RandomFrom, PlayTarget {
 
     // TODO: EventSource.
 

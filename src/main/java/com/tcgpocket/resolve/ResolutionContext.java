@@ -29,11 +29,16 @@ import java.util.Optional;
  *                   fires during the attacker's turn.
  * @param source     the Pokemon whose text is resolving; empty for a Trainer
  *                   card, which has none
+ * @param playTarget the Pokemon a Trainer was dragged onto when it was played;
+ *                   empty for everything else. Kept apart from {@code source}
+ *                   because it is not whose text is resolving: a trigger that
+ *                   asks {@code EventConcerns(Self)} mid-Misty must not see it.
  */
 public record ResolutionContext(
         Battle battle,
         Side controller,
         Optional<PokemonInPlay> source,
+        Optional<PokemonInPlay> playTarget,
         Optional<GameEvent> event,
         ResolutionScope scope) {
 
@@ -41,6 +46,7 @@ public record ResolutionContext(
         Objects.requireNonNull(battle, "battle");
         Objects.requireNonNull(controller, "controller");
         Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(playTarget, "playTarget");
         Objects.requireNonNull(event, "event");
         Objects.requireNonNull(scope, "scope");
     }
@@ -48,13 +54,13 @@ public record ResolutionContext(
     /** A context for a Pokemon's own text, with a fresh scope and no event. */
     public static ResolutionContext of(Battle battle, Side controller, PokemonInPlay source) {
         return new ResolutionContext(
-                battle, controller, Optional.of(source), Optional.empty(), new ResolutionScope());
+                battle, controller, Optional.of(source), Optional.empty(), Optional.empty(), new ResolutionScope());
     }
 
     /** A context with no source Pokemon, for Trainer cards and engine-driven effects. */
     public static ResolutionContext of(Battle battle, Side controller) {
         return new ResolutionContext(
-                battle, controller, Optional.empty(), Optional.empty(), new ResolutionScope());
+                battle, controller, Optional.empty(), Optional.empty(), Optional.empty(), new ResolutionScope());
     }
 
     /** The side opposing whoever controls the resolving card. */
@@ -67,14 +73,19 @@ public record ResolutionContext(
      * coin flips stay visible across the switch.
      */
     public ResolutionContext withSource(PokemonInPlay newSource) {
-        return new ResolutionContext(battle, controller, Optional.ofNullable(newSource), event, scope);
+        return new ResolutionContext(battle, controller, Optional.ofNullable(newSource), playTarget, event, scope);
     }
 
     public ResolutionContext withController(Side newController) {
-        return new ResolutionContext(battle, newController, source, event, scope);
+        return new ResolutionContext(battle, newController, source, playTarget, event, scope);
     }
 
     public ResolutionContext withEvent(GameEvent newEvent) {
-        return new ResolutionContext(battle, controller, source, Optional.ofNullable(newEvent), scope);
+        return new ResolutionContext(battle, controller, source, playTarget, Optional.ofNullable(newEvent), scope);
+    }
+
+    /** Points the context at the Pokemon a Trainer was dragged onto, keeping the same scope. */
+    public ResolutionContext withPlayTarget(Optional<PokemonInPlay> newPlayTarget) {
+        return new ResolutionContext(battle, controller, source, newPlayTarget, event, scope);
     }
 }

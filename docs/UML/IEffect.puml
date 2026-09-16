@@ -139,6 +139,13 @@ class MoveEnergy <<record>> implements IEffect {
     - energyCount: INumber
 }
 
+/' Every Energy of one type, from each Pokemon in a group. Lt. Surge. '/
+class MoveTypeEnergy <<record>> implements IEffect {
+    - energyType: Type
+    - from: IMultiTarget
+    - to: ITarget
+}
+
 /' --- Buffs / debuffs --- '/
 
 class ReduceDamageTaken <<record>> implements IDurationEffect {
@@ -156,6 +163,13 @@ class IncreaseDamage <<record>> implements IDurationEffect {
     - target: ITarget
 }
 
+/' Stamped on the controller's Side, not a Pokemon, so it reaches whichever of
+   theirs attacks. Only against the opponent's Active. Giovanni, Blaine. '/
+class IncreaseSideDamage <<record>> implements IDurationEffect {
+    - increaseAmount: INumber
+    - matching: Optional<ICondition<? super PokemonInPlay>>
+}
+
 class PreventDamage <<record>> implements IDurationEffect {
     - target: ITarget
 }
@@ -171,6 +185,17 @@ class SwitchActive <<record>> implements IEffect {
 /' The Pokemon, its evolution stack and Tool go into the deck. An Active is
    replaced from the Bench by its owner; FAILED with no Bench to replace it. '/
 class ShuffleIntoDeck <<record>> implements IEffect {
+    - target: ITarget
+}
+
+/' ShuffleIntoDeck's departure, landing in the discard pile. A Fossil's action;
+   not a knockout, so no points. '/
+class DiscardFromPlay <<record>> implements IEffect {
+    - target: ITarget
+}
+
+/' The same departure again, landing in the hand. Koga. '/
+class ReturnToHand <<record>> implements IEffect {
     - target: ITarget
 }
 
