@@ -40,7 +40,7 @@ public final class GeneticApex {
         cards.addAll(Darkness.CARDS);
         cards.addAll(Metal.CARDS);
         cards.addAll(Dragon.CARDS);
-        // TODO: Colorless.
+        cards.addAll(Colorless.CARDS);
         cards.addAll(Trainers.CARDS);
         return List.copyOf(cards);
     }
