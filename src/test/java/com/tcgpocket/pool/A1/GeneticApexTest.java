@@ -456,6 +456,49 @@ class GeneticApexTest {
     }
 
     @Nested
+    @DisplayName("Psychic — Abra's Teleport")
+    class Teleport {
+
+        /** You pick option 1 whenever you are asked; they are never asked. */
+        private final ScriptedPlayer you = new ScriptedPlayer("you", 1);
+        private final TestBoard board = new TestBoard(you, new ScriptedPlayer("them"));
+        private final PokemonInPlay abra = board.active(board.you, Psychic.ABRA);
+
+        private AttemptResult teleport() {
+            return attack(Psychic.ABRA, "Teleport").execute(board.contextFor(abra));
+        }
+
+        @Test
+        @DisplayName("an empty bench: the attack resolves but fails, and Abra stays put")
+        void failsWithAnEmptyBench() {
+            assertTrue(teleport().failed());
+            assertSame(abra, board.you.active().orElseThrow());
+        }
+
+        @Test
+        @DisplayName("one on the bench swaps in without asking")
+        void loneBenchedPokemonSwapsAutomatically() {
+            PokemonInPlay only = board.bench(board.you, Grass.BULBASAUR);
+
+            assertTrue(teleport().succeeded());
+            assertSame(only, board.you.active().orElseThrow());
+            assertTrue(board.you.bench().contains(abra));
+            assertEquals(1, you.remaining(), "one candidate, so nothing was asked");
+        }
+
+        @Test
+        @DisplayName("several on the bench: the attacker chooses")
+        void attackerChoosesFromSeveral() {
+            board.bench(board.you, Grass.BULBASAUR);
+            PokemonInPlay wanted = board.bench(board.you, Grass.CATERPIE);
+
+            assertTrue(teleport().succeeded());
+            assertSame(wanted, board.you.active().orElseThrow(), "your pick, option 1");
+            assertTrue(board.you.bench().contains(abra));
+        }
+    }
+
+    @Nested
     @DisplayName("Psychic — Mewtwo ex")
     class MewtwoEx {
 

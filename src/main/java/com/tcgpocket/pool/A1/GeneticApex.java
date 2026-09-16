@@ -36,7 +36,7 @@ public final class GeneticApex {
         cards.addAll(Water.CARDS);
         cards.addAll(Lightning.CARDS);
         cards.addAll(Psychic.CARDS);
-        // TODO: Fighting.
+        cards.addAll(Fighting.CARDS);
         cards.addAll(Darkness.CARDS);
         // TODO: Metal, Dragon, Colorless.
         cards.addAll(Trainers.CARDS);
