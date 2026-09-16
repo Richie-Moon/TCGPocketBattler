@@ -54,6 +54,38 @@ class GeneticApexTest {
     }
 
     @Nested
+    @DisplayName("Kabutops — Leech Life heals what it actually did")
+    class LeechLife {
+
+        private final TestBoard board = new TestBoard();
+        private final PokemonInPlay kabutops = board.active(board.you, Fighting.KABUTOPS);
+
+        @Test
+        @DisplayName("heals the full 50 when the hit lands in full")
+        void healsFullHit() {
+            PokemonInPlay wall = board.active(board.them, WALL);
+            kabutops.takeDamage(80);
+
+            attack(Fighting.KABUTOPS, "Leech Life").execute(board.contextFor(kabutops));
+
+            assertEquals(50, wall.damage());
+            assertEquals(30, kabutops.damage());
+        }
+
+        @Test
+        @DisplayName("heals only 20 off a Pokémon with 20 HP left")
+        void healsOnlyWhatWasLeft() {
+            PokemonInPlay target = board.active(board.them, WALL);
+            target.takeDamage(480);
+            kabutops.takeDamage(80);
+
+            attack(Fighting.KABUTOPS, "Leech Life").execute(board.contextFor(kabutops));
+
+            assertEquals(60, kabutops.damage());
+        }
+    }
+
+    @Nested
     @DisplayName("Grass — the Bulbasaur line")
     class GrassLine {
 

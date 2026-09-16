@@ -4,8 +4,8 @@ title Damage pipeline — where weakness and modifiers combine
 skinparam linetype ortho
 
 /'
-  DealDamage names only an amount and a target, so weakness, ReduceDamage and
-  IncreaseDamage had nowhere to meet, and IDurationEffect's `duration` had
+  DealDamage names only an amount and a target, so weakness, ReduceDamageTaken,
+  ReduceDamageDealt and IncreaseDamage had nowhere to meet, and IDurationEffect's `duration` had
   nowhere to be stored. Both are fixed here.
 '/
 
@@ -34,6 +34,7 @@ class ActiveModifier <<record>> {
 
 enum ModifierKind {
     INCREASE_DAMAGE_DEALT
+    REDUCE_DAMAGE_DEALT
     REDUCE_DAMAGE_TAKEN
     PREVENT_DAMAGE
 }
@@ -52,7 +53,7 @@ start
 :base = DealDamage.damageAmount.evaluate(ctx);
 
 if (isAttackDamage?) then (yes)
-  :+ INCREASE_DAMAGE_DEALT modifiers on the **source**;
+  :+ INCREASE_DAMAGE_DEALT - REDUCE_DAMAGE_DEALT modifiers on the **source**;
   if (defender weak to attacker's type?) then (yes)
     :+ weaknessDamage (Pocket: +20);
   endif

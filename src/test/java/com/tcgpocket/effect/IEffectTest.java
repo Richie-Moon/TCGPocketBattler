@@ -368,12 +368,21 @@ class IEffectTest {
 
         @Test
         void reductionLastsForItsDurationThenExpires() {
-            new ReduceDamage(new Literal(20), new Self(), new Literal(1)).apply(context);
+            new ReduceDamageTaken(new Literal(20), new Self(), new Literal(1)).apply(context);
 
             assertEquals(1, pokemon.modifiers().size());
             assertTrue(pokemon.modifiers().get(0).isActiveOn(board.battle.turn()));
             assertTrue(pokemon.modifiers().get(0).isActiveOn(board.battle.turn() + 1));
             assertFalse(pokemon.modifiers().get(0).isActiveOn(board.battle.turn() + 2));
+        }
+
+        @Test
+        @DisplayName("reducing damage dealt installs its own kind, not the damage-taken one")
+        void reducingDamageDealtInstallsItsOwnKind() {
+            assertEquals(EffectOutcome.APPLIED,
+                    new ReduceDamageDealt(new Literal(20), new Self(), new Literal(1)).apply(context));
+            assertEquals(com.tcgpocket.state.ModifierKind.REDUCE_DAMAGE_DEALT,
+                    pokemon.modifiers().get(0).kind());
         }
 
         @Test

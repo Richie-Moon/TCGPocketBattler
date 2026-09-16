@@ -135,7 +135,12 @@ class MoveEnergy <<record>> implements IEffect {
 
 /' --- Buffs / debuffs --- '/
 
-class ReduceDamage <<record>> implements IDurationEffect {
+class ReduceDamageTaken <<record>> implements IDurationEffect {
+    - reductionAmount: INumber
+    - target: ITarget
+}
+
+class ReduceDamageDealt <<record>> implements IDurationEffect {
     - reductionAmount: INumber
     - target: ITarget
 }

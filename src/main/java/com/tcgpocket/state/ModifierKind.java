@@ -6,6 +6,9 @@ public enum ModifierKind {
     /** Adds to damage this Pokemon deals. */
     INCREASE_DAMAGE_DEALT,
 
+    /** Subtracts from damage this Pokemon deals. */
+    REDUCE_DAMAGE_DEALT,
+
     /** Subtracts from damage this Pokemon takes. */
     REDUCE_DAMAGE_TAKEN,
 

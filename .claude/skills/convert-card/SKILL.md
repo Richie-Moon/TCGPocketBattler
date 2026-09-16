@@ -21,6 +21,8 @@ That API will return a JSON object in the format of:
   "type": [
     "GRASS"
   ],
+  "stage": "BASIC",
+  "evolvesFrom": null,
   "moves": [
     {
       "name": "Vine Whip",
@@ -40,7 +42,8 @@ That API will return a JSON object in the format of:
 }
 ```
 Then, take this JSON data and write Java code to convert it into the object-oriented model for this project.
-Sometimes, the damage field will have extra characters other than numbers. Ignore the extra characters and use the number as the base damage, and the description to figure out how to model.
+Sometimes, the damage field will have extra characters other than numbers. Ignore the extra characters and use the number as the base damage and the description to figure out how to model.
+Sometimes, move descriptions will include references to energy as `{G}` or `{W}`. Replace these with full type names, e.g. `Grass` or `Water`. 
 For the example above:
 
 ```java

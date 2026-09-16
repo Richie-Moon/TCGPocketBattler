@@ -16,6 +16,7 @@ import java.util.Optional;
 public final class ResolutionScope {
 
     private FlipResult lastFlip;
+    private int damageDealtThisResolution;
 
     public Optional<FlipResult> lastFlip() {
         return Optional.ofNullable(lastFlip);
@@ -23,5 +24,14 @@ public final class ResolutionScope {
 
     public void recordFlip(FlipResult result) {
         this.lastFlip = result;
+    }
+
+    /** HP actually removed by damage this resolution dealt, summed across hits. */
+    public int damageDealtThisResolution() {
+        return damageDealtThisResolution;
+    }
+
+    public void recordDamageDealt(int amount) {
+        this.damageDealtThisResolution += amount;
     }
 }

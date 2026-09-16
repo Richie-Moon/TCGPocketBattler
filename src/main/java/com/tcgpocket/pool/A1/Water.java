@@ -267,7 +267,7 @@ public final class Water {
                     1, "Horsea", 70, Type.WATER, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
                             "Water Arrow", "This attack does 50 damage to 1 of your opponent's Pokémon.", EnergyCost.of(Type.WATER, 2, Type.COLORLESS, 1),
                             new Attempt(List.of(
-                                    new DealDamage(new Literal(50), new ChosenFrom(new OpponentAll(), new OpponentSide(), "Select a target"))
+                                    new DealDamage(new Literal(50), new ChosenFrom(new OpponentAll(), new AttackerSide(), "Select a target"))
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.LIGHTNING);
 

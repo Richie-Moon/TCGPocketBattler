@@ -83,6 +83,10 @@ class NumberHeads <<record>> implements INumber {}
    ResolutionContext.event. Lets "when this is damaged, ..." see how much. '/
 class EventDamage <<record>> implements INumber {}
 
+/' Reads ResolutionScope.damageDealtThisResolution: HP actually removed,
+   after weakness and capped at what the target had left. '/
+class DamageDone <<record>> implements INumber {}
+
 class Points <<record>> implements INumber {
     - side: ISideTarget
 }

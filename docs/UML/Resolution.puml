@@ -38,6 +38,7 @@ class ResolutionScope {
     - damageDealtThisResolution: int
 
     + recordFlip(FlipResult): void
+    + recordDamageDealt(int): void
 }
 
 class FlipResult <<record>> {

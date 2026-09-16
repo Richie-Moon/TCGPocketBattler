@@ -9,7 +9,7 @@ import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DiscardTypeEnergy;
 import com.tcgpocket.effect.FlipN;
 import com.tcgpocket.effect.PreventSupporter;
-import com.tcgpocket.effect.ReduceDamage;
+import com.tcgpocket.effect.ReduceDamageTaken;
 import com.tcgpocket.effect.SwitchActive;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
@@ -195,7 +195,7 @@ public final class Psychic {
                             "Barrier Attack", "During your opponent's next turn, this Pokémon takes -20 damage from attacks.", EnergyCost.of(Type.PSYCHIC, 1, Type.COLORLESS, 1),
                             new Attempt(List.of(
                                     new DealDamage(new Literal(30), new OpponentActive()),
-                                    new ReduceDamage(new Literal(20), new Self(), new Literal(1))
+                                    new ReduceDamageTaken(new Literal(20), new Self(), new Literal(1))
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.DARKNESS);
 
@@ -217,7 +217,7 @@ public final class Psychic {
     public static final PokemonCard MEWTWO = PokemonCard.basic(
                     "A1-128", "Mewtwo", "It was created by a scientist after years of horrific gene-splicing and DNA-engineering experiments.",
                     120, Type.PSYCHIC, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
-                            "Power Blast", "Discard 2 {P} Energy from this Pokémon.", EnergyCost.of(Type.PSYCHIC, 2, Type.COLORLESS, 2),
+                            "Power Blast", "Discard 2 Psychic Energy from this Pokémon.", EnergyCost.of(Type.PSYCHIC, 2, Type.COLORLESS, 2),
                             new Attempt(List.of(
                                     new DealDamage(new Literal(120), new OpponentActive()),
                                     new DiscardTypeEnergy(Type.PSYCHIC, new Literal(2), new Self())

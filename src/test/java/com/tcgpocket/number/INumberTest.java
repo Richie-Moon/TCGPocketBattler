@@ -10,6 +10,9 @@ import com.tcgpocket.condition.Always;
 import com.tcgpocket.condition.GreaterThan;
 import com.tcgpocket.condition.ICondition;
 import com.tcgpocket.condition.IsSpecies;
+import com.tcgpocket.effect.DealDamage;
+import com.tcgpocket.effect.MultiHit;
+import com.tcgpocket.effect.PlaceDamage;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.FlipResult;
 import com.tcgpocket.resolve.ResolutionContext;
@@ -321,6 +324,79 @@ class INumberTest {
                     .withEvent(new DamageDealt(Optional.of(mine), theirs, 40));
 
             assertEquals(40, new EventDamage().evaluate(triggered));
+        }
+    }
+
+    @Nested
+    @DisplayName("DamageDone")
+    class DamageDoneValues {
+
+        private static final PokemonCard MAROWAK = PokemonCard.basic("marowak", "Marowak", 120, Type.FIGHTING, 2)
+                .withWeakness(Type.LIGHTNING);
+
+        private final TestBoard board = new TestBoard();
+        private final PokemonInPlay mine = board.active(board.you, PIKACHU);
+        private final PokemonInPlay theirs = board.active(board.them, SNORLAX);
+        private final ResolutionContext context = board.contextFor(mine);
+
+        @Test
+        void isZeroBeforeAnythingIsHit() {
+            assertEquals(0, new DamageDone().evaluate(context));
+        }
+
+        @Test
+        void readsAPlainHit() {
+            new DealDamage(new Literal(50), new OpponentActive()).apply(context);
+
+            assertEquals(50, new DamageDone().evaluate(context));
+        }
+
+        @Test
+        @DisplayName("counts only the HP the hit actually removed")
+        void isCappedAtRemainingHp() {
+            theirs.takeDamage(130);
+
+            new DealDamage(new Literal(50), new OpponentActive()).apply(context);
+
+            assertEquals(20, new DamageDone().evaluate(context));
+        }
+
+        @Test
+        @DisplayName("includes weakness, because it reads what landed rather than the printed base")
+        void includesWeakness() {
+            TestBoard weakBoard = new TestBoard();
+            PokemonInPlay attacker = weakBoard.active(weakBoard.you, PIKACHU);
+            weakBoard.active(weakBoard.them, MAROWAK);
+            ResolutionContext weakContext = weakBoard.contextFor(attacker);
+
+            new DealDamage(new Literal(30), new OpponentActive()).apply(weakContext);
+
+            assertEquals(50, new DamageDone().evaluate(weakContext));
+        }
+
+        @Test
+        @DisplayName("sums every hit in the resolution")
+        void sumsAcrossHits() {
+            new MultiHit(new OpponentActive(), new Literal(10), new Literal(3)).apply(context);
+
+            assertEquals(30, new DamageDone().evaluate(context));
+        }
+
+        @Test
+        @DisplayName("ignores incidental damage nobody dealt")
+        void ignoresPlacedDamage() {
+            new PlaceDamage(new Literal(20), new OpponentActive()).apply(context);
+
+            assertEquals(20, theirs.damage());
+            assertEquals(0, new DamageDone().evaluate(context));
+        }
+
+        @Test
+        @DisplayName("is scoped to one resolution, so a fresh context starts at zero")
+        void doesNotLeakAcrossResolutions() {
+            new DealDamage(new Literal(50), new OpponentActive()).apply(context);
+
+            assertEquals(0, new DamageDone().evaluate(board.contextFor(mine)));
         }
     }
 

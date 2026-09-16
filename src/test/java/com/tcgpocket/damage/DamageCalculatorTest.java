@@ -127,6 +127,15 @@ class DamageCalculatorTest {
     }
 
     @Test
+    @DisplayName("a reduction on the attacker lowers the damage it deals")
+    void reductionDealtIsSubtractedFromTheSource() {
+        attacker.addModifier(new ActiveModifier(ModifierKind.REDUCE_DAMAGE_DEALT, 20, 5));
+
+        // 30 base - 20 reduction = 10, then +20 weakness = 30.
+        assertEquals(30, DamageCalculator.calculate(attack(30), 1));
+    }
+
+    @Test
     void allThreeStackInOrder() {
         attacker.addModifier(new ActiveModifier(ModifierKind.INCREASE_DAMAGE_DEALT, 10, 5));
         defender.addModifier(new ActiveModifier(ModifierKind.REDUCE_DAMAGE_TAKEN, 30, 5));

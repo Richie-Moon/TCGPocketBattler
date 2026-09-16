@@ -34,7 +34,8 @@ final class Damage {
                 .map(printed -> printed.evaluate(context))
                 .orElse(DamageCalculator.DEFAULT_WEAKNESS_BONUS);
 
-        apply(context, new DamageEvent(source, target, base, isAttackDamage, weaknessBonus));
+        int removed = apply(context, new DamageEvent(source, target, base, isAttackDamage, weaknessBonus));
+        context.scope().recordDamageDealt(removed);
     }
 
     /**
@@ -48,8 +49,10 @@ final class Damage {
         apply(context, DamageEvent.incidental(target, amount));
     }
 
-    private static void apply(ResolutionContext context, DamageEvent event) {
+    /** Returns the HP actually removed, which is less than landed when it overkills. */
+    private static int apply(ResolutionContext context, DamageEvent event) {
         int landed = DamageCalculator.calculate(event, context.battle().turn());
+        int before = event.target().damage();
         event.target().takeDamage(landed);
 
         TriggerDispatcher.dispatch(
@@ -60,5 +63,6 @@ final class Damage {
         //       and the tool, and the replacement its controller has to choose —
         //       lands with TurnEngine.checkKnockouts(), which then dispatches
         //       Knockout. An effect applies damage; it does not run the game.
+        return event.target().damage() - before;
     }
 }
