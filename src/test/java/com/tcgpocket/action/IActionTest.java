@@ -21,6 +21,7 @@ import com.tcgpocket.effect.DrawCard;
 import com.tcgpocket.effect.HealDamage;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.effect.PreventAttack;
+import com.tcgpocket.effect.PreventRetreat;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
@@ -310,6 +311,21 @@ class IActionTest {
 
             assertFalse(new RetreatAction(new AttackerBenchSpecific(0))
                     .isLegal(solo.contextWithoutSource()));
+        }
+
+        @Test
+        @DisplayName("a retreat lock forbids retreating, and lifts after the locked turn")
+        void aRetreatLockForbidsRetreating() {
+            active.attachEnergy(Type.WATER, 1);
+
+            new PreventRetreat(new AttackerActive(), new Literal(1)).apply(context);
+            assertFalse(retreat.isLegal(context));
+
+            board.battle.switchSides();
+            assertFalse(retreat.isLegal(context), "still locked through the next turn");
+
+            board.battle.switchSides();
+            assertTrue(retreat.isLegal(context), "and no longer after it");
         }
 
         @Test

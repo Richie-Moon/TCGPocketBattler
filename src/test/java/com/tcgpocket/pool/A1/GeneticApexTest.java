@@ -13,6 +13,7 @@ import com.tcgpocket.effect.SwitchActive;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.status.ParalysisStatus;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.trigger.TriggerDispatcher;
@@ -572,33 +573,35 @@ class GeneticApexTest {
     }
 
     @Nested
-    @DisplayName("Darkness — Koffing")
-    class KoffingGas {
+    @DisplayName("Status attacks")
+    class StatusAttacks {
 
         @Test
-        @DisplayName("heads poisons, and the poison then ticks on its own")
-        void headsPoisons() {
-            TestBoard board = new TestBoard(ScriptedRandom.alwaysHeads());
-            PokemonInPlay koffing = board.active(board.you, Darkness.KOFFING);
+        @DisplayName("Grimer poisons, and the poison then ticks on its own")
+        void grimerPoisons() {
+            TestBoard board = new TestBoard();
+            PokemonInPlay grimer = board.active(board.you, Darkness.GRIMER);
             PokemonInPlay wall = board.active(board.them, WALL);
 
-            attack(Darkness.KOFFING, "Gas").execute(board.contextFor(koffing));
+            attack(Darkness.GRIMER, "Poison Gas").execute(board.contextFor(grimer));
             assertTrue(wall.hasStatus(new PoisonStatus()));
+            assertEquals(10, wall.damage());
 
             TriggerDispatcher.dispatch(board.battle, new TurnEnd(board.you));
-            assertEquals(10, wall.damage(), "the card never mentions the 10");
+            assertEquals(20, wall.damage(), "the card never mentions the 10");
         }
 
         @Test
+        @DisplayName("Eelektross on tails does nothing extra and is still a success")
         void tailsDoesNothingAndIsStillASuccess() {
             TestBoard board = new TestBoard(ScriptedRandom.alwaysTails());
-            PokemonInPlay koffing = board.active(board.you, Darkness.KOFFING);
+            PokemonInPlay eelektross = board.active(board.you, Lightning.EELEKTROSS);
             PokemonInPlay wall = board.active(board.them, WALL);
 
-            AttemptResult result = attack(Darkness.KOFFING, "Gas").execute(board.contextFor(koffing));
+            AttemptResult result = attack(Lightning.EELEKTROSS, "Thunder Fang").execute(board.contextFor(eelektross));
 
             assertTrue(result.succeeded());
-            assertFalse(wall.hasStatus(new PoisonStatus()));
+            assertFalse(wall.hasStatus(new ParalysisStatus()));
         }
     }
 

@@ -20,5 +20,11 @@ public enum ModifierKind {
      * not by the damage pipeline — retreating, attaching, playing Trainers and
      * using abilities all stay legal.
      */
-    CANNOT_ATTACK
+    CANNOT_ATTACK,
+
+    /**
+     * Forbids this Pokemon retreating. Read by {@code RetreatAction.isLegal};
+     * attacking and everything else stay legal.
+     */
+    CANNOT_RETREAT
 }

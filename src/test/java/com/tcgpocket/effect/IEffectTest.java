@@ -751,6 +751,49 @@ class IEffectTest {
     }
 
     @Nested
+    @DisplayName("BenchFromDeck — calling for family")
+    class BenchingFromDeck {
+
+        private final TestBoard board = new TestBoard();
+        private final ResolutionContext context = board.contextWithoutSource();
+        private final IEffect callForOddish = new BenchFromDeck(new AttackerSide(), new IsSpecies("Oddish"));
+
+        @Test
+        @DisplayName("moves a matching Basic from the deck onto the Bench")
+        void benchesAMatchingBasic() {
+            CardInstance oddish = board.inDeck(board.you, ODDISH);
+
+            assertEquals(EffectOutcome.APPLIED, callForOddish.apply(context));
+
+            assertTrue(board.you.deck().isEmpty());
+            assertEquals(oddish.instanceId(), board.you.bench().get(0).instanceId());
+        }
+
+        @Test
+        @DisplayName("an evolved Pokemon is never benched, whatever the condition says")
+        void onlyBasics() {
+            board.inDeck(board.you, PokemonCard.evolution(
+                    "gloom", "Gloom", 1, "Oddish", 80, Type.GRASS, 1, List.of()));
+
+            assertEquals(EffectOutcome.NO_OP,
+                    new BenchFromDeck(new AttackerSide(), new Always<>()).apply(context));
+            assertTrue(board.you.bench().isEmpty());
+        }
+
+        @Test
+        @DisplayName("a full Bench is a no-op, and the card stays in the deck")
+        void fullBenchIsANoOp() {
+            board.inDeck(board.you, ODDISH);
+            for (int i = 0; i < com.tcgpocket.state.Side.BENCH_LIMIT; i++) {
+                board.bench(board.you, ODDISH);
+            }
+
+            assertEquals(EffectOutcome.NO_OP, callForOddish.apply(context));
+            assertEquals(1, board.you.deck().size());
+        }
+    }
+
+    @Nested
     @DisplayName("HealEach — healing a group")
     class GroupHealing {
 

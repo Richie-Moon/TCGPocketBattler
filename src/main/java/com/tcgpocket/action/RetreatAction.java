@@ -6,6 +6,7 @@ import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.resolve.ResolutionContext;
+import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.target.ITarget;
@@ -38,7 +39,8 @@ public record RetreatAction(ITarget replacement) implements IAction {
         }
 
         PokemonInPlay retreating = active.get();
-        if (new IsAsleep().evaluate(retreating) || new IsParalyzed().evaluate(retreating)) {
+        if (new IsAsleep().evaluate(retreating) || new IsParalyzed().evaluate(retreating)
+                || retreating.hasModifier(ModifierKind.CANNOT_RETREAT, context.battle().turn())) {
             return false;
         }
 
