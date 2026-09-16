@@ -8,6 +8,7 @@ import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DiscardTypeEnergy;
 import com.tcgpocket.effect.FlipN;
+import com.tcgpocket.effect.NoEffect;
 import com.tcgpocket.effect.PreventSupporter;
 import com.tcgpocket.effect.ReduceDamageTaken;
 import com.tcgpocket.effect.SwitchActive;
@@ -341,9 +342,27 @@ public final class Psychic {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.DARKNESS);
 
+    /**
+     * A1-283 - Mew
+     *
+     * <p><b>Narrowed.</b> The reveal is a {@link NoEffect}: the engine has no
+     * per-player visibility (a {@code Decision} already hands every player the
+     * whole board, opponent's hand included), so revealing changes nothing. A
+     * hidden-information model would give a {@code RevealHand} node meaning.
+     */
+    public static final PokemonCard MEW = PokemonCard.basic(
+                    "A1-283", "Mew", "Because it can use all kinds of moves, many scientists believe Mew to be the ancestor of Pokémon.",
+                    60, Type.PSYCHIC, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
+                            "Psy Report", "Your opponent reveals their hand.", EnergyCost.of(Type.PSYCHIC, 1),
+                            new Attempt(List.of(
+                                    new DealDamage(new Literal(20), new OpponentActive()),
+                                    new NoEffect()
+                            )))), CardRarity.IMMERSIVE)
+            .withWeakness(Type.DARKNESS);
+
     static final List<PokemonCard> CARDS = List.of(
             CLEFAIRY, CLEFABLE, ABRA, KADABRA, ALAKAZAM, SLOWPOKE, SLOWBRO, GASTLY, HAUNTER, GENGAR, GENGAR_EX,
-            DROWZEE, HYPNO, MR_MIME, JYNX, MEWTWO, MEWTWO_EX, RALTS, KIRLIA, GARDEVOIR, WOOBAT, SWOOBAT, GOLETT, GOLURK);
+            DROWZEE, HYPNO, MR_MIME, JYNX, MEWTWO, MEWTWO_EX, RALTS, KIRLIA, GARDEVOIR, WOOBAT, SWOOBAT, GOLETT, GOLURK, MEW);
 
     private Psychic() {
     }
