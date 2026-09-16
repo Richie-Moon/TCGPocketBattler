@@ -26,5 +26,11 @@ public enum ModifierKind {
      * Forbids this Pokemon retreating. Read by {@code RetreatAction.isLegal};
      * attacking and everything else stay legal.
      */
-    CANNOT_RETREAT
+    CANNOT_RETREAT,
+
+    /**
+     * Subtracts from this Pokemon's retreat cost, never below zero. Read by
+     * {@code RetreatAction}.
+     */
+    REDUCE_RETREAT_COST
 }

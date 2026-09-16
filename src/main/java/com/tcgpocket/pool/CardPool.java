@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Every printed card, looked up by its id.
@@ -27,7 +28,8 @@ import java.util.Optional;
  */
 public final class CardPool {
 
-    private static final Map<String, ICard> BY_ID = index(GeneticApex.CARDS);
+    private static final Map<String, ICard> BY_ID = index(Stream.concat(
+            GeneticApex.CARDS.stream(), com.tcgpocket.pool.PA.Trainers.CARDS.stream()).toList());
 
     private CardPool() {
     }

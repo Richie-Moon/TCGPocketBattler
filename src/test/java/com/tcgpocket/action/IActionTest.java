@@ -23,6 +23,7 @@ import com.tcgpocket.effect.HealDamage;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.effect.PreventAttack;
 import com.tcgpocket.effect.PreventRetreat;
+import com.tcgpocket.effect.ReduceRetreatCost;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
@@ -330,6 +331,19 @@ class IActionTest {
 
             board.battle.switchSides();
             assertTrue(retreat.isLegal(context), "and no longer after it");
+        }
+
+        @Test
+        @DisplayName("a retreat-cost reduction lowers the cost, not below zero, and lapses after the turn")
+        void aReductionLowersTheCost() {
+            assertFalse(retreat.isLegal(context), "Snorlax costs 1 and has none attached");
+
+            new ReduceRetreatCost(new Literal(2), new AttackerActive(), new Literal(0)).apply(context);
+            assertTrue(retreat.isLegal(context), "free this turn");
+
+            board.battle.switchSides();
+            board.battle.switchSides();
+            assertFalse(retreat.isLegal(context), "full cost again once the turn is over");
         }
 
         @Test

@@ -20,7 +20,8 @@ mvn package    # build the jar
 
 ## Next
 
-- Model all cards in-game.
+- Model all cards in-game
+  - Base cards from A1 and P-A are complete, enough to begin other work
 - Game client and server to host battles (probably in a separate repository)
 - `GameEvent`/`Trigger` → turn engine and `legalActions` →
 `RandomPlayer`/`ScriptedPlayer`.
@@ -28,6 +29,7 @@ mvn package    # build the jar
 ### To Do
 - All prompts need to match in game text (e.g. A1-071 Seadra: This attack does 50 damage to 1 of your opponent's Pokémon.)
 - Check whether coin flips run when the condition is already met (e.g. coin flip attack applies status to opponent, but the status is already applied. Does the coin flip still happen?)
+- Fix "Look at opponents' hand" for Mew and Pokédex after the appropriate engine architecture is implemented
 
 ## Credits
 

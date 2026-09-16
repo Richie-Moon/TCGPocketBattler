@@ -37,6 +37,9 @@ enum ModifierKind {
     REDUCE_DAMAGE_DEALT
     REDUCE_DAMAGE_TAKEN
     PREVENT_DAMAGE
+    CANNOT_ATTACK
+    CANNOT_RETREAT
+    REDUCE_RETREAT_COST
 }
 
 DamageCalculator ..> DamageEvent

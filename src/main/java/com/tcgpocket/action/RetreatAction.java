@@ -5,7 +5,9 @@ import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.energy.EnergyCost;
+import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
+import com.tcgpocket.state.ActiveModifier;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
@@ -13,7 +15,9 @@ import com.tcgpocket.target.ITarget;
 import com.tcgpocket.trigger.Retreated;
 import com.tcgpocket.trigger.TriggerDispatcher;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -44,7 +48,7 @@ public record RetreatAction(ITarget replacement) implements IAction {
             return false;
         }
 
-        return retreatCostOf(retreating).isSatisfiedBy(retreating.attachedEnergy())
+        return retreatCostOf(context, retreating).isSatisfiedBy(retreating.attachedEnergy())
                 && replacement.resolve(context).filter(side.bench()::contains).isPresent();
     }
 
@@ -77,15 +81,27 @@ public record RetreatAction(ITarget replacement) implements IAction {
      * printing so far, but the same wildcard rule applies either way, so it is
      * worth going through the type that already knows the rule rather than
      * comparing totals.
+     *
+     * <p>Less any live {@link ModifierKind#REDUCE_RETREAT_COST}, taken off the
+     * colorless part and never below zero. Every printed retreat cost is
+     * colorless, so that is all of it.
      */
-    private static EnergyCost retreatCostOf(PokemonInPlay retreating) {
-        return retreating.definition().retreatCost();
+    private static EnergyCost retreatCostOf(ResolutionContext context, PokemonInPlay retreating) {
+        int turn = context.battle().turn();
+        int reduction = retreating.modifiers().stream()
+                .filter(modifier -> modifier.kind() == ModifierKind.REDUCE_RETREAT_COST)
+                .filter(modifier -> modifier.isActiveOn(turn))
+                .mapToInt(ActiveModifier::amount)
+                .sum();
+        Map<Type, Integer> requirements = new HashMap<>(retreating.definition().retreatCost().requirements());
+        requirements.computeIfPresent(Type.COLORLESS, (type, count) -> Math.max(0, count - reduction));
+        return new EnergyCost(requirements);
     }
 
     private static void payRetreatCost(ResolutionContext context, PokemonInPlay retreating) {
-        int cost = retreatCostOf(retreating).total();
+        int cost = retreatCostOf(context, retreating).total();
         for (int i = 0; i < cost; i++) {
-            List<com.tcgpocket.energy.Type> units = retreating.attachedEnergy().entrySet().stream()
+            List<Type> units = retreating.attachedEnergy().entrySet().stream()
                     .flatMap(entry -> java.util.stream.IntStream.range(0, entry.getValue())
                             .mapToObj(ignored -> entry.getKey()))
                     .toList();
