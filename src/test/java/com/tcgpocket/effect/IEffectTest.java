@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tcgpocket.TestBoard;
+import com.tcgpocket.action.Action;
 import com.tcgpocket.action.PlayCardAction;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
@@ -15,6 +16,7 @@ import com.tcgpocket.condition.IsSpecies;
 import com.tcgpocket.condition.IsType;
 import com.tcgpocket.condition.HasType;
 import com.tcgpocket.condition.Not;
+import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
 import com.tcgpocket.number.NumberHeads;
@@ -560,6 +562,87 @@ class IEffectTest {
                     new ShuffleHandIntoDeck(new AttackerSide()).apply(context));
             assertEquals(0, board.you.hand().size());
             assertEquals(2, board.you.deck().size());
+        }
+
+        @Test
+        @DisplayName("a random hand discard takes what there is, and an empty hand is a no-op")
+        void randomHandDiscardIsNeverACost() {
+            board.inHand(board.them, PIKACHU);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new DiscardRandomFromHand(new OpponentSide(), new Literal(2)).apply(context));
+            assertEquals(0, board.them.hand().size());
+            assertEquals(1, board.them.discardPile().size());
+
+            assertEquals(EffectOutcome.NO_OP,
+                    new DiscardRandomFromHand(new OpponentSide(), new Literal(1)).apply(context));
+        }
+    }
+
+    @Nested
+    @DisplayName("shuffling into the deck")
+    class ShufflingIntoDeck {
+
+        private final TestBoard board = new TestBoard();
+        private final ResolutionContext context = board.contextWithoutSource();
+
+        @Test
+        @DisplayName("an Active goes into the deck with its evolutions and Tool, and the Bench replaces it")
+        void activeGoesWithEverythingOnIt() {
+            PokemonInPlay active = board.active(board.them, PIKACHU);
+            PokemonInPlay benched = board.bench(board.them, SNORLAX);
+            active.evolveInto(PokemonCard.evolution("raichu", "Raichu", 1, "Pikachu", 100, Type.LIGHTNING, 1, List.of()), 1);
+            active.attachTool(board.loose(board.them, ToolCard.named("giant-cape", "Giant Cape")));
+
+            assertEquals(EffectOutcome.APPLIED, new ShuffleIntoDeck(new OpponentActive()).apply(context));
+
+            assertSame(benched, board.them.active().orElseThrow());
+            assertTrue(board.them.bench().isEmpty());
+            assertEquals(3, board.them.deck().size(), "Pikachu, Raichu and the Tool");
+        }
+
+        @Test
+        void anActiveWithNoBenchToReplaceItFails() {
+            board.active(board.them, PIKACHU);
+
+            assertEquals(EffectOutcome.FAILED, new ShuffleIntoDeck(new OpponentActive()).apply(context));
+            assertTrue(board.them.active().isPresent());
+            assertEquals(0, board.them.deck().size());
+        }
+    }
+
+    @Nested
+    @DisplayName("copying an attack")
+    class CopyingAttacks {
+
+        private final TestBoard board = new TestBoard(new ScriptedPlayer("you", 1), new ScriptedPlayer("them"));
+        private final PokemonInPlay ditto = board.active(board.you, PokemonCard.basic("ditto", "Ditto", 70, Type.COLORLESS, 1,
+                List.of(new Action("Copy Anything", EnergyCost.of(Type.COLORLESS, 1), new Attempt(new CopyAttack())))));
+        private final ResolutionContext context = board.contextFor(ditto);
+
+        {
+            board.active(board.them, PokemonCard.basic("mew", "Mew", 60, Type.PSYCHIC, 1, List.of(
+                    new Action("Jab", EnergyCost.of(Type.COLORLESS, 1),
+                            new Attempt(new DealDamage(new Literal(10), new OpponentActive()))),
+                    new Action("Poke", EnergyCost.of(Type.COLORLESS, 1),
+                            new Attempt(new DealDamage(new Literal(30), new OpponentActive()))))));
+            board.bench(board.them, PokemonCard.basic("ditto", "Ditto", 70, Type.COLORLESS, 1,
+                    List.of(new Action("Copy Anything", EnergyCost.of(Type.COLORLESS, 1), new Attempt(new CopyAttack())))));
+        }
+
+        @Test
+        @DisplayName("the chosen attack resolves as the copier's own; other copy attacks are not offered")
+        void theChosenAttackResolvesAsThisOne() {
+            ditto.attachEnergy(Type.COLORLESS, 1);
+
+            assertEquals(EffectOutcome.APPLIED, new CopyAttack().apply(context));
+            assertEquals(30, board.them.active().orElseThrow().damage(), "option 1 of two, Poke");
+        }
+
+        @Test
+        void withoutTheEnergyItDoesNothing() {
+            assertEquals(EffectOutcome.NO_OP, new CopyAttack().apply(context));
+            assertEquals(0, board.them.active().orElseThrow().damage());
         }
     }
 

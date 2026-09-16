@@ -58,6 +58,12 @@ class DiscardFromHand <<record>> implements IEffect {
     - matching: Optional<ICondition<CardInstance>>
 }
 
+/' Nobody chooses, so never a cost: a short hand discards what there is. '/
+class DiscardRandomFromHand <<record>> implements IEffect {
+    - side: ISideTarget
+    - cardCount: INumber
+}
+
 /' --- Damage --- '/
 
 /' Amount is the BASE damage. Weakness and active modifiers are applied by the
@@ -162,6 +168,12 @@ class SwitchActive <<record>> implements IEffect {
     - replacement: Optional<ITarget>
 }
 
+/' The Pokemon, its evolution stack and Tool go into the deck. An Active is
+   replaced from the Bench by its owner; FAILED with no Bench to replace it. '/
+class ShuffleIntoDeck <<record>> implements IEffect {
+    - target: ITarget
+}
+
 class AddStatus <<record>> implements IEffect {
     - target: ITarget
     - statusToAdd: IStatus
@@ -191,6 +203,10 @@ class RepeatEffect <<record>> implements IEffect {
     - times: INumber
     - effect: IEffect
 }
+
+/' Resolves one of the opponent's attacks, chosen by the controller, as this
+   one. NO_OP when the copier lacks that attack's Energy. '/
+class CopyAttack <<record>> implements IEffect {}
 
 /' Null Object Pattern '/
 class NoEffect <<record>> implements IEffect {}
