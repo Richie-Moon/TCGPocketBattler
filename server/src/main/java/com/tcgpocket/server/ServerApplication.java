@@ -8,8 +8,8 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Starts the server: one WebSocket endpoint, {@code /play}, and a test page
- * at {@code /} served from {@code static/index.html}.
+ * Starts the server: one WebSocket endpoint, {@code /play}. The page players
+ * use is the {@code web/} client.
  */
 @SpringBootApplication
 @EnableWebSocket

@@ -1,0 +1,42 @@
+:root {
+  font: 15px/1.4 system-ui, sans-serif;
+  color-scheme: light dark;
+}
+
+main {
+  max-width: 760px;
+  margin: 16px auto;
+  padding: 0 16px;
+}
+
+section {
+  border: 1px solid #8884;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 8px 0;
+}
+
+h2 {
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+
+p {
+  margin: 2px 0;
+}
+
+.status {
+  font-weight: 600;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+  padding: 6px 8px;
+}
+
+.error {
+  color: #d33;
+}

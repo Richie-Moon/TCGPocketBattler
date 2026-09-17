@@ -16,14 +16,23 @@ Java 25 and Maven.
 ```bash
 mvn test       # compile and run tests
 mvn package    # build the jars
-java -jar server/target/server-0.1.0-SNAPSHOT.jar   # then open http://localhost:8080 in two tabs
+java -jar server/target/server-0.1.0-SNAPSHOT.jar   # start the game server on port 8080
+```
+
+The browser client in `web/` is a separate npm project (Vite + React + TypeScript). With the server
+running:
+
+```bash
+cd web
+npm install
+npm run dev    # then open http://localhost:5173 in two tabs
 ```
 
 ## Next
 
 - Model all cards in-game
   - Base cards from A1 and P-A are complete, enough to begin other work
-- Game client and server to host battles: `server` plays a game between two browser tabs; the website is still to come
+- Game client and server to host battles: `server` plays a game between two browser tabs, and `web/` is the start of the website
 - `GameEvent`/`Trigger` → turn engine and `legalActions` →
 `RandomPlayer`/`ScriptedPlayer`.
 

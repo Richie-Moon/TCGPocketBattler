@@ -14,6 +14,9 @@ set there and inherited). Run Maven from the root.
   of networking, JSON and threading.
 - `server/` — Spring Boot 4 (Jackson 3, so `tools.jackson.*`), depends on `engine`, never the
   reverse. Spring Boot is imported as a BOM because the root pom is already the parent.
+- `web/` — the browser client: Vite + React + TypeScript, built with npm, **not** a Maven module.
+  `src/protocol.ts` mirrors the server's message records by hand; change both in the same commit.
+  The Vite dev server proxies `/play` to Spring on 8080, so there is no CORS setup.
 
 ```bash
 mvn test                                  # compile + run all tests
@@ -21,7 +24,9 @@ mvn package                               # build the jar
 mvn -Dtest=IEffectTest test               # one test class
 mvn -Dtest=IEffectTest$Flips test         # one @Nested class (quote the $ in PowerShell)
 mvn -Dtest=IEffectTest#unresolvedTargetFails test   # one method
-java -jar server/target/server-0.1.0-SNAPSHOT.jar   # after mvn package; open localhost:8080 in two tabs
+java -jar server/target/server-0.1.0-SNAPSHOT.jar   # after mvn package; serves /play on 8080
+cd web && npm install && npm run dev      # play at localhost:5173 in two tabs (needs the server)
+cd web && npm run build && npm run lint   # type-check + bundle, oxlint
 ```
 
 ## The core idea
@@ -129,7 +134,6 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
 - Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is a deck-list validator. There
   is no turn timer, no reconnect, and no game log yet (seed + deck lists + chosen indices would
   replay a game exactly).
-- `static/index.html` is a test page, not the website.
 
 ## Not built yet
 
