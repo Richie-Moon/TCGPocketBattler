@@ -7,6 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Maven, Java 25 (`maven.compiler.release` is 25 — sealed interfaces, records and pattern-matching
 switch are load-bearing, not incidental). `-Xlint:all` is on.
 
+Multi-module: the root `pom.xml` is the parent (Java version, JUnit, compiler/surefire config are
+set there and inherited); `engine/` is the only module and holds everything below. The engine
+stays free of networking, JSON and threading — a future `server` module depends on it, never the
+reverse. Run Maven from the root.
+
 ```bash
 mvn test                                  # compile + run all tests
 mvn package                               # build the jar
@@ -69,7 +74,7 @@ interface too. The interface Javadoc carries the *why*; keep that style when add
 
 ## Adding cards
 
-`src/main/java/com/tcgpocket/pool/A1/` — one class per energy type plus `Trainers`, in printed set
+`engine/src/main/java/com/tcgpocket/pool/A1/` — one class per energy type plus `Trainers`, in printed set
 order, assembled by `GeneticApex.CARDS` and indexed by `CardPool` (which throws on duplicate ids at
 class-load).
 

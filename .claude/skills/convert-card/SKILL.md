@@ -6,7 +6,7 @@ description: Fetch a card using TCGdexAPI.jar, then convert it into our object-o
 To fetch a card, run the jar file:
 
 ```powershell
-java -jar src/main/resources/TCGdexAPI.jar <setID> <cardID>
+java -jar engine/src/main/resources/TCGdexAPI.jar <setID> <cardID>
 ```
 Replace <setID> and <cardID> with the set and card ID you want to fetch. 
 

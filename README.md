@@ -22,7 +22,7 @@ mvn package    # build the jar
 
 - Model all cards in-game
   - Base cards from A1 and P-A are complete, enough to begin other work
-- Game client and server to host battles (probably in a separate repository)
+- Game client and server to host battles (as Maven modules alongside `engine`)
 - `GameEvent`/`Trigger` → turn engine and `legalActions` →
 `RandomPlayer`/`ScriptedPlayer`.
 

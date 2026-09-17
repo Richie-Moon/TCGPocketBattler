@@ -8,10 +8,16 @@
   <groupId>com.tcgpocket</groupId>
   <artifactId>tcg-pocket-battler</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>engine</module>
+  </modules>
 
   <name>TCG Pocket Battler</name>
-  <description>A battle simulator for the Pokemon TCG Pocket.</description>
+  <description>A battle simulator for the Pokémon TCG Pocket.</description>
+
+  <!-- Everything below is inherited by every module. -->
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
