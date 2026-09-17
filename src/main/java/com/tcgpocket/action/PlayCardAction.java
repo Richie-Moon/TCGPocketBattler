@@ -1,6 +1,6 @@
 package com.tcgpocket.action;
 
-import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.SupporterCard;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
@@ -19,8 +19,8 @@ import java.util.Optional;
 /**
  * Plays a card from hand.
  *
- * <p>A Basic Pokemon goes to the bench; anything else runs its printed
- * actions and is discarded.
+ * <p>A Basic Pokemon goes to the bench, and so does a Fossil, which plays as
+ * one; anything else runs its printed actions and is discarded.
  *
  * <p>A card printed with {@link PlayedOnto} is dragged onto a Pokemon, and
  * {@code onto} is where it was dropped. So "Misty onto Lapras" and "Misty onto
@@ -67,8 +67,8 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto) im
             return false;
         }
 
-        if (card.definition() instanceof PokemonCard pokemon) {
-            return onto.isEmpty() && pokemon.isBasic() && !side.benchIsFull();
+        if (card.definition() instanceof IPlayableCard playable) {
+            return onto.isEmpty() && playable.asPokemon().isBasic() && !side.benchIsFull();
         }
 
         if (card.definition() instanceof SupporterCard
@@ -96,9 +96,9 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto) im
         side.removeFromHand(card);
         TriggerDispatcher.dispatch(context.battle(), new CardPlayed(side, card));
 
-        if (card.definition() instanceof PokemonCard pokemon) {
+        if (card.definition() instanceof IPlayableCard playable) {
             side.addToBench(new PokemonInPlay(
-                    card.instanceId(), pokemon, side, Zone.BENCH, context.battle().turn()));
+                    card.instanceId(), playable, side, Zone.BENCH, context.battle().turn()));
             return AttemptResult.success(List.of(EffectOutcome.APPLIED));
         }
 

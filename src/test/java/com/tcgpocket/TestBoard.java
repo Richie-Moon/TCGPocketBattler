@@ -1,6 +1,7 @@
 package com.tcgpocket;
 
 import com.tcgpocket.card.ICard;
+import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
@@ -66,13 +67,13 @@ public final class TestBoard {
         return PokemonCard.basic(name.toLowerCase(), name, maxHp, type, 1);
     }
 
-    public PokemonInPlay active(Side side, PokemonCard definition) {
+    public PokemonInPlay active(Side side, IPlayableCard definition) {
         PokemonInPlay pokemon = new PokemonInPlay(nextInstanceId++, definition, side, Zone.ACTIVE, 0);
         side.setActive(pokemon);
         return pokemon;
     }
 
-    public PokemonInPlay bench(Side side, PokemonCard definition) {
+    public PokemonInPlay bench(Side side, IPlayableCard definition) {
         PokemonInPlay pokemon = new PokemonInPlay(nextInstanceId++, definition, side, Zone.BENCH, 0);
         side.addToBench(pokemon);
         return pokemon;

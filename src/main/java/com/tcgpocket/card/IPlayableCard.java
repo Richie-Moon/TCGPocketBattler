@@ -8,4 +8,11 @@ public sealed interface IPlayableCard extends ICard permits PokemonCard, Playabl
      * it is tracked on the instance rather than here.
      */
     int maxHp();
+
+    /**
+     * This card as the Pokemon it is in play: a Pokemon is itself, a Fossil is
+     * the Basic its text says to play it as. What {@code PokemonInPlay} reads
+     * HP, type, attacks and ability from, so the board needs no Fossil case.
+     */
+    PokemonCard asPokemon();
 }

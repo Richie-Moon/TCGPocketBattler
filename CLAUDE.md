@@ -106,6 +106,6 @@ There is deliberately no `Phase` enum.
 
 ## Not built yet
 
-`CoinFlipped`, `EventSource`, playing Fossils (`PlayableItemCard`), and choosing which cards
+`CoinFlipped`, `EventSource`, and choosing which cards
 `DiscardFromHand` takes are designed or marked TODO but not built. Check the code before assuming a
 documented piece exists.

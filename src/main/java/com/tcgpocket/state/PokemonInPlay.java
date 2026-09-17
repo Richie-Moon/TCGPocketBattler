@@ -1,5 +1,6 @@
 package com.tcgpocket.state;
 
+import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.status.IStatus;
@@ -35,28 +36,37 @@ public final class PokemonInPlay extends CardInstance {
      */
     private final List<CardInstance> evolutions = new ArrayList<>();
 
+    /** The bottom card as a Pokemon; for a Fossil, the Basic it is played as. */
+    private final PokemonCard base;
+
     private CardInstance tool;
     private int damage;
     private int turnPlayed;
     private boolean abilityUsedThisTurn;
 
-    public PokemonInPlay(int instanceId, PokemonCard definition, Side owner, Zone zone, int turnPlayed) {
+    /**
+     * @param definition the card put into play: a Basic Pokemon, or a Fossil,
+     *                   which plays as {@link IPlayableCard#asPokemon()} but
+     *                   stays the Item card it is for when it leaves play
+     */
+    public PokemonInPlay(int instanceId, IPlayableCard definition, Side owner, Zone zone, int turnPlayed) {
         super(instanceId, definition, owner, zone);
+        this.base = definition.asPokemon();
         this.turnPlayed = turnPlayed;
     }
 
     /** The card on top, which evolving changes while damage and energy carry over. */
     @Override
     public PokemonCard definition() {
-        return (PokemonCard) (evolutions.isEmpty() ? super.definition() : evolutions.getLast().definition());
+        return evolutions.isEmpty() ? base : (PokemonCard) evolutions.getLast().definition();
     }
 
     /** What this used to be, oldest first; a Stage 1 keeps its Basic underneath. */
     public List<PokemonCard> evolutionStack() {
-        return cards().stream()
-                .limit(evolutions.size())
-                .map(card -> (PokemonCard) card.definition())
-                .toList();
+        List<PokemonCard> stack = new ArrayList<>();
+        stack.add(base);
+        evolutions.forEach(card -> stack.add((PokemonCard) card.definition()));
+        return List.copyOf(stack.subList(0, evolutions.size()));
     }
 
     /**

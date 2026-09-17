@@ -3,7 +3,9 @@ package com.tcgpocket.pool.A1;
 import com.tcgpocket.ScriptedRandom;
 import com.tcgpocket.TestBoard;
 import com.tcgpocket.action.IAction;
+import com.tcgpocket.action.EvolveAction;
 import com.tcgpocket.action.PlayCardAction;
+import com.tcgpocket.action.RetreatAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.IAbility;
@@ -16,10 +18,12 @@ import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.PlaceDamage;
 import com.tcgpocket.number.Literal;
 import com.tcgpocket.target.AttackerActive;
+import com.tcgpocket.target.AttackerBenchSpecific;
 import com.tcgpocket.target.Self;
 import com.tcgpocket.trigger.DamageDealt;
 import com.tcgpocket.trigger.Trigger;
 import com.tcgpocket.effect.AttemptResult;
+import com.tcgpocket.engine.TurnEngine;
 import com.tcgpocket.effect.SwitchActive;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
@@ -33,6 +37,7 @@ import com.tcgpocket.trigger.TurnEnd;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,6 +49,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -771,6 +777,86 @@ class GeneticApexTest {
             attack(Grass.BULBASAUR, "Vine Whip").execute(board.contextFor(attacker));
 
             assertEquals(0, attacker.damage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Trainers — Fossils play as 40-HP Basic Colorless Pokémon")
+    class Fossils {
+
+        private final TestBoard board = new TestBoard();
+        private final ResolutionContext context = board.contextWithoutSource();
+
+        @Test
+        @DisplayName("Helix Fossil goes from hand to the Bench with 40 HP, Colorless, and no attacks or weakness")
+        void playedToTheBench() {
+            board.active(board.you, WALL);
+            CardInstance fossil = board.inHand(board.you, Trainers.HELIX_FOSSIL);
+
+            assertTrue(new PlayCardAction(fossil).execute(context).succeeded());
+
+            PokemonCard played = board.you.bench().getFirst().definition();
+            assertTrue(board.you.hand().isEmpty());
+            assertEquals(40, played.maxHp());
+            assertTrue(played.isBasic());
+            assertEquals(Set.of(Type.COLORLESS), played.types());
+            assertTrue(played.actions().isEmpty());
+            assertTrue(played.weakness().isEmpty());
+        }
+
+        @Test
+        @DisplayName("a Fossil can't retreat, but the Omanyte that evolves from it can")
+        void cannotRetreat() {
+            PokemonInPlay fossil = board.active(board.you, Trainers.HELIX_FOSSIL);
+            board.bench(board.you, WALL);
+            RetreatAction retreat = new RetreatAction(new AttackerBenchSpecific(0));
+
+            assertFalse(retreat.isLegal(context));
+
+            CardInstance omanyte = board.inHand(board.you, Water.OMANYTE);
+            assertTrue(new EvolveAction(omanyte, new AttackerActive()).execute(context).succeeded());
+            fossil.attachEnergy(Type.WATER, 1);
+
+            assertTrue(retreat.isLegal(context));
+        }
+
+        @Test
+        @DisplayName("discarding it from play puts the Item card in the discard pile and scores nothing")
+        void discardFromPlay() {
+            board.active(board.you, WALL);
+            PokemonInPlay fossil = board.bench(board.you, Trainers.OLD_AMBER);
+            IAbility discard = fossil.definition().ability().orElseThrow();
+
+            assertTrue(new UseAbilityAction(fossil, discard).execute(context).succeeded());
+
+            assertTrue(board.you.bench().isEmpty());
+            assertSame(Trainers.OLD_AMBER, board.you.discardPile().getFirst().definition());
+            assertEquals(0, board.them.points());
+        }
+
+        @Test
+        @DisplayName("knocked out after evolving, it scores 1 and discards the Fossil and the Omanyte")
+        void knockedOutWithItsEvolution() {
+            PokemonInPlay fossil = board.active(board.you, Trainers.HELIX_FOSSIL);
+            board.bench(board.you, WALL);
+            new EvolveAction(board.inHand(board.you, Water.OMANYTE), new AttackerActive()).execute(context);
+            fossil.takeDamage(fossil.maxHp());
+
+            new TurnEngine(board.battle).checkKnockouts(Optional.empty());
+
+            assertEquals(1, board.them.points());
+            assertEquals(List.of(Trainers.HELIX_FOSSIL, Water.OMANYTE),
+                    board.you.discardPile().stream().map(CardInstance::definition).toList());
+        }
+
+        @Test
+        @DisplayName("a Fossil is not a Basic to open with")
+        void notAnOpeningPokemon() {
+            for (int i = 0; i < 20; i++) {
+                board.inDeck(board.you, Trainers.DOME_FOSSIL);
+            }
+
+            assertThrows(IllegalStateException.class, () -> new TurnEngine(board.battle).setup());
         }
     }
 

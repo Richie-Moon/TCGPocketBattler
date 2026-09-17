@@ -11,12 +11,6 @@ import java.util.List;
  * <p>One class per energy type below, because that is the order the set is
  * printed in: transcribing it goes top to bottom, and a file stays at roughly
  * twenty-five cards instead of one file at two hundred.
- *
- * <p><b>This is a sample, not the set.</b> Seven cards are here to establish
- * the pattern. Every id, HP, retreat cost and weakness needs checking against
- * the printed card before it is trusted — {@code CardPoolTest} asserts the
- * shape of the card text, which is a different thing from asserting the
- * numbers are right.
  */
 public final class GeneticApex {
 

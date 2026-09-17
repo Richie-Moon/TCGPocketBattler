@@ -1,5 +1,6 @@
 package com.tcgpocket.action;
 
+import com.tcgpocket.card.CardTag;
 import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
@@ -27,6 +28,10 @@ import java.util.Optional;
  * <p>The retreating Pokemon sheds its statuses on the way to the bench, which
  * is what makes retreating a way out of a special condition — and, in turn,
  * why Asleep and Paralyzed forbid retreating in the first place.
+ *
+ * <p>A Fossil never retreats: "This card can't retreat" is printed on every
+ * one, so it is read off the {@link CardTag#FOSSIL} tag rather than repeated
+ * as a modifier on each card.
  */
 public record RetreatAction(ITarget replacement) implements IAction {
 
@@ -43,7 +48,8 @@ public record RetreatAction(ITarget replacement) implements IAction {
         }
 
         PokemonInPlay retreating = active.get();
-        if (new IsAsleep().evaluate(retreating) || new IsParalyzed().evaluate(retreating)
+        if (retreating.definition().tags().contains(CardTag.FOSSIL)
+                || new IsAsleep().evaluate(retreating) || new IsParalyzed().evaluate(retreating)
                 || retreating.hasModifier(ModifierKind.CANNOT_RETREAT, context.battle().turn())) {
             return false;
         }

@@ -71,6 +71,11 @@ public record PokemonCard(
         return stage == 0;
     }
 
+    @Override
+    public PokemonCard asPokemon() {
+        return this;
+    }
+
     /** Minimal Basic, for tests and for cards with nothing unusual about them. */
     public static PokemonCard basic(String id, String name, String description, int maxHp, Type type, EnergyCost retreatCost, CardRarity rarity) {
         return new PokemonCard(

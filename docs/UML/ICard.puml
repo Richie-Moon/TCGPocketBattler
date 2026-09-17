@@ -25,13 +25,19 @@ interface IPlayableCard extends ICard {
        CurrentHP. Current HP is damage taken off maxHp, tracked per instance
        on PokemonInPlay. Status and tool likewise moved to the instance. '/
     - maxHp: int
+    /' What PokemonInPlay reads HP, type, attacks and ability from. A
+       PokemonCard is itself; a Fossil is the Basic it is played as. '/
+    + asPokemon(): PokemonCard
 }
 
 interface ITrainerCard extends ICard {
 }
 
-/' Fossil cards: playable like a Basic Pokemon, but a Trainer card.
-   Their IAction is to discard themselves. '/
+/' Fossil cards: an Item played to the Bench as a Basic Colorless Pokemon of
+   its HP (asPokemon), with no attacks or weakness. Its IAction, discarding
+   itself, is offered as an ActivatedAbility (Narrowed: an Ability blocker
+   would wrongly stop it). RetreatAction refuses anything tagged FOSSIL. It
+   is never an opening Pokemon, and the discard pile gets the Item card back. '/
 class PlayableItemCard <<record>> implements IPlayableCard, ITrainerCard {}
 
 class ItemCard <<record>> implements ITrainerCard {}
