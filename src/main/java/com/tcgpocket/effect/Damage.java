@@ -59,10 +59,8 @@ final class Damage {
                 context.battle(),
                 new DamageDealt(event.source(), event.target(), landed));
 
-        // TODO: the knockout procedure — points, discarding the evolution stack
-        //       and the tool, and the replacement its controller has to choose —
-        //       lands with TurnEngine.checkKnockouts(), which then dispatches
-        //       Knockout. An effect applies damage; it does not run the game.
+        // No knockout here: an effect applies damage; it does not run the game.
+        // TurnEngine.checkKnockouts does, once the whole action has resolved.
         return event.target().damage() - before;
     }
 }

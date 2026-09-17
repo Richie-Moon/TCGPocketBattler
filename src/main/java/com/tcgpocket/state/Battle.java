@@ -11,12 +11,10 @@ import java.util.Optional;
  *
  * <p>Deliberately a state holder rather than a rules engine: turn orchestration,
  * trigger dispatch, knockout handling and legal-move generation belong to
- * {@code TurnEngine}. Keeping them out of here is what stops the engine package
+ * {@code TurnEngine} and {@code TriggerDispatcher}. Keeping them out of here is what stops the engine package
  * from becoming part of the model's dependency cycle.
  */
 public final class Battle {
-
-    // TODO: Phase phase.
 
     private final RandomSource rng;
     private Side attacker;

@@ -61,7 +61,7 @@ public record EvolveAction(CardInstance evolution, ITarget onto) implements IAct
         PokemonInPlay pokemon = onto.resolve(context).orElseThrow();
         PokemonCard was = pokemon.definition();
         context.controller().removeFromHand(evolution);
-        pokemon.evolveInto((PokemonCard) evolution.definition(), context.battle().turn());
+        pokemon.evolveInto(evolution, context.battle().turn());
 
         TriggerDispatcher.dispatch(context.battle(), new Evolved(was, pokemon));
         return AttemptResult.success(List.of(EffectOutcome.APPLIED));

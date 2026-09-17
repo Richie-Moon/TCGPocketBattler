@@ -23,11 +23,10 @@ public sealed interface GameEvent permits
         StatusApplied, StatusRemoved,
         CardPlayed, Evolved, ToolAttached, ToolRemoved, Retreated, EnergyAttached {
 
-    // TODO: PhaseEntered awaits the Phase enum, which arrives with TurnEngine.
-    //       CoinFlipped is modelled but deliberately not built yet: nothing can
-    //       consume it (a trigger fires with a fresh scope, so it could not read
-    //       the flip back) and dispatching on every flip would walk the board
-    //       constantly for a card pattern that does not exist in Pocket.
+    // CoinFlipped is modelled but deliberately not built yet: nothing can
+    // consume it (a trigger fires with a fresh scope, so it could not read the
+    // flip back) and dispatching on every flip would walk the board constantly
+    // for a card pattern that does not exist in Pocket.
 
     /**
      * The Pokemon this event is chiefly about, if any.

@@ -591,7 +591,8 @@ class IEffectTest {
         void activeGoesWithEverythingOnIt() {
             PokemonInPlay active = board.active(board.them, PIKACHU);
             PokemonInPlay benched = board.bench(board.them, SNORLAX);
-            active.evolveInto(PokemonCard.evolution("raichu", "Raichu", 1, "Pikachu", 100, Type.LIGHTNING, 1, List.of()), 1);
+            active.evolveInto(board.loose(board.them,
+                    PokemonCard.evolution("raichu", "Raichu", 1, "Pikachu", 100, Type.LIGHTNING, 1, List.of())), 1);
             active.attachTool(board.loose(board.them, ToolCard.named("giant-cape", "Giant Cape")));
 
             assertEquals(EffectOutcome.APPLIED, new ShuffleIntoDeck(new OpponentActive()).apply(context));

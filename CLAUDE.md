@@ -96,8 +96,16 @@ JUnit 5, `@Nested` + `@DisplayName` throughout, so a class reads as a list of ru
 - Test classes are named after the hierarchy they cover (`IEffectTest`, `IConditionTest`,
   `ITriggerTest`, …), not after individual node classes.
 
+## The engine
+
+`engine.TurnEngine` runs a game: setup, `playTurn`, `legalActions()` (attacker only, since targets are
+turn-relative), `checkKnockouts`, and the win check (most win conditions wins; tie after
+`MAX_TURNS`). It is the only thing that dispatches `TurnStart`, `TurnEnd` and `Knockout`. Effects and
+actions announce their own events. Knockouts are checked after each action, never inside an effect.
+There is deliberately no `Phase` enum.
+
 ## Not built yet
 
-`TurnEngine`, `Battle.legalActions(Side)`, `Phase`, and the knockout procedure are designed in
-`docs/UML/` but absent from `src/`. Some `ITarget` and `GameEvent` variants are likewise still TODOs.
-Check the code before assuming a documented piece exists.
+`CoinFlipped`, `EventSource`, playing Fossils (`PlayableItemCard`), and choosing which cards
+`DiscardFromHand` takes are designed or marked TODO but not built. Check the code before assuming a
+documented piece exists.

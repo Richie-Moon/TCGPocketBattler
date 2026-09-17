@@ -71,9 +71,15 @@ endif
 :clamp to >= 0;
 :target.damage += amount;
 :dispatch DamageDealt;
-:Battle.checkKnockouts();
 
 stop
+
+note left
+  No knockout check here. An effect applies damage; it does
+  not run the game. TurnEngine.checkKnockouts runs after every
+  action and after TurnEnd, so an attack resolves in full before
+  anything is discarded or replaced. See GameFlow.puml.
+end note
 
 note right
   Order matters and is not commutative: weakness applies to the

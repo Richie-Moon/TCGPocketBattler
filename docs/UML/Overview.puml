@@ -66,7 +66,7 @@ package "5. Card text — immutable record trees" #E3F2FD {
 }
 
 /' --- layer 1 -> 2 --- '/
-TurnEngine *-- Battle       : drives phases
+TurnEngine *-- Battle       : drives turns
 TurnEngine ..> IPlayer      : asks for decisions
 
 /' --- layer 2 internals --- '/
@@ -94,7 +94,7 @@ ITrigger o-- ICondition
 
 note right of TurnEngine
   A turn is just `Decision<IAction>`:
-  `Battle.legalActions(Side)` builds every legal
+  `TurnEngine.legalActions()` builds every legal
   move — attacks, retreat, evolve, play, attach,
   ability, end turn — and `IPlayer.choose` picks
   one. That single seam is what makes this a

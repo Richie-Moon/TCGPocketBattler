@@ -126,7 +126,7 @@ class ITriggerTest {
             PokemonCard ivysaur = PokemonCard
                     .evolution("ivysaur", "Ivysaur", 1, "Bulbasaur", 90, Type.GRASS, 2, List.of())
                     .withAbility(new PassiveAbility("Photosynthesis", whenever(TurnEnd.class)));
-            pokemon.evolveInto(ivysaur, 2);
+            pokemon.evolveInto(board.loose(board.you, ivysaur), 2);
 
             assertEquals(1, TriggerDispatcher.collect(board.battle).size());
         }

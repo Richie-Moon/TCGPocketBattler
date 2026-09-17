@@ -42,12 +42,21 @@ class PokemonInPlay extends CardInstance {
     - tool: Optional<CardInstance>
     /' Evolution and "played this turn" checks both need this. '/
     - turnPlayed: int
-    /' Stage 1 played onto a Basic keeps the Basic underneath it. '/
-    - evolutionStack: List<PokemonCard>
+    /' The evolution cards played on top, oldest first. The Basic underneath is
+       this instance's own definition and id; keeping the evolutions as
+       instances means every card in the stack keeps its own id when the
+       Pokemon leaves play. '/
+    - evolutions: List<CardInstance>
     /' Where IDurationEffect actually stores its result. See Damage.puml. '/
     - modifiers: List<ActiveModifier>
 
+    /' The top card. '/
     + definition(): PokemonCard
+    + evolutionStack(): List<PokemonCard>
+    /' Every physical card, Basic first: what a knockout discards and
+       ShuffleIntoDeck shuffles away. '/
+    + cards(): List<CardInstance>
+    + evolveInto(CardInstance, int): void
     + maxHp(): int
     + currentHp(): int
     + isKnockedOut(): boolean

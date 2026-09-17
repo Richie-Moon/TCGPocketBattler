@@ -3,24 +3,21 @@ title Battle and Side — the mutable runtime state
 
 skinparam linetype ortho
 
+/'
+  A state holder, not a rules engine. Dispatch lives on TriggerDispatcher
+  (ITrigger.puml); legal moves, knockouts and the win check live on TurnEngine
+  (GameFlow.puml). Keeping them off Battle keeps the engine out of the model's
+  dependency cycle.
+'/
 class Battle {
-    - id: int
     - turn: int
-    - phase: Phase
     - attacker: Side
     - defender: Side
     /' Seeded, so a game replays identically. See Resolution.puml. '/
     - rng: RandomSource
     - stadium: Optional<CardInstance>
-    - winner: Optional<Side>
 
     + switchSides(): void
-    /' Walks the current board and fires every matching trigger.
-       See ITrigger.puml for why triggers are collected rather than registered. '/
-    + dispatch(GameEvent): void
-    + legalActions(Side): List<IAction>
-    + checkKnockouts(): void
-    + checkWinCondition(): Optional<Side>
     + opponentOf(Side): Side
 }
 
@@ -60,7 +57,6 @@ class Side {
 '/
 Battle *-- "2" Side
 Battle *-- RandomSource
-Battle o-- Phase
 
 Side *-- PokemonInPlay : active + bench
 Side *-- CardInstance  : hand / deck / discard

@@ -1,6 +1,5 @@
 package com.tcgpocket.effect;
 
-import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.player.Decision;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
@@ -8,7 +7,6 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.target.ITarget;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,13 +66,7 @@ public record ShuffleIntoDeck(ITarget target) implements IEffect {
             owner.removeFromBench(pokemon);
         }
 
-        // ponytail: evolved cards lost their instances in EvolveAction, so the whole stack
-        //           shares this Pokemon's id. Keep CardInstances on the stack if ids must stay unique.
-        List<PokemonCard> cards = new ArrayList<>(pokemon.evolutionStack());
-        cards.add(pokemon.definition());
-        for (PokemonCard card : cards) {
-            destination.accept(new CardInstance(pokemon.instanceId(), card, owner, pokemon.zone()));
-        }
+        pokemon.cards().forEach(destination);
         pokemon.removeTool().ifPresent(destination);
         return true;
     }

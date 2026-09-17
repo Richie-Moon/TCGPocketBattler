@@ -1,37 +1,31 @@
 @startuml
-title Game flow — phases, engine and win condition
+title Game flow — engine and win condition
 
 skinparam linetype ortho
 
-enum Phase {
-    SETUP
-    DRAW
-    ENERGY_GENERATION
-    MAIN
-    ATTACK
-    BETWEEN_TURNS
-    GAME_OVER
-}
-
+/'
+  No Phase enum. Nothing on a card reads the phase, and the engine's own
+  method structure (setup, playTurn's steps) already is the phase. Add one,
+  and a PhaseEntered event, when a card says "at the start of your Main phase".
+'/
 class TurnEngine {
     - battle: Battle
+    + {static} MAX_TURNS: int = 30
 
-    + playGame(): Side
-    + playTurn(): void
+    + playGame(): Optional<Side>
     + setup(): void
-    + betweenTurns(): void
+    + playTurn(): void
+    /' Only ever for battle.attacker(): every ITarget is turn-relative, so
+       there is deliberately no Side parameter. '/
+    + legalActions(): List<IAction>
+    + checkKnockouts(Optional<PokemonInPlay>): void
+    + isOver(): boolean
+    + winner(): Optional<Side>
 }
 
-/'
-  The bridge between the model and an agent: everything a player may do this
-  turn, as one uniform list of IAction. Without it there is no simulator, only
-  a card renderer.
-'/
-class "Battle.legalActions(Side)" as LegalActions <<generates>> {
-}
-
-note right of LegalActions
-  What it offers, and the gate on each:
+note right of TurnEngine
+  What legalActions offers, and the gate on each
+  (every candidate is filtered by its own isLegal):
 
   **Action**             attacks of the active — cost satisfied,
                          not Asleep or Paralyzed
@@ -39,18 +33,55 @@ note right of LegalActions
                          attached this turn
   **PlayCardAction**     hand cards playable now; at most one
                          Supporter per turn
-  **EvolveAction**       evolution in hand, and the target was
-                         played on an earlier turn
+  **EvolveAction**       evolution in hand, target played on an
+                         earlier turn, and not turn 1 or 2 (no one
+                         evolves on their first turn)
   **RetreatAction**      retreat cost payable, bench not empty,
                          not Asleep or Paralyzed
   **UseAbilityAction**   activated abilities not yet used
   **EndTurnAction**      always
 end note
 
+note bottom of TurnEngine
+  **Win conditions** — each counts once per side:
+   * **points**: at least 3 points
+   * **bench**: you have Pokemon in play and your opponent has none
+
+  The game ends as soon as either side holds one. The side holding
+  MORE conditions wins; equal counts are a tie. So a double KO that
+  takes you to 3 points but leaves you nothing to promote, while
+  your opponent still has a bench, is a tie (points vs bench).
+
+  After turn MAX_TURNS (30) the game is a tie.
+end note
+
 TurnEngine *-- Battle
-TurnEngine ..> LegalActions
 TurnEngine ..> IPlayer
-Battle o-- Phase
+TurnEngine ..> TriggerDispatcher
+
+@enduml
+
+@startuml
+title Game flow — setup
+
+start
+note right
+  The caller builds each Side (deck, registered energy
+  types) and passes them to Battle(first, second) in
+  turn order: the first-player coin flip is the caller's.
+end note
+repeat :for each side;
+  if (deck holds no Basic?) then (yes)
+    :throw IllegalStateException;
+    stop
+  endif
+  :shuffle until the top 5 hold a Basic;
+  :draw 5;
+  :owner CHOOSES the Active from Basics in hand;
+  :owner CHOOSES Bench Pokemon one at a time
+   (empty = done), up to BENCH_LIMIT;
+repeat while (more sides?)
+stop
 
 @enduml
 
@@ -58,70 +89,70 @@ Battle o-- Phase
 title Game flow — one turn
 
 start
-:TurnStart dispatched;
+:dispatch TurnStart;
+:draw 1 card;
+note right: deck-out is not a loss in Pocket
 
-partition DRAW {
-  :draw 1 card;
-  note right: deck-out is not an instant loss in Pocket
-}
-
-partition ENERGY_GENERATION {
-  if (first player's first turn?) then (yes)
-    :skip;
-  else (no)
-    :currentEnergy = nextEnergy;
-    :nextEnergy = random from registeredTypes;
-  endif
-}
-
-partition MAIN {
-  repeat
-    :options = battle.legalActions(side);
-    :chosen = side.player.choose(Decision<IAction>(options));
-    :chosen.execute(ctx);
-  repeat while (chosen is not an attack or EndTurnAction?) is (continue)
-}
-
-partition ATTACK {
-  if (attack declared?) then (yes)
-    :dispatch AttackDeclared;
-    note right
-      Confusion listens here: flip, and on
-      tails the attempt fails. No engine
-      special-case — it is just a trigger.
-    end note
-    :action.execute(ctx);
-    :damage pipeline (Damage.puml);
-  endif
-}
-
-partition BETWEEN_TURNS {
-  :dispatch TurnEnd;
-  :poison / burn damage;
-  :sleep and paralysis recovery flips;
-  :expire ActiveModifiers past expiresOnTurn;
-  :reset per-turn flags on both Sides;
-}
-
-:checkKnockouts();
-note right
-  For each knocked-out Pokemon:
-   * award the opponent 2 points if tagged EX, else 1
-   * discard it, its tool, its attached energy and
-     its whole evolution stack
-   * dispatch Knockout
-   * if it was the active, its controller CHOOSES a
-     replacement from the bench (IPlayer.choose)
-end note
-
-if (points >= 3, or opponent has no Pokemon in play?) then (yes)
-  :phase = GAME_OVER;
-  stop
+if (turn 1?) then (yes)
+  :no energy for the first player;
 else (no)
-  :battle.switchSides();
-  :turn++;
+  :generateEnergy;
 endif
 
+repeat
+  :options = legalActions();
+  :chosen = player.choose(Decision<IAction>(options));
+  :chosen.execute(ctx);
+  note right
+    An attack announces itself: Action.execute dispatches
+    AttackDeclared, which is where Confusion vetoes it.
+  end note
+  :checkKnockouts(attacker's active if chosen was an attack);
+  if (game over?) then (yes)
+    stop
+  endif
+repeat while (chosen was an attack or EndTurnAction?) is (no) not (yes)
+
+:dispatch TurnEnd;
+note right
+  Poison, Burn, Sleep and Paralysis are TurnEnd
+  triggers on the statuses — no engine step for them.
+end note
+:checkKnockouts(empty);
+if (game over?) then (yes)
+  stop
+endif
+
+:expire ActiveModifiers not live next turn;
+:reset per-turn flags on both Sides;
+:battle.switchSides() (turn++);
+stop
+
+@enduml
+
+@startuml
+title Game flow — checkKnockouts
+
+start
+repeat :for each knocked-out Pokemon, both sides;
+  :opponent scores 3 for MEGA_EX, 2 for EX, else 1;
+  :dispatch Knockout;
+  note right
+    While still in play, so the Pokemon's own
+    Tool and ability can react to it.
+  end note
+  :remove from play; discard every card in its
+   evolution stack and its tool (attached energy
+   simply goes);
+repeat while (anything still knocked out? a Knockout trigger may deal damage)
+
+if (either side holds a win condition?) then (yes)
+  :game over — most conditions wins, equal is a tie;
+  stop
+endif
+
+:each side with no Active CHOOSES a replacement
+ from its bench (defender first);
 stop
 
 @enduml

@@ -8,7 +8,7 @@ package com.tcgpocket.player;
  * presents a list of legal options and gets one back, so a new kind of
  * decision never widens this interface.
  *
- * <p>A whole turn goes through the same seam — {@code Battle.legalActions}
+ * <p>A whole turn goes through the same seam — {@code TurnEngine.legalActions}
  * builds a {@code Decision<IAction>} — which is what makes this a simulator
  * rather than a card renderer.
  */

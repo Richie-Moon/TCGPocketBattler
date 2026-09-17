@@ -10,7 +10,7 @@ interface IAbility <<sealed>> {
 
 /'
   The player spends part of their turn to use it. Surfaced by
-  Battle.legalActions as a UseAbilityAction. See IAction.puml.
+  TurnEngine.legalActions as a UseAbilityAction. See IAction.puml.
 '/
 class ActivatedAbility <<record>> implements IAbility {
     - action: IAction

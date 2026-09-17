@@ -47,7 +47,7 @@ note bottom of IPlayer
   always presents a list of legal options and receives one back,
   so adding a new kind of decision never widens the interface.
 
-  Battle.legalActions(Side) uses the same shape for the turn
+  TurnEngine.legalActions() uses the same shape for the turn
   itself — a turn is just Decision<IAction>. See GameFlow.puml.
 end note
 

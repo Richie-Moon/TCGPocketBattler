@@ -20,7 +20,7 @@ Read `Overview.puml` first; it is this list as a picture.
 | **Cards** | `ICard` definitions (immutable, one per printed card) and `CardInstance` / `PokemonInPlay` (one per physical copy in a game) | instances only |
 | **Resolution** | `ResolutionContext` — the ambient argument every node is evaluated against | its `scope` only |
 | **Runtime state** | `Battle`, `Side` | yes — this is the game |
-| **Engine** | `TurnEngine`, `GameEvent`, `DamageCalculator` | drives everything |
+| **Engine** | `TurnEngine`, `TriggerDispatcher`, `GameEvent`, `DamageCalculator` | drives everything |
 | **Agents** | `IPlayer` — makes every decision the rules leave to a player | no |
 
 The four evaluators are the backbone. Each answers one question about the game:
@@ -60,7 +60,7 @@ IEffect  ── grouped by ──>  IAttempt  ── offered as ──>  IAction
 | `ITrigger.puml` | `GameEvent` hierarchy and trigger dispatch |
 | `IStatus.puml` | special conditions and how they stack |
 | `Damage.puml` | the damage pipeline and its ordering |
-| `GameFlow.puml` | phases, one turn end to end, win condition |
+| `GameFlow.puml` | `TurnEngine`: setup, one turn end to end, knockouts, win conditions |
 | `IPlayer.puml` | the decision-making seam |
 
 ## Five decisions worth knowing about
@@ -90,7 +90,7 @@ come and go. A board is ~10 cards, so the cost is nil, and it makes stale
 listeners impossible: a discarded Tool cannot fire, and a Pokémon that just
 evolved brings its new ability along for free.
 
-**A turn is `Decision<IAction>`.** `Battle.legalActions(Side)` builds every
+**A turn is `Decision<IAction>`.** `TurnEngine.legalActions()` builds every
 legal move — attack, retreat, evolve, play, attach, ability, end turn — and
 `IPlayer.choose` picks one. The same seam serves every mid-resolution choice.
 This is what makes the thing a simulator rather than a card renderer, and it
@@ -105,8 +105,8 @@ java -jar plantuml.jar -tsvg -o ./out 'docs/UML/*.puml'   # render
 java -jar plantuml.jar -checkonly -failfast2 'docs/UML/*.puml'   # syntax only
 ```
 
-`Damage.puml` and `GameFlow.puml` each hold two diagrams, so they render two
-files apiece.
+`Damage.puml` holds two diagrams and `GameFlow.puml` four, so they render that
+many files apiece.
 
 ## Conventions
 
@@ -116,6 +116,6 @@ files apiece.
   looks arbitrary.
 - Fields are drawn with `-` throughout, including on interfaces, as shorthand
   for "this hierarchy has this property".
-- Cross-file references (`Type`, `Phase`, `PokemonInPlay`) are left undeclared
+- Cross-file references (`Type`, `Side`, `PokemonInPlay`) are left undeclared
   in the files that use them; PlantUML renders them as bare boxes and each
   file stays independently renderable.

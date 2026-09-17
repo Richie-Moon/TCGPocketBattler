@@ -26,15 +26,14 @@ public final class PokemonInPlay extends CardInstance {
     private final Map<Type, Integer> attachedEnergy = new EnumMap<>(Type.class);
     private final Set<IStatus> statuses = new LinkedHashSet<>();
     private final List<ActiveModifier> modifiers = new ArrayList<>();
-    /** What this used to be, oldest first; a Stage 1 keeps its Basic underneath. */
-    private final List<PokemonCard> evolutionStack = new ArrayList<>();
 
     /**
-     * The card currently on top. Held separately from the inherited definition
-     * because evolving changes it, and the instance persists across the change
-     * so damage and energy carry over.
+     * The evolution cards played onto this Pokemon, oldest first; the last is
+     * on top. The Basic underneath is this instance's own inherited definition
+     * and id. Kept as instances rather than definitions so that every card in
+     * the stack keeps its own id when the Pokemon leaves play.
      */
-    private PokemonCard current;
+    private final List<CardInstance> evolutions = new ArrayList<>();
 
     private CardInstance tool;
     private int damage;
@@ -43,17 +42,36 @@ public final class PokemonInPlay extends CardInstance {
 
     public PokemonInPlay(int instanceId, PokemonCard definition, Side owner, Zone zone, int turnPlayed) {
         super(instanceId, definition, owner, zone);
-        this.current = definition;
         this.turnPlayed = turnPlayed;
     }
 
+    /** The card on top, which evolving changes while damage and energy carry over. */
     @Override
     public PokemonCard definition() {
-        return current;
+        return (PokemonCard) (evolutions.isEmpty() ? super.definition() : evolutions.getLast().definition());
     }
 
+    /** What this used to be, oldest first; a Stage 1 keeps its Basic underneath. */
     public List<PokemonCard> evolutionStack() {
-        return Collections.unmodifiableList(evolutionStack);
+        return cards().stream()
+                .limit(evolutions.size())
+                .map(card -> (PokemonCard) card.definition())
+                .toList();
+    }
+
+    /**
+     * Every physical card this Pokemon is made of, Basic first and the top card
+     * last: what goes to the discard pile or deck when it leaves play.
+     *
+     * <p>The Basic is handed out as a plain instance under this Pokemon's own
+     * id, since the {@code PokemonInPlay} itself carries damage and energy that
+     * a card in a pile must not.
+     */
+    public List<CardInstance> cards() {
+        List<CardInstance> cards = new ArrayList<>();
+        cards.add(new CardInstance(instanceId(), super.definition(), owner(), zone()));
+        cards.addAll(evolutions);
+        return Collections.unmodifiableList(cards);
     }
 
     /**
@@ -63,10 +81,15 @@ public final class PokemonInPlay extends CardInstance {
      * temporary modifiers do not, which is why evolving is a way out of a
      * special condition. The turn counter resets, so the evolution cannot
      * itself evolve on the same turn.
+     *
+     * @param evolution the evolution card played from hand; it becomes part of
+     *                  this Pokemon's stack
      */
-    public void evolveInto(PokemonCard evolution, int currentTurn) {
-        evolutionStack.add(current);
-        current = evolution;
+    public void evolveInto(CardInstance evolution, int currentTurn) {
+        if (!(evolution.definition() instanceof PokemonCard)) {
+            throw new IllegalArgumentException("not a Pokemon: " + evolution);
+        }
+        evolutions.add(evolution);
         turnPlayed = currentTurn;
         statuses.clear();
         modifiers.clear();

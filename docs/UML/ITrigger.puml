@@ -62,10 +62,6 @@ class TurnStart <<record>> implements GameEvent {
 class TurnEnd <<record>> implements GameEvent {
     - side: Side
 }
-/' NOT BUILT: needs the Phase enum, which arrives with TurnEngine. '/
-class PhaseEntered <<record>> implements GameEvent {
-    - phase: Phase
-}
 
 /' --- combat --- '/
 class AttackDeclared <<record>> implements GameEvent {
@@ -77,8 +73,8 @@ class DamageDealt <<record>> implements GameEvent {
     - target: PokemonInPlay
     - amount: int
 }
-/' Built, but nothing dispatches it yet: the knockout procedure (points,
-   discarding the stack, choosing a replacement) is TurnEngine work. '/
+/' Dispatched by TurnEngine.checkKnockouts while the Pokemon is still in play,
+   so its own Tool and ability can react; it leaves play straight after. '/
 class Knockout <<record>> implements GameEvent {
     - knockedOut: PokemonInPlay
     - by: Optional<PokemonInPlay>
@@ -160,20 +156,17 @@ end note
 note as NotBuilt #FFE0E0
   **Modelled, not built.**
 
-  **PhaseEntered** — waits on the Phase enum, which arrives
-  with TurnEngine.
-
   **CoinFlipped** — nothing could consume it. A trigger fires
   with a fresh ResolutionScope, so it cannot read the flip
   back, and dispatching on every flip would walk the board
   constantly for a pattern Pocket does not have.
 
-  **Knockout** is built and cards may listen for it, but the
-  procedure that dispatches it — points, discarding the
-  stack, choosing a replacement — is TurnEngine work. Same
-  for **TurnStart** and **TurnEnd**: the types are built and
-  the statuses listen, but the engine is what will announce
-  them each turn.
+  **PhaseEntered** was cut along with the Phase enum: no card
+  reads the phase. See GameFlow.puml.
+
+  Who dispatches what: effects and actions announce their own
+  events; **TurnEngine** announces **TurnStart**, **TurnEnd**
+  and **Knockout**.
 end note
 
 NotBuilt .. CoinFlipped
