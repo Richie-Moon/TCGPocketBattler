@@ -8,9 +8,12 @@ Maven, Java 25 (`maven.compiler.release` is 25 — sealed interfaces, records an
 switch are load-bearing, not incidental). `-Xlint:all` is on.
 
 Multi-module: the root `pom.xml` is the parent (Java version, JUnit, compiler/surefire config are
-set there and inherited); `engine/` is the only module and holds everything below. The engine
-stays free of networking, JSON and threading — a future `server` module depends on it, never the
-reverse. Run Maven from the root.
+set there and inherited). Run Maven from the root.
+
+- `engine/` — the rules engine; everything below except "The server" is about it. It stays free
+  of networking, JSON and threading.
+- `server/` — Spring Boot 4 (Jackson 3, so `tools.jackson.*`), depends on `engine`, never the
+  reverse. Spring Boot is imported as a BOM because the root pom is already the parent.
 
 ```bash
 mvn test                                  # compile + run all tests
@@ -18,6 +21,7 @@ mvn package                               # build the jar
 mvn -Dtest=IEffectTest test               # one test class
 mvn -Dtest=IEffectTest$Flips test         # one @Nested class (quote the $ in PowerShell)
 mvn -Dtest=IEffectTest#unresolvedTargetFails test   # one method
+java -jar server/target/server-0.1.0-SNAPSHOT.jar   # after mvn package; open localhost:8080 in two tabs
 ```
 
 ## The core idea
@@ -108,6 +112,24 @@ turn-relative), `checkKnockouts`, and the win check (most win conditions wins; t
 `MAX_TURNS`). It is the only thing that dispatches `TurnStart`, `TurnEnd` and `Knockout`. Effects and
 actions announce their own events. Knockouts are checked after each action, never inside an effect.
 There is deliberately no `Phase` enum.
+
+## The server
+
+`server.GameSocket` is one WebSocket endpoint (`/play`) that pairs connections first come, first
+served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `RemotePlayer` is the
+`IPlayer` that blocks in `choose` until the browser answers. The engine was not rewritten for this.
+
+- **The browser only ever sends `{"decision": id, "option": index}`.** An index into a list the
+  engine already made legal, plus the decision's id so a stale answer can't land on the next
+  question. Never accept a move the client describes itself.
+- **`BoardView` is the only board state that leaves the server.** Never serialize `Battle`,
+  `Decision` or engine objects: the opponent's hand, deck order and RNG seed are hidden. Options go
+  out as text from `Labels`, and only to the player being asked. `GameSocketTest` fails if an
+  opponent's hand is sent.
+- Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is a deck-list validator. There
+  is no turn timer, no reconnect, and no game log yet (seed + deck lists + chosen indices would
+  replay a game exactly).
+- `static/index.html` is a test page, not the website.
 
 ## Not built yet
 

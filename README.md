@@ -15,14 +15,15 @@ Java 25 and Maven.
 
 ```bash
 mvn test       # compile and run tests
-mvn package    # build the jar
+mvn package    # build the jars
+java -jar server/target/server-0.1.0-SNAPSHOT.jar   # then open http://localhost:8080 in two tabs
 ```
 
 ## Next
 
 - Model all cards in-game
   - Base cards from A1 and P-A are complete, enough to begin other work
-- Game client and server to host battles (as Maven modules alongside `engine`)
+- Game client and server to host battles: `server` plays a game between two browser tabs; the website is still to come
 - `GameEvent`/`Trigger` → turn engine and `legalActions` →
 `RandomPlayer`/`ScriptedPlayer`.
 
