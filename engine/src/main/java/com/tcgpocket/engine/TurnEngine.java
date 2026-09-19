@@ -48,7 +48,7 @@ public final class TurnEngine {
     public static final int MAX_TURNS = 30;
 
     /** Cards in an opening hand. */
-    static final int OPENING_HAND = 5;
+    static final int OPENING_HAND_SIZE = 5;
 
     /** Points at which a side holds the points win condition. */
     static final int POINTS_TO_WIN = 3;
@@ -109,7 +109,7 @@ public final class TurnEngine {
         }
 
         side.shuffleDeck(battle.rng());
-        for (int i = 0; i < OPENING_HAND; i++) {
+        for (int i = 0; i < OPENING_HAND_SIZE; i++) {
             side.drawCard();
         }
 
@@ -159,7 +159,7 @@ public final class TurnEngine {
     }
 
     /* ------------------------------------------------------------------ */
-    /* A turn                                                              */
+    /* A turn                                                             */
     /* ------------------------------------------------------------------ */
 
     /** Plays one turn for {@code battle.attacker()}, ending in {@code switchSides} unless the game ends first. */

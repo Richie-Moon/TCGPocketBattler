@@ -29,6 +29,11 @@ public final class Battle {
         this.turn = 1;
     }
 
+    /** Flips {@code rng}'s coin for who goes first: heads, {@code a}. The same source then drives the game. */
+    public static Battle flipForFirst(Side a, Side b, RandomSource rng) {
+        return rng.nextBoolean() ? new Battle(a, b, rng) : new Battle(b, a, rng);
+    }
+
     /**
      * Convenience for exploratory use. Seeded from the clock, so the game is
      * <em>not</em> reproducible — tests and self-play runs should pass an

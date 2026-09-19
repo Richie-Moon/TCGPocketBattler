@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.tcgpocket.ScriptedRandom;
 import com.tcgpocket.TestBoard;
 import com.tcgpocket.action.Action;
 import com.tcgpocket.action.AttachEnergyAction;
@@ -29,6 +30,7 @@ import com.tcgpocket.player.RandomPlayer;
 import com.tcgpocket.pool.CardPool;
 import com.tcgpocket.resolve.SeededRandom;
 import com.tcgpocket.state.ActiveModifier;
+import com.tcgpocket.state.Battle;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
@@ -229,6 +231,18 @@ class TurnEngineTest {
             assertTrue(result.isEmpty());
             assertEquals(TurnEngine.MAX_TURNS + 1, passive.battle.turn());
         }
+    }
+
+    @Test
+    @DisplayName("The battle's own coin decides who goes first, and is the same coin the game flips")
+    void coinFlipDecidesFirstPlayer() {
+        Side a = new Side("a", new Passive());
+        Side b = new Side("b", new Passive());
+        ScriptedRandom tails = ScriptedRandom.alwaysTails();
+        Battle battle = Battle.flipForFirst(a, b, tails);
+        assertSame(b, battle.attacker());
+        assertSame(tails, battle.rng());
+        assertSame(a, Battle.flipForFirst(a, b, ScriptedRandom.alwaysHeads()).attacker());
     }
 
     @Nested

@@ -58,9 +58,7 @@ final class Game {
         Side secondSide = deal(new Side(second.name(), second), FIRE_DECK, Type.FIRE);
 
         this.seats = List.of(new Seat(first, firstSide, sendFirst), new Seat(second, secondSide, sendSecond));
-        this.battle = rng.nextBoolean()
-                ? new Battle(firstSide, secondSide, rng)
-                : new Battle(secondSide, firstSide, rng);
+        this.battle = Battle.flipForFirst(firstSide, secondSide, rng);
     }
 
     List<RemotePlayer> players() {
