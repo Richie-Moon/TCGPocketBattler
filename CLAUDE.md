@@ -129,8 +129,10 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
   question. Never accept a move the client describes itself.
 - **`BoardView` is the only board state that leaves the server.** Never serialize `Battle`,
   `Decision` or engine objects: the opponent's hand, deck order and RNG seed are hidden. Options go
-  out as text from `Labels`, and only to the player being asked. `GameSocketTest` fails if an
-  opponent's hand is sent.
+  out as `OptionView` (a label plus the instance ids it acts on), and only to the player being
+  asked. `id`s in `BoardView` and `OptionView` are `CardInstance.instanceId()`, so a drag-and-drop
+  client maps a gesture to an option index. `GameSocketTest` fails if an opponent's hand is sent
+  or an option names an id that isn't on the board.
 - Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is a deck-list validator. There
   is no turn timer, no reconnect, and no game log yet (seed + deck lists + chosen indices would
   replay a game exactly).

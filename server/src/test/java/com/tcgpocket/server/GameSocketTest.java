@@ -12,7 +12,9 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -44,6 +46,8 @@ class GameSocketTest {
 
         assertEquals(List.of("is not open", "is out of range"), cheater.errors);
         assertEquals(List.of(), honest.errors);
+        assertEquals(List.of(), cheater.badIds);
+        assertEquals(List.of(), honest.badIds);
         for (Client client : List.of(cheater, honest)) {
             assertFalse(client.boards.isEmpty());
             for (JsonNode board : client.boards) {
@@ -63,6 +67,8 @@ class GameSocketTest {
         final CompletableFuture<String> over = new CompletableFuture<>();
         final List<JsonNode> boards = new CopyOnWriteArrayList<>();
         final List<String> errors = new CopyOnWriteArrayList<>();
+        /** Options whose ids point at nothing on the board sent just before them. */
+        final List<String> badIds = new CopyOnWriteArrayList<>();
         private final Random random;
         private boolean cheat;
 
@@ -79,6 +85,7 @@ class GameSocketTest {
                 case "decision" -> {
                     int id = node.get("id").asInt();
                     int size = node.get("options").size();
+                    checkIds(node.get("options"));
                     if (cheat) {
                         cheat = false;
                         answer(session, id + 1000, 0);
@@ -89,6 +96,33 @@ class GameSocketTest {
                 case "over" -> over.complete(node.get("result").asString());
                 case "error" -> errors.add(node.get("message").asString().replaceAll("^\\w+ -?\\d+ ", ""));
                 default -> { }
+            }
+        }
+
+        /** A drag-and-drop client finds options by instance id, so every id must be one it can see. */
+        private void checkIds(JsonNode options) {
+            JsonNode board = boards.getLast();
+            Set<Integer> hand = new HashSet<>();
+            board.get("you").get("hand").forEach(card -> hand.add(card.get("id").asInt()));
+            Set<Integer> inPlay = new HashSet<>();
+            for (String side : List.of("you", "opponent")) {
+                JsonNode active = board.get(side).get("active");
+                if (!active.isNull()) {
+                    inPlay.add(active.get("id").asInt());
+                }
+                board.get(side).get("bench").forEach(pokemon -> inPlay.add(pokemon.get("id").asInt()));
+            }
+            for (JsonNode option : options) {
+                JsonNode card = option.get("card");
+                JsonNode target = option.get("target");
+                boolean ok = switch (option.get("kind").asString()) {
+                    case "play", "evolve" -> hand.contains(card.asInt());
+                    case "attack", "ability" -> inPlay.contains(card.asInt());
+                    default -> true;
+                } && (target.isNull() || inPlay.contains(target.asInt()));
+                if (!ok) {
+                    badIds.add(option.toString());
+                }
             }
         }
 

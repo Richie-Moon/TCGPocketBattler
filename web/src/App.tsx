@@ -25,9 +25,9 @@ function App() {
       {decision && (
         <section>
           <h2>{decision.prompt}</h2>
-          {decision.options.map((label, index) => (
+          {decision.options.map((option, index) => (
             <button key={index} type="button" className="option" onClick={() => choose(index)}>
-              {label}
+              {option.label}
             </button>
           ))}
         </section>

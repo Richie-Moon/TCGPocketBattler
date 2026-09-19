@@ -19,10 +19,12 @@ import java.util.Map;
  */
 record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, SideView opponent) {
 
-    record CardView(String id, String name) {
+    /** {@code id} is this copy's instance id; {@code card} is the printed card, such as "A1-094". */
+    record CardView(int id, String card, String name) {
     }
 
-    record PokemonView(String id, String name, int hp, int maxHp,
+    /** {@code id} stays the same from hand to play and through evolution. */
+    record PokemonView(int id, String card, String name, int hp, int maxHp,
                        Map<Type, Integer> energy, List<String> statuses, CardView tool) {
     }
 
@@ -56,11 +58,12 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
     }
 
     private static CardView card(CardInstance card) {
-        return new CardView(card.definition().id(), card.definition().name());
+        return new CardView(card.instanceId(), card.definition().id(), card.definition().name());
     }
 
     private static PokemonView pokemon(PokemonInPlay pokemon) {
         return new PokemonView(
+                pokemon.instanceId(),
                 pokemon.definition().id(),
                 pokemon.definition().name(),
                 pokemon.currentHp(),

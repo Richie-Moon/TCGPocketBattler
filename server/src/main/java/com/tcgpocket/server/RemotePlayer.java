@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * A player in a browser.
  *
- * <p>{@link #choose} sends the options as labels and blocks the game thread
+ * <p>{@link #choose} sends the options as {@link OptionView}s and blocks the game thread
  * until the browser answers with an index. The browser never sends a move of
  * its own, only a position in a list the engine already checked, so an answer
  * is either legal or rejected.
@@ -31,8 +31,8 @@ final class RemotePlayer implements IPlayer {
         }
     }
 
-    record DecisionMessage(String type, int id, String prompt, List<String> options) {
-        DecisionMessage(int id, String prompt, List<String> options) {
+    record DecisionMessage(String type, int id, String prompt, List<OptionView> options) {
+        DecisionMessage(int id, String prompt, List<OptionView> options) {
             this("decision", id, prompt, options);
         }
     }
@@ -68,17 +68,17 @@ final class RemotePlayer implements IPlayer {
     public <T> T choose(Decision<T> decision) {
         beforeEachDecision.run();
 
-        List<String> labels = decision.options().stream()
-                .map(option -> Labels.of(option, decision))
+        List<OptionView> options = decision.options().stream()
+                .map(option -> OptionView.of(option, decision))
                 .toList();
         answers.clear();
         int id = nextId.getAndIncrement();
-        optionCount = labels.size();
+        optionCount = options.size();
         awaiting = id;
         if (left) {
             throw new Left();
         }
-        send.accept(new DecisionMessage(id, decision.prompt(), labels));
+        send.accept(new DecisionMessage(id, decision.prompt(), options));
 
         // ponytail: waits forever for an answer; add a turn timer that picks a default when games stall.
         int index = take();
