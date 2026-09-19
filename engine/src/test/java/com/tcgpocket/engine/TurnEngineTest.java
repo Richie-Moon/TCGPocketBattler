@@ -222,8 +222,9 @@ class TurnEngineTest {
             TestBoard passive = passiveBoard();
             for (Side side : List.of(passive.you, passive.them)) {
                 for (int i = 0; i < 20; i++) {
-                    passive.inDeck(side, SNORLAX);
+                    passive.inDeck(side, TestBoard.card("Snorlax " + i / 2, 150, Type.COLORLESS));
                 }
+                side.registerTypes(Type.LIGHTNING);
             }
 
             Optional<Side> result = new TurnEngine(passive.battle).playGame();

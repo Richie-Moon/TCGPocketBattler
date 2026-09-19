@@ -93,9 +93,14 @@ public final class TurnEngine {
      *
      * <p>The caller has already filled each deck, registered its energy types,
      * and passed the sides to {@code Battle} in turn order — so the coin flip
-     * for who goes first is the caller's.
+     * for who goes first is the caller's. Both decks are checked against
+     * {@link DeckValidator} before either is dealt.
      */
     public void setup() {
+        for (Side side : List.of(battle.attacker(), battle.defender())) {
+            DeckValidator.requireValid(side.name(),
+                    side.deck().stream().map(CardInstance::definition).toList(), side.registeredTypes());
+        }
         for (Side side : List.of(battle.attacker(), battle.defender())) {
             dealOpeningHand(side);
             placeOpeningPokemon(side);
@@ -104,10 +109,6 @@ public final class TurnEngine {
 
     /** Pocket guarantees a Basic in the opening hand, so there is no mulligan. */
     private void dealOpeningHand(Side side) {
-        if (side.deck().stream().noneMatch(TurnEngine::isBasic)) {
-            throw new IllegalStateException(side.name() + "'s deck holds no Basic Pokemon");
-        }
-
         side.shuffleDeck(battle.rng());
         for (int i = 0; i < OPENING_HAND_SIZE; i++) {
             side.drawCard();

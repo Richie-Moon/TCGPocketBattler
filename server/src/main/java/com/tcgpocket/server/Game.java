@@ -24,7 +24,7 @@ final class Game {
 
     private static final Logger LOG = LoggerFactory.getLogger(Game.class);
 
-    // ponytail: fixed decks, so nothing a browser sends needs validating yet; accept deck lists once there is a deck-list validator.
+    // ponytail: fixed decks until there is deck building; TurnEngine.setup runs DeckValidator on whatever is dealt.
     static final List<String> LIGHTNING_DECK = List.of(
             "A1-094", "A1-094", "A1-095", "A1-095", "A1-096", "A1-096", "A1-097", "A1-097", "A1-098", "A1-098",
             "A1-103", "A1-103", "A1-226", "A1-226", "P-A-001", "P-A-001", "P-A-005", "P-A-005", "P-A-007", "P-A-007");

@@ -133,7 +133,7 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
   asked. `id`s in `BoardView` and `OptionView` are `CardInstance.instanceId()`, so a drag-and-drop
   client maps a gesture to an option index. `GameSocketTest` fails if an opponent's hand is sent
   or an option names an id that isn't on the board.
-- Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is a deck-list validator. There
+- Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is deck building; `engine.DeckValidator` (run by `TurnEngine.setup` for both sides) is what a deck builder should call too. There
   is no turn timer, no reconnect, and no game log yet (seed + deck lists + chosen indices would
   replay a game exactly).
 
