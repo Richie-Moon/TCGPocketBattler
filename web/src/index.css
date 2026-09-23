@@ -4,7 +4,7 @@
 }
 
 main {
-  max-width: 760px;
+  max-width: 900px;
   margin: 16px auto;
   padding: 0 16px;
 }
@@ -39,4 +39,48 @@ p {
 
 .error {
   color: #d33;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.card {
+  display: block;
+  width: 90px;
+  aspect-ratio: 670 / 936;
+  border-radius: 5px;
+}
+
+.pokemon {
+  margin: 0;
+  width: 90px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.pokemon.active,
+.pokemon.active .card {
+  width: 130px;
+}
+
+.empty {
+  opacity: 0.6;
+}
+
+.pick {
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pick.picked {
+  border-color: #3a7bd5;
 }

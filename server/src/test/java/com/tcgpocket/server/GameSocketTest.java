@@ -49,6 +49,8 @@ class GameSocketTest {
         assertEquals(List.of(), cheater.badIds);
         assertEquals(List.of(), honest.badIds);
         for (Client client : List.of(cheater, honest)) {
+            assertEquals("setup", client.firstDecisionKind, "setup is the first question");
+            assertFalse(client.opponentPlacedBeforeSetup, "the opponent's opening was shown before this player chose");
             assertFalse(client.boards.isEmpty());
             for (JsonNode board : client.boards) {
                 JsonNode opponent = board.get("opponent");
@@ -69,6 +71,8 @@ class GameSocketTest {
         final List<String> errors = new CopyOnWriteArrayList<>();
         /** Options whose ids point at nothing on the board sent just before them. */
         final List<String> badIds = new CopyOnWriteArrayList<>();
+        volatile String firstDecisionKind;
+        volatile boolean opponentPlacedBeforeSetup;
         private final Random random;
         private boolean cheat;
 
@@ -86,6 +90,10 @@ class GameSocketTest {
                     int id = node.get("id").asInt();
                     int size = node.get("options").size();
                     checkIds(node.get("options"));
+                    if (firstDecisionKind == null) {
+                        firstDecisionKind = node.get("options").get(0).get("kind").asString();
+                        opponentPlacedBeforeSetup = !boards.getLast().get("opponent").get("active").isNull();
+                    }
                     if (cheat) {
                         cheat = false;
                         answer(session, id + 1000, 0);
@@ -117,6 +125,8 @@ class GameSocketTest {
                 JsonNode target = option.get("target");
                 boolean ok = switch (option.get("kind").asString()) {
                     case "play", "evolve" -> hand.contains(card.asInt());
+                    case "setup" -> hand.contains(card.asInt())
+                            && option.get("bench").valueStream().allMatch(id -> hand.contains(id.asInt()));
                     case "attack", "ability" -> inPlay.contains(card.asInt());
                     default -> true;
                 } && (target.isNull() || inPlay.contains(target.asInt()));

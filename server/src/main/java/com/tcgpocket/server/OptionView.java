@@ -11,6 +11,7 @@ import com.tcgpocket.action.PlayedOnto;
 import com.tcgpocket.action.RetreatAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.engine.OpeningPlacement;
 import com.tcgpocket.player.Decision;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
@@ -29,11 +30,18 @@ import java.util.stream.Collectors;
  * client can turn "dragged card 31 onto Pokemon 12" into this option's index.
  * The browser still answers with the index, never with the ids.
  *
- * @param kind   attack, endTurn, attach, retreat, evolve, play, ability, pokemon, card, none or other
- * @param card   the card being played, evolved with or used (for an attack, the attacking Pokemon), or null
+ * @param kind   attack, endTurn, attach, retreat, evolve, play, ability, pokemon, card, setup, none or other
+ * @param card   the card being played, evolved with or used (for an attack, the attacking Pokemon; for
+ *               setup, the Active), or null
  * @param target the Pokemon it lands on or brings up, or null
+ * @param bench  for setup, the cards from hand to Bench; empty otherwise. A setup client builds a board
+ *               from clicks and looks up the option with that Active and that Bench.
  */
-record OptionView(String label, String kind, Integer card, Integer target) {
+record OptionView(String label, String kind, Integer card, Integer target, List<Integer> bench) {
+
+    OptionView(String label, String kind, Integer card, Integer target) {
+        this(label, kind, card, target, List.of());
+    }
 
     static OptionView of(Object option, Decision<?> decision) {
         return switch (option) {
@@ -56,6 +64,11 @@ record OptionView(String label, String kind, Integer card, Integer target) {
             case UseAbilityAction use -> new OptionView(
                     "Use " + use.ability().name() + " (" + use.source().definition().name() + ")",
                     "ability", id(use.source()), null);
+            case OpeningPlacement opening -> new OptionView(
+                    "Active " + opening.active().definition().name()
+                            + (opening.bench().isEmpty() ? "" : ", Bench " + opening.bench().stream()
+                                    .map(card -> card.definition().name()).collect(Collectors.joining(", "))),
+                    "setup", id(opening.active()), null, opening.bench().stream().map(OptionView::id).toList());
             case PlainAction plain -> other(plain.description());
             case PlayedOnto played -> other(played.description());
             case WithPrecondition guarded -> of(guarded.action(), decision);

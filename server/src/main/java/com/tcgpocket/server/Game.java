@@ -1,7 +1,9 @@
 package com.tcgpocket.server;
 
 import com.tcgpocket.energy.Type;
+import com.tcgpocket.engine.OpeningPlacement;
 import com.tcgpocket.engine.TurnEngine;
+import com.tcgpocket.player.Decision;
 import com.tcgpocket.pool.CardPool;
 import com.tcgpocket.resolve.RandomSource;
 import com.tcgpocket.state.Battle;
@@ -11,7 +13,12 @@ import com.tcgpocket.state.Zone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 /**
@@ -19,6 +26,7 @@ import java.util.function.Consumer;
  *
  * <p>Before every question it sends each player their own
  * {@link BoardView}, so the player who is waiting still sees the board change.
+ * Setup is the one time both players are asked at once; see {@link #placeTogether}.
  */
 final class Game {
 
@@ -69,7 +77,10 @@ final class Game {
     void run() {
         String result;
         try {
-            result = new TurnEngine(battle).playGame()
+            TurnEngine engine = new TurnEngine(battle);
+            engine.dealOpeningHands();
+            placeTogether(engine);
+            result = engine.playOut()
                     .map(winner -> winner.name() + " wins")
                     .orElse("Tie");
         } catch (RemotePlayer.Left e) {
@@ -80,6 +91,45 @@ final class Game {
         }
         for (Seat seat : seats) {
             seat.send().accept(new OverMessage(BoardView.of(battle, seat.side()), result));
+        }
+    }
+
+    /**
+     * Asks both players for their opening board at the same time, as Pocket does, and places neither
+     * until both have confirmed, so neither sees the other's before choosing their own.
+     *
+     * <p>The two questions wait on their own threads, but only this (the game) thread changes the board.
+     */
+    private void placeTogether(TurnEngine engine) {
+        List<Decision<OpeningPlacement>> decisions = seats.stream()
+                .map(seat -> engine.openingDecision(seat.side()))
+                .toList();
+        List<OpeningPlacement> placements = new ArrayList<>();
+        try (ExecutorService asking = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<OpeningPlacement>> answers = new ArrayList<>();
+            for (int i = 0; i < seats.size(); i++) {
+                RemotePlayer player = seats.get(i).player();
+                Decision<OpeningPlacement> decision = decisions.get(i);
+                answers.add(asking.submit(() -> player.choose(decision)));
+            }
+            for (Future<OpeningPlacement> answer : answers) {
+                placements.add(join(answer));
+            }
+        }
+        for (int i = 0; i < seats.size(); i++) {
+            engine.place(seats.get(i).side(), placements.get(i));
+        }
+    }
+
+    /** A player who left ends both questions: {@link #abandon} wakes every player. */
+    private static <T> T join(Future<T> answer) {
+        try {
+            return answer.get();
+        } catch (ExecutionException e) {
+            throw e.getCause() instanceof RuntimeException cause ? cause : new IllegalStateException(e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RemotePlayer.Left();
         }
     }
 

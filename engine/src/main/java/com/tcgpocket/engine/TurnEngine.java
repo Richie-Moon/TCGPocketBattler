@@ -77,6 +77,11 @@ public final class TurnEngine {
     /** Plays a whole game from empty boards. Returns the winner, or empty for a tie. */
     public Optional<Side> playGame() {
         setup();
+        return playOut();
+    }
+
+    /** Plays turns from a board that is already set up until the game ends. Returns the winner, or empty for a tie. */
+    public Optional<Side> playOut() {
         while (!over && battle.turn() <= MAX_TURNS) {
             playTurn();
         }
@@ -93,17 +98,72 @@ public final class TurnEngine {
      *
      * <p>The caller has already filled each deck, registered its energy types,
      * and passed the sides to {@code Battle} in turn order — so the coin flip
-     * for who goes first is the caller's. Both decks are checked against
-     * {@link DeckValidator} before either is dealt.
+     * for who goes first is the caller's. This asks the players one after the
+     * other; a caller that can ask both at once (as Pocket does) calls
+     * {@link #dealOpeningHands}, {@link #openingDecision} and {@link #place}
+     * itself.
      */
     public void setup() {
+        dealOpeningHands();
         for (Side side : List.of(battle.attacker(), battle.defender())) {
+            place(side, side.player().choose(openingDecision(side)));
+        }
+    }
+
+    /**
+     * Checks both decks against {@link DeckValidator}, then deals both opening
+     * hands, before either player places anything.
+     */
+    public void dealOpeningHands() {
+        List<Side> sides = List.of(battle.attacker(), battle.defender());
+        for (Side side : sides) {
             DeckValidator.requireValid(side.name(),
                     side.deck().stream().map(CardInstance::definition).toList(), side.registeredTypes());
         }
-        for (Side side : List.of(battle.attacker(), battle.defender())) {
-            dealOpeningHand(side);
-            placeOpeningPokemon(side);
+        sides.forEach(this::dealOpeningHand);
+    }
+
+    /**
+     * Every legal opening board for one side: an Active and up to
+     * {@link Side#BENCH_LIMIT} Benched, all Basics from its hand.
+     *
+     * <p>Always asked, even when only one Basic is in hand, unlike the rest of
+     * the engine's choices: laying out the board and confirming it is the
+     * player's act. It only reads the board, so both sides' decisions can be
+     * put to their players at the same time.
+     */
+    public Decision<OpeningPlacement> openingDecision(Side side) {
+        List<CardInstance> basics = basicsInHand(side);
+        List<OpeningPlacement> options = new ArrayList<>();
+        for (CardInstance active : basics) {
+            List<CardInstance> rest = basics.stream().filter(card -> card != active).toList();
+            for (int mask = 0; mask < 1 << rest.size(); mask++) {
+                if (Integer.bitCount(mask) > Side.BENCH_LIMIT) {
+                    continue;
+                }
+                List<CardInstance> bench = new ArrayList<>();
+                for (int i = 0; i < rest.size(); i++) {
+                    if ((mask & 1 << i) != 0) {
+                        bench.add(rest.get(i));
+                    }
+                }
+                options.add(new OpeningPlacement(active, bench));
+            }
+        }
+        return new Decision<>("Choose your Active Pokemon and any Benched Pokemon, then confirm",
+                options, side, contextFor(side));
+    }
+
+    /** Puts a side's chosen opening board into play. Must be one of {@link #openingDecision}'s options. */
+    public void place(Side side, OpeningPlacement placement) {
+        if (!openingDecision(side).options().contains(placement)) {
+            throw new IllegalArgumentException("not a legal opening for " + side.name() + ": " + placement);
+        }
+        side.removeFromHand(placement.active());
+        side.setActive(enterPlay(placement.active(), side, Zone.ACTIVE));
+        for (CardInstance benched : placement.bench()) {
+            side.removeFromHand(benched);
+            side.addToBench(enterPlay(benched, side, Zone.BENCH));
         }
     }
 
@@ -123,26 +183,6 @@ public final class TurnEngine {
             side.addToHand(basic);
             side.addToDeck(returned);
             side.shuffleDeck(battle.rng());
-        }
-    }
-
-    private void placeOpeningPokemon(Side side) {
-        CardInstance active = choose(side, "Choose your Active Pokemon", basicsInHand(side));
-        side.removeFromHand(active);
-        side.setActive(enterPlay(active, side, Zone.ACTIVE));
-
-        while (!side.benchIsFull() && !basicsInHand(side).isEmpty()) {
-            List<Optional<CardInstance>> options = new ArrayList<>();
-            options.add(Optional.empty());
-            basicsInHand(side).forEach(card -> options.add(Optional.of(card)));
-
-            Optional<CardInstance> picked = side.player().choose(
-                    new Decision<>("Choose a Benched Pokemon, or none to finish", options, side, contextFor(side)));
-            if (picked.isEmpty()) {
-                return;
-            }
-            side.removeFromHand(picked.get());
-            side.addToBench(enterPlay(picked.get(), side, Zone.BENCH));
         }
     }
 
