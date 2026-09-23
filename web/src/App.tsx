@@ -17,32 +17,36 @@ function App() {
 
   return (
     <main>
-      <p className="status">{status}</p>
-      {board && (
-        <>
-          {board.stadium && (
-            <section>
-              <h2>Stadium</h2>
-              <Card card={board.stadium} />
-            </section>
-          )}
-          <Side title="Opponent" side={board.opponent} />
-          <Side title="You" side={board.you} />
-        </>
-      )}
-      {decision?.options[0]?.kind === 'setup' ? (
-        <SetupPicker key={decision.id} decision={decision} hand={board?.you.hand ?? []} choose={choose} />
-      ) : decision && (
-        <section>
-          <h2>{decision.prompt}</h2>
-          {decision.options.map((option, index) => (
-            <button key={index} type="button" className="option" onClick={() => choose(index)}>
-              {option.label}
-            </button>
-          ))}
-        </section>
-      )}
-      {error && <p className="error">{error}</p>}
+      <div className="board">
+        {board && (
+          <>
+            <Side title="Opponent" side={board.opponent} />
+            <Side title="You" side={board.you} />
+          </>
+        )}
+      </div>
+      <aside>
+        <p className="status">{status}</p>
+        {board?.stadium && (
+          <section>
+            <h2>Stadium</h2>
+            <Card card={board.stadium} />
+          </section>
+        )}
+        {decision?.options[0]?.kind === 'setup' ? (
+          <SetupPicker key={decision.id} decision={decision} hand={board?.you.hand ?? []} choose={choose} />
+        ) : decision && (
+          <section>
+            <h2>{decision.prompt}</h2>
+            {decision.options.map((option, index) => (
+              <button key={index} type="button" className="option" onClick={() => choose(index)}>
+                {option.label}
+              </button>
+            ))}
+          </section>
+        )}
+        {error && <p className="error">{error}</p>}
+      </aside>
     </main>
   )
 }
@@ -55,8 +59,6 @@ function Side({ title, side }: { title: string; side: SideView }) {
       </h2>
       <div className="row">
         {side.active ? <Pokemon pokemon={side.active} active /> : <span className="empty">No Active</span>}
-      </div>
-      <div className="row">
         {side.bench.map((pokemon) => (
           <Pokemon key={pokemon.id} pokemon={pokemon} />
         ))}
