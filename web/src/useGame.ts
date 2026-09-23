@@ -11,37 +11,46 @@ export function useGame() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/play`)
-    socket.current = ws
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data) as ServerMessage
-      switch (message.type) {
-        case 'waiting':
-          setConnection('waiting')
-          break
-        case 'state':
-          setConnection('playing')
-          setBoard(message.board)
-          setDecision(null)
-          break
-        case 'decision':
-          setDecision(message)
-          setError(null)
-          break
-        case 'over':
-          setBoard(message.board)
-          setDecision(null)
-          setResult(message.result)
-          break
-        case 'error':
-          setError(message.message)
-          break
-      }
+    // Deferred so StrictMode's mount-unmount-mount in dev cancels the timer instead of opening a throwaway
+    // socket; the server would pair that socket with a real one, then abandon the game when it closed.
+    let ws: WebSocket | undefined
+    const timer = setTimeout(connect, 0)
+    return () => {
+      clearTimeout(timer)
+      ws?.close()
     }
-    ws.onclose = () => setConnection('closed')
 
-    return () => ws.close()
+    function connect() {
+      ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/play`)
+      socket.current = ws
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data) as ServerMessage
+        switch (message.type) {
+          case 'waiting':
+            setConnection('waiting')
+            break
+          case 'state':
+            setConnection('playing')
+            setBoard(message.board)
+            setDecision(null)
+            break
+          case 'decision':
+            setDecision(message)
+            setError(null)
+            break
+          case 'over':
+            setBoard(message.board)
+            setDecision(null)
+            setResult(message.result)
+            break
+          case 'error':
+            setError(message.message)
+            break
+        }
+      }
+      ws.onclose = () => setConnection('closed')
+    }
   }, [])
 
   function choose(option: number) {
