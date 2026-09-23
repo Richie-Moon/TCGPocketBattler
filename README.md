@@ -28,18 +28,36 @@ npm install
 npm run dev    # then open http://localhost:5173 in two tabs
 ```
 
-## Next
+## Roadmap
 
-- Model all cards in-game
-  - Base cards from A1 and P-A are complete, enough to begin other work
-- Game client and server to host battles: `server` plays a game between two browser tabs, and `web/` is the start of the website
-- `GameEvent`/`Trigger` → turn engine and `legalActions` →
-`RandomPlayer`/`ScriptedPlayer`.
+### Engine
+- Finish modelling the remaining sets (A1 and P-A base cards are done)
+- `CoinFlipped` event and the `EventSource` target
+- Player choice for which cards `DiscardFromHand` takes (currently takes them in hand order)
+- "Look at opponent's hand" for Mew and Pokédex
+- Controller-relative Pokémon targets (a defender's Tool saying "your Benched Pokémon")
+- Match every prompt to the in-game text (e.g. A1-071 Seadra)
+- Check whether a coin flip still happens when its effect would do nothing (status already applied)
 
-### To Do
-- All prompts need to match in game text (e.g. A1-071 Seadra: This attack does 50 damage to 1 of your opponent's Pokémon.)
-- Check whether coin flips run when the condition is already met (e.g. coin flip attack applies status to opponent, but the status is already applied. Does the coin flip still happen?)
-- Fix "Look at opponents' hand" for Mew and Pokédex after the appropriate engine architecture is implemented
+### Server
+- Deck-list validator, then let players bring their own decks instead of the fixed two
+- Turn timer that picks a default when a player stalls
+- Reconnect to a game in progress
+- Game log (seed + deck lists + chosen indices) for replays and bug reports
+- Attack index on `OptionView` so the UI can tell attacks apart without the label
+- Instance ids for `DistributeEnergy` placements (currently text only)
+- Matchmaking beyond first-come pairing (rooms / invite links)
+
+### Web client
+- Card images on the board, keyed by `card` id
+- Drag and drop: hand → bench/active (play, evolve), energy → Pokémon (attach)
+- Tap the Active Pokémon for an attack/ability popover, drawn by the client rather than hotspots on the art
+- Clear turn, prompt and coin-flip feedback; game-over screen
+- Deck builder, once the server accepts deck lists
+
+### Later
+- AI opponent (start from `RandomPlayer`, then something that searches `legalActions`)
+- Load card data from files instead of the Java constants in `pool` (only `CardPool` changes)
 
 ## Credits
 
