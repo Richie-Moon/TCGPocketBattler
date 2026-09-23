@@ -13,7 +13,12 @@ class TurnEngine {
     + {static} MAX_TURNS: int = 30
 
     + playGame(): Optional<Side>
+    + playOut(): Optional<Side>
     + setup(): void
+    /' setup() in parts, for a caller that asks both players at once '/
+    + dealOpeningHands(): void
+    + openingDecision(Side): Decision<OpeningPlacement>
+    + place(Side, OpeningPlacement): void
     + playTurn(): void
     /' Only ever for battle.attacker(): every ITarget is turn-relative, so
        there is deliberately no Side parameter. '/
@@ -70,17 +75,25 @@ note right
   types) and passes them to Battle(first, second) in
   turn order: the first-player coin flip is the caller's.
 end note
+:DeckValidator checks both decks;
+if (either is illegal?) then (yes)
+  :throw IllegalStateException;
+  stop
+endif
 repeat :for each side;
-  if (deck holds no Basic?) then (yes)
-    :throw IllegalStateException;
-    stop
-  endif
-  :shuffle until the top 5 hold a Basic;
-  :draw 5;
-  :owner CHOOSES the Active from Basics in hand;
-  :owner CHOOSES Bench Pokemon one at a time
-   (empty = done), up to BENCH_LIMIT;
+  :shuffle, draw 5;
+  :swap a Basic in if the hand holds none;
 repeat while (more sides?)
+note right: both hands are dealt before anyone places
+:each owner CHOOSES an OpeningPlacement:
+ an Active and up to BENCH_LIMIT Benched,
+ all Basics from hand — asked even with one Basic;
+note right
+  setup() asks the sides in turn. The server's Game asks
+  both at once and places neither until both confirm, so
+  neither sees the other's opening before choosing.
+end note
+:place both;
 stop
 
 @enduml

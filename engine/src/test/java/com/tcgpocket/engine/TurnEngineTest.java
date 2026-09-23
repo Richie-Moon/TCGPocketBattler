@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tcgpocket.ScriptedRandom;
@@ -42,6 +43,7 @@ import com.tcgpocket.target.SelfSide;
 import com.tcgpocket.trigger.Knockout;
 import com.tcgpocket.trigger.Trigger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,7 +63,7 @@ class TurnEngineTest {
     private static final PokemonCard RAICHU = PokemonCard.evolution(
             "raichu", "Raichu", 1, "Pikachu", 100, Type.LIGHTNING, 2, List.of());
 
-    /** Takes the last option every time: EndTurnAction on a turn, the last Basic in setup. */
+    /** Takes the last option every time: EndTurnAction on a turn, the last Basic as Active with the fullest Bench in setup. */
     private static final class Passive implements IPlayer {
         @Override
         public String name() {
@@ -232,6 +234,87 @@ class TurnEngineTest {
             assertTrue(result.isEmpty());
             assertEquals(TurnEngine.MAX_TURNS + 1, passive.battle.turn());
         }
+    }
+
+    @Test
+    @DisplayName("setup deals both hands before anyone places, so the second player isn't left with an empty hand")
+    void bothHandsDealtBeforePlacing() {
+        List<Integer> opponentHandAtFirstQuestion = new ArrayList<>();
+        IPlayer watcher = new IPlayer() {
+            @Override
+            public String name() {
+                return "watcher";
+            }
+
+            @Override
+            public <T> T choose(Decision<T> decision) {
+                if (opponentHandAtFirstQuestion.isEmpty()) {
+                    Side opponent = decision.context().battle().opponentOf(decision.chooser());
+                    opponentHandAtFirstQuestion.add(opponent.hand().size());
+                }
+                return decision.options().getLast();
+            }
+        };
+        TestBoard board = new TestBoard(watcher, watcher);
+        for (Side side : List.of(board.you, board.them)) {
+            for (int i = 0; i < 20; i++) {
+                board.inDeck(side, TestBoard.card("Snorlax " + i / 2, 150, Type.COLORLESS));
+            }
+            side.registerTypes(Type.LIGHTNING);
+        }
+
+        new TurnEngine(board.battle).setup();
+
+        assertEquals(List.of(TurnEngine.OPENING_HAND_SIZE), opponentHandAtFirstQuestion);
+    }
+
+    @Test
+    @DisplayName("setup asks for the opening board even when the hand holds a single Basic")
+    void singleBasicIsStillAsked() {
+        List<Integer> optionCounts = new ArrayList<>();
+        IPlayer counter = new IPlayer() {
+            @Override
+            public String name() {
+                return "counter";
+            }
+
+            @Override
+            public <T> T choose(Decision<T> decision) {
+                optionCounts.add(decision.options().size());
+                return decision.options().getFirst();
+            }
+        };
+        TestBoard board = new TestBoard(counter, counter);
+        for (Side side : List.of(board.you, board.them)) {
+            board.inDeck(side, SNORLAX);
+            for (int i = 0; i < 19; i++) {
+                board.inDeck(side, PokemonCard.evolution(
+                        "evo" + i / 2, "Evo " + i / 2, 1, "Snorlax", 100, Type.COLORLESS, 2, List.of()));
+            }
+            side.registerTypes(Type.LIGHTNING);
+        }
+
+        new TurnEngine(board.battle).setup();
+
+        assertEquals(List.of(1, 1), optionCounts);
+        assertEquals("Snorlax", board.you.active().orElseThrow().definition().name());
+        assertEquals("Snorlax", board.them.active().orElseThrow().definition().name());
+    }
+
+    @Test
+    @DisplayName("place refuses an opening board that was not offered, and leaves the hand alone")
+    void placeRejectsUnofferedOpening() {
+        TestBoard board = new TestBoard();
+        TurnEngine engine = new TurnEngine(board.battle);
+        CardInstance snorlax = board.inHand(board.you, SNORLAX);
+        CardInstance raichu = board.inHand(board.you, RAICHU);
+
+        OpeningPlacement evolutionUpFront = new OpeningPlacement(raichu, List.of());
+        assertThrows(IllegalArgumentException.class, () -> engine.place(board.you, evolutionUpFront));
+        assertEquals(List.of(snorlax, raichu), board.you.hand());
+
+        engine.place(board.you, new OpeningPlacement(snorlax, List.of()));
+        assertEquals(snorlax.instanceId(), board.you.active().orElseThrow().instanceId());
     }
 
     @Test

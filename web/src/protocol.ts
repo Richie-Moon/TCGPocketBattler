@@ -48,11 +48,25 @@ export interface BoardView {
  */
 export interface OptionView {
   label: string
-  kind: 'attack' | 'endTurn' | 'attach' | 'retreat' | 'evolve' | 'play' | 'ability' | 'pokemon' | 'card' | 'none' | 'other'
-  /** The card played, evolved with or used; for an attack, the attacking Pokemon. */
+  kind:
+    | 'attack'
+    | 'endTurn'
+    | 'attach'
+    | 'retreat'
+    | 'evolve'
+    | 'play'
+    | 'ability'
+    | 'pokemon'
+    | 'card'
+    | 'setup'
+    | 'none'
+    | 'other'
+  /** The card played, evolved with or used; for an attack, the attacking Pokemon; for setup, the Active. */
   card: number | null
   /** The Pokemon it lands on or brings up. */
   target: number | null
+  /** For setup, the cards from hand to Bench; empty otherwise. */
+  bench: number[]
 }
 
 export interface DecisionMessage {
