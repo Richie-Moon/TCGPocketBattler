@@ -639,10 +639,11 @@ class GeneticApexTest {
         }
 
         @Test
-        @DisplayName("Erika is dragged onto a Grass Pokémon and heals 50 from it; a Snorlax is no drop target")
+        @DisplayName("Erika is dragged onto a damaged Grass Pokémon; a Snorlax or a full-HP Grass is no drop target")
         void erikaHealsOnlyGrass() {
             PokemonInPlay wall = board.active(board.you, WALL);
             PokemonInPlay bulbasaur = board.bench(board.you, Grass.BULBASAUR);
+            board.bench(board.you, Grass.BULBASAUR);
             wall.takeDamage(60);
             bulbasaur.takeDamage(60);
             CardInstance erika = board.inHand(board.you, Trainers.ERIKA);

@@ -44,12 +44,13 @@ public final class Trainers {
     public static final PlayableItemCard OLD_AMBER = PlayableItemCard.fossil(
             "A1-218", "Old Amber", 40, discardFromPlay());
     /**
-     * A1-219 · Erika — dragged onto the Grass Pokemon to heal.
+     * A1-219 · Erika — dragged onto the Grass Pokemon to heal. An undamaged
+     * Pokemon is no drop target, so with nothing hurt she cannot be played.
      */
     public static final SupporterCard ERIKA = SupporterCard.of(
             "A1-219", "Erika",
             new PlayedOnto(
-                    new Matching(new AttackerAll(), new HasType(Type.GRASS)),
+                    new Matching(new AttackerAll(), new And<>(new HasType(Type.GRASS), new IsDamaged())),
                     "Heal 50 damage from 1 of your Grass Pokémon.",
                     new Attempt(List.of(
                             new HealDamage(new Literal(50), new PlayTarget())))));
