@@ -6,11 +6,13 @@ import com.tcgpocket.card.ICard;
 import com.tcgpocket.card.ItemCard;
 import com.tcgpocket.card.SupporterCard;
 import com.tcgpocket.condition.IsBasic;
+import com.tcgpocket.condition.IsDamaged;
 import com.tcgpocket.effect.*;
 import com.tcgpocket.number.Literal;
 import com.tcgpocket.target.AttackerActive;
 import com.tcgpocket.target.AttackerAll;
 import com.tcgpocket.target.AttackerSide;
+import com.tcgpocket.target.Matching;
 import com.tcgpocket.target.OpponentSide;
 import com.tcgpocket.target.PlayTarget;
 
@@ -25,12 +27,13 @@ import java.util.List;
 public final class Trainers {
 
     /**
-     * P-A-001 · Potion — dragged onto the Pokemon to heal.
+     * P-A-001 · Potion — dragged onto the Pokemon to heal. An undamaged
+     * Pokemon is no drop target, so with nothing hurt it cannot be played.
      */
     public static final ItemCard POTION = ItemCard.of(
             "P-A-001", "Potion",
             new PlayedOnto(
-                    new AttackerAll(),
+                    new Matching(new AttackerAll(), new IsDamaged()),
                     "Heal 20 damage from 1 of your Pokémon.",
                     new Attempt(List.of(
                             new HealDamage(new Literal(20), new PlayTarget())))));
