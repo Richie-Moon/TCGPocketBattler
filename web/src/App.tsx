@@ -154,9 +154,12 @@ function SetupPicker({
   )
 }
 
-/** The images live in public/cards, named by printed id; alt text stands in for a missing one. */
+/** Card art, named by printed id, in a public bucket; VITE_CARD_BASE=/cards uses local files. */
+const CARD_BASE = import.meta.env.VITE_CARD_BASE ??
+  'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/cards'
+
 function Card({ card }: { card: Pick<CardView, 'card' | 'name'> }) {
-  return <img className="card" src={`/cards/${card.card}.png`} alt={card.name} title={card.name} />
+  return <img className="card" src={`${CARD_BASE}/${card.card}.webp`} alt={card.name} title={card.name} />
 }
 
 export default App
