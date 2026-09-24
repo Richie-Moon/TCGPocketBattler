@@ -23,7 +23,7 @@ export interface PokemonView {
 export interface SideView {
   name: string
   points: number
-  /** Always empty for the opponent; handSize is the real count. */
+  /** For the opponent, only the cards revealed (Hand Scope, Mew); handSize is the real count. */
   hand: CardView[]
   handSize: number
   deckSize: number

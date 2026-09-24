@@ -29,6 +29,7 @@ public final class Side {
     private final List<CardInstance> hand = new ArrayList<>();
     private final List<CardInstance> deck = new ArrayList<>();
     private final List<CardInstance> discardPile = new ArrayList<>();
+    private List<CardInstance> revealed = List.of();
 
     /** Types this deck registered; the Energy Zone draws from these. */
     private final Set<Type> registeredTypes = EnumSet.noneOf(Type.class);
@@ -131,6 +132,23 @@ public final class Side {
     public void addToDiscard(CardInstance card) {
         discardPile.add(card);
         card.moveTo(Zone.DISCARD);
+    }
+
+    /** Shows the hand as it is now to the opponent; see {@link #revealedHand()}. */
+    public void revealHand() {
+        revealed = List.copyOf(hand);
+    }
+
+    /**
+     * The revealed cards still in hand. A card drawn since was never shown, so
+     * it stays hidden.
+     */
+    public List<CardInstance> revealedHand() {
+        return revealed.stream().filter(hand::contains).toList();
+    }
+
+    public void concealHand() {
+        revealed = List.of();
     }
 
     public boolean removeFromHand(CardInstance card) {

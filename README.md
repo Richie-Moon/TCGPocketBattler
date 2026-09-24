@@ -34,7 +34,6 @@ npm run dev    # then open http://localhost:5173 in two tabs
 - Finish modelling the remaining sets (A1 and P-A base cards are done)
 - `CoinFlipped` event and the `EventSource` target
 - Player choice for which cards `DiscardFromHand` takes (currently takes them in hand order)
-- "Look at opponent's hand" for Mew and Pokédex
 - Controller-relative Pokémon targets (a defender's Tool saying "your Benched Pokémon")
 - Match every prompt to the in-game text (e.g. A1-071 Seadra)
 - Check whether a coin flip still happens when its effect would do nothing (status already applied)

@@ -565,6 +565,26 @@ class IEffectTest {
         }
 
         @Test
+        @DisplayName("a reveal shows the hand as it was: cards played since drop out, cards drawn since stay hidden")
+        void revealingSnapshotsTheHand() {
+            CardInstance shown = board.inHand(board.them, PIKACHU);
+            CardInstance played = board.inHand(board.them, SNORLAX);
+
+            assertEquals(EffectOutcome.APPLIED, new RevealHand(new OpponentSide()).apply(context));
+            board.them.removeFromHand(played);
+            board.inHand(board.them, PIKACHU);
+
+            assertEquals(List.of(shown), board.them.revealedHand());
+            board.them.concealHand();
+            assertEquals(List.of(), board.them.revealedHand());
+        }
+
+        @Test
+        void revealingAnEmptyHandIsANoOp() {
+            assertEquals(EffectOutcome.NO_OP, new RevealHand(new OpponentSide()).apply(context));
+        }
+
+        @Test
         @DisplayName("a random hand discard takes what there is, and an empty hand is a no-op")
         void randomHandDiscardIsNeverACost() {
             board.inHand(board.them, PIKACHU);

@@ -48,17 +48,13 @@ public final class Trainers {
                             new ReduceRetreatCost(new Literal(1), new AttackerActive(), new Literal(0))))));
     /**
      * P-A-003 · Hand Scope
-     *
-     * <p><b>Narrowed.</b> A {@link NoEffect}, as for Mew's Psy Report: the engine
-     * has no per-player visibility, so revealing changes nothing. A
-     * hidden-information model would give a {@code RevealHand} node meaning.
      */
     public static final ItemCard HAND_SCOPE = ItemCard.of(
             "P-A-003", "Hand Scope",
             new PlainAction(
                     "Your opponent reveals their hand.",
                     new Attempt(List.of(
-                            new NoEffect()))));
+                            new RevealHand(new OpponentSide())))));
     /**
      * P-A-004 · Pokédex
      */

@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * <p>This is the only board state that leaves the server; {@code Battle} is
  * never serialized. Hidden information is left out here: the opponent's hand is
- * just a count, and both decks are just counts, since their order is secret too.
+ * just a count unless it was revealed, and both decks are just counts, since their order is secret too.
  * The RNG isn't included either.
  */
 record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, SideView opponent) {
@@ -28,7 +28,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                        Map<Type, Integer> energy, List<String> statuses, CardView tool) {
     }
 
-    /** {@code hand} is empty for the opponent; {@code handSize} is always the real count. */
+    /** For the opponent, {@code hand} is only what was revealed; {@code handSize} is always the real count. */
     record SideView(String name, int points, List<CardView> hand, int handSize, int deckSize,
                     List<CardView> discard, PokemonView active, List<PokemonView> bench,
                     Type energy, Type nextEnergy) {
@@ -47,7 +47,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
         return new SideView(
                 side.name(),
                 side.points(),
-                own ? side.hand().stream().map(BoardView::card).toList() : List.of(),
+                (own ? side.hand() : side.revealedHand()).stream().map(BoardView::card).toList(),
                 side.hand().size(),
                 side.deck().size(),
                 side.discardPile().stream().map(BoardView::card).toList(),
