@@ -34,3 +34,10 @@ target/
 
 # Card art (limitlesstcg), 500+ MB; download locally, see web/public/cards
 web/public/cards/
+
+# Autonomous Database wallet (mTLS keys); keep outside the repo
+wallet/
+Wallet_*/
+
+# Local secrets (DB_PASSWORD, ...)
+.env

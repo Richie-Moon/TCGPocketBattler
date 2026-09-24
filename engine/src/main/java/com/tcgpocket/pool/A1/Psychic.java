@@ -8,7 +8,7 @@ import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DiscardTypeEnergy;
 import com.tcgpocket.effect.FlipN;
-import com.tcgpocket.effect.NoEffect;
+import com.tcgpocket.effect.RevealHand;
 import com.tcgpocket.effect.PreventSupporter;
 import com.tcgpocket.effect.ReduceDamageTaken;
 import com.tcgpocket.effect.SwitchActive;
@@ -20,6 +20,7 @@ import com.tcgpocket.number.NumberHeads;
 import com.tcgpocket.number.Product;
 import com.tcgpocket.number.Sum;
 import com.tcgpocket.target.OpponentActive;
+import com.tcgpocket.target.OpponentSide;
 import com.tcgpocket.target.Self;
 import com.tcgpocket.target.SelfSide;
 
@@ -344,11 +345,6 @@ public final class Psychic {
 
     /**
      * A1-283 - Mew
-     *
-     * <p><b>Narrowed.</b> The reveal is a {@link NoEffect}: the engine has no
-     * per-player visibility (a {@code Decision} already hands every player the
-     * whole board, opponent's hand included), so revealing changes nothing. A
-     * hidden-information model would give a {@code RevealHand} node meaning.
      */
     public static final PokemonCard MEW = PokemonCard.basic(
                     "A1-283", "Mew", "Because it can use all kinds of moves, many scientists believe Mew to be the ancestor of Pokémon.",
@@ -356,7 +352,7 @@ public final class Psychic {
                             "Psy Report", "Your opponent reveals their hand.", EnergyCost.of(Type.PSYCHIC, 1),
                             new Attempt(List.of(
                                     new DealDamage(new Literal(20), new OpponentActive()),
-                                    new NoEffect()
+                                    new RevealHand(new OpponentSide())
                             )))), CardRarity.IMMERSIVE)
             .withWeakness(Type.DARKNESS);
 

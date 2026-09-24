@@ -140,6 +140,14 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
   is no turn timer, no reconnect, and no game log yet (seed + deck lists + chosen indices would
   replay a game exactly).
 
+- Persistence is an OCI Always Free Autonomous Database (23ai), off by default. `--spring.profiles.active=db`
+  turns on the datasource (`application-db.properties`, wallet folder in `DB_WALLET`, password in
+  `DB_PASSWORD`) and runs the idempotent `schema.sql`. Keep it free: `--is-free-tier true`, never
+  commit the wallet. Users sign in with Google only (OAuth; identity is `provider` + `subject`). No passwords
+  are stored, and `display_name` is deliberately not unique. `Accounts` wires it: everything stays
+  open (sign-in only identifies you), and without the `db` profile there is no sign-in at all. CSRF
+  tokens are off because the session cookie is `SameSite=Lax`; keep it that way if you add POSTs.
+
 ## Not built yet
 
 `CoinFlipped`, `EventSource`, and choosing which cards

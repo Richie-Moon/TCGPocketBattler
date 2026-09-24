@@ -237,6 +237,9 @@ public final class TurnEngine {
             return;
         }
 
+        // A reveal lasts until the revealed side's own turn ends, so an attack that reveals (and so ends
+        // the turn) is still seen.
+        side.concealHand();
         int nextTurn = battle.turn() + 1;
         for (Side each : List.of(battle.attacker(), battle.defender())) {
             each.inPlay().forEach(pokemon -> pokemon.expireModifiers(nextTurn));
