@@ -34,3 +34,5 @@ target/
 
 # Card art (limitlesstcg), 500+ MB; download locally, see web/public/cards
 web/public/cards/
+
+.env
