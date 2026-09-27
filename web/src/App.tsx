@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CardView, DecisionMessage, PokemonView, SideView } from './protocol'
 import { useGame } from './useGame'
 
@@ -26,6 +26,7 @@ function App() {
         )}
       </div>
       <aside>
+        <Account />
         <p className="status">{status}</p>
         {board?.stadium && (
           <section>
@@ -48,6 +49,28 @@ function App() {
         {error && <p className="error">{error}</p>}
       </aside>
     </main>
+  )
+}
+
+/** Who is signed in. Renders nothing when the server runs without the db profile (no /api/me). */
+function Account() {
+  const [account, setAccount] = useState<{ name: string } | 'signed-out' | null>(null)
+  useEffect(() => {
+    fetch('/api/me').then(
+      (response) => {
+        if (response.ok) response.json().then(setAccount)
+        else if (response.status === 401) setAccount('signed-out')
+      },
+      () => {},
+    )
+  }, [])
+
+  if (account === null) return null
+  if (account === 'signed-out') return <a className="account" href="/oauth2/authorization/google">Sign in with Google</a>
+  return (
+    <form className="account" method="post" action="/logout">
+      Signed in as {account.name} <button type="submit">Sign out</button>
+    </form>
   )
 }
 
