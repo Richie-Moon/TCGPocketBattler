@@ -39,6 +39,9 @@ public record SwitchActive(ISideTarget side, Optional<ITarget> replacement) impl
     @Override
     public EffectOutcome apply(ResolutionContext context) {
         Side target = side.resolve(context);
+        if (target.active().filter(context::shields).isPresent()) {
+            return EffectOutcome.PREVENTED;
+        }
         if (target.bench().isEmpty()) {
             return EffectOutcome.FAILED;
         }

@@ -28,6 +28,9 @@ public record DiscardRandomEnergy(INumber energyCount, ITarget target) implement
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
 
         int count = energyCount.evaluate(context);
         if (count <= 0) {

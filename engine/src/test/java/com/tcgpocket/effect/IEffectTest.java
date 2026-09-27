@@ -29,6 +29,7 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.ParalysisStatus;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.status.SleepStatus;
+import com.tcgpocket.target.AllInPlay;
 import com.tcgpocket.target.AttackerAll;
 import com.tcgpocket.target.AttackerBench;
 import com.tcgpocket.target.AttackerBenchSpecific;
@@ -447,6 +448,109 @@ class IEffectTest {
             new PreventSupporter(new Literal(1)).apply(context);
 
             assertFalse(new PlayCardAction(supporter).isLegal(theirs));
+        }
+    }
+
+    @Nested
+    @DisplayName("PreventEffects — Dig and Dive")
+    class PreventingEffects {
+
+        private final TestBoard board = new TestBoard();
+        private final PokemonInPlay attacker = board.active(board.you, PIKACHU);
+        private final PokemonInPlay shielded = board.active(board.them, SNORLAX);
+
+        private void shield() {
+            new PreventEffects(new Self(), new Literal(1))
+                    .apply(board.contextFor(shielded).withController(board.them));
+        }
+
+        private AttemptResult attackWith(IEffect... effects) {
+            return new Action("Test", EnergyCost.of(Type.COLORLESS, 0), new Attempt(effects))
+                    .execute(board.contextFor(attacker));
+        }
+
+        @Test
+        @DisplayName("an opponent's attack cannot poison it, and the rest of the attack still lands")
+        void attackEffectsArePrevented() {
+            shield();
+
+            AttemptResult result = attackWith(
+                    new AddStatus(new PoisonStatus(), new OpponentActive()),
+                    new DealDamage(new Literal(10), new OpponentActive()));
+
+            assertTrue(result.succeeded());
+            assertEquals(List.of(EffectOutcome.PREVENTED, EffectOutcome.APPLIED), result.outcomes());
+            assertTrue(shielded.statuses().isEmpty());
+            assertEquals(10, shielded.damage(), "effects, not damage: that is PreventDamage's half");
+        }
+
+        @Test
+        @DisplayName("an opponent's attack cannot switch it out")
+        void cannotBeSwitchedOut() {
+            board.bench(board.them, ODDISH);
+            shield();
+
+            attackWith(new SwitchActive(new OpponentSide()));
+
+            assertSame(shielded, board.them.active().orElseThrow());
+        }
+
+        @Test
+        @DisplayName("a Trainer is not an attack, so the shield does not hold against it")
+        void trainersStillLand() {
+            shield();
+
+            new AddStatus(new PoisonStatus(), new OpponentActive()).apply(board.contextWithoutSource());
+
+            assertFalse(shielded.statuses().isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("DiscardRandomEnergyAmong — Gyarados ex")
+    class DiscardingAmong {
+
+        @Test
+        @DisplayName("every attached Energy is one ticket, so the draw is over all six, not over two Pokemon")
+        void poolsEveryUnit() {
+            List<Integer> bounds = new java.util.ArrayList<>();
+            TestBoard board = new TestBoard(new com.tcgpocket.resolve.RandomSource() {
+                @Override
+                public int nextInt(int bound) {
+                    bounds.add(bound);
+                    return bound - 1;
+                }
+
+                @Override
+                public boolean nextBoolean() {
+                    return true;
+                }
+
+                @Override
+                public void shuffle(List<?> list) {
+                }
+            });
+            board.active(board.you, PIKACHU).attachEnergy(Type.LIGHTNING, 1);
+            PokemonInPlay heavy = board.active(board.them, SNORLAX);
+            heavy.attachEnergy(Type.FIRE, 5);
+
+            assertEquals(EffectOutcome.APPLIED, new DiscardRandomEnergyAmong(new Literal(1), new AllInPlay())
+                    .apply(board.contextWithoutSource()));
+
+            assertEquals(List.of(6), bounds);
+            assertEquals(4, heavy.energyOf(Type.FIRE));
+        }
+
+        @Test
+        @DisplayName("too little Energy in the group discards nothing and fails")
+        void allOrNothing() {
+            TestBoard board = new TestBoard();
+            PokemonInPlay pikachu = board.active(board.you, PIKACHU);
+            pikachu.attachEnergy(Type.LIGHTNING, 1);
+
+            assertEquals(EffectOutcome.FAILED, new DiscardRandomEnergyAmong(new Literal(2), new AllInPlay())
+                    .apply(board.contextWithoutSource()));
+            assertEquals(1, pikachu.energyOf(Type.LIGHTNING));
         }
     }
 

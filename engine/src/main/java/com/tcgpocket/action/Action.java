@@ -79,6 +79,7 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
             }
         }
 
+        context.scope().markAttack();
         return attempt.execute(context);
     }
 }

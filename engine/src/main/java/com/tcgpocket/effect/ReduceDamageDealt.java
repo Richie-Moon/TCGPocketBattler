@@ -32,6 +32,9 @@ public record ReduceDamageDealt(INumber reductionAmount, ITarget target, INumber
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
 
         int amount = reductionAmount.evaluate(context);
         if (amount <= 0) {

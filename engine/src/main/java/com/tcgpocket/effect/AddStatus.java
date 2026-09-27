@@ -29,6 +29,9 @@ public record AddStatus(IStatus statusToAdd, ITarget target) implements IEffect 
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
 
         PokemonInPlay pokemon = resolved.get();
         if (pokemon.hasStatus(statusToAdd)) {

@@ -460,6 +460,34 @@ class GeneticApexTest {
     }
 
     @Nested
+    @DisplayName("Water — Lapras's Hydro Pump")
+    class LaprasHydroPump {
+
+        private final TestBoard board = new TestBoard();
+        private final PokemonInPlay lapras = board.active(board.you, Water.LAPRAS);
+        private final PokemonInPlay wall = board.active(board.them, WALL);
+
+        @Test
+        @DisplayName("3 extra Water on a 1-Water cost is 4 attached, and that is enough")
+        void fourWaterIsThreeExtra() {
+            lapras.attachEnergy(Type.WATER, 4);
+
+            attack(Water.LAPRAS, "Hydro Pump").execute(board.contextFor(lapras));
+
+            assertEquals(90, wall.damage());
+        }
+
+        @Test
+        void threeWaterIsOnlyTwoExtra() {
+            lapras.attachEnergy(Type.WATER, 3);
+
+            attack(Water.LAPRAS, "Hydro Pump").execute(board.contextFor(lapras));
+
+            assertEquals(20, wall.damage());
+        }
+    }
+
+    @Nested
     @DisplayName("Lightning — Pikachu ex")
     class PikachuEx {
 

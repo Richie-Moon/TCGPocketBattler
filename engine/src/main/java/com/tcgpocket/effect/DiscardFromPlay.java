@@ -27,6 +27,9 @@ public record DiscardFromPlay(ITarget target) implements IEffect {
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
         return ShuffleIntoDeck.leavePlay(context, resolved.get(), resolved.get().owner()::addToDiscard)
                 ? EffectOutcome.APPLIED
                 : EffectOutcome.FAILED;

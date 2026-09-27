@@ -33,6 +33,9 @@ public record ShuffleIntoDeck(ITarget target) implements IEffect {
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
 
         Side owner = resolved.get().owner();
         if (!leavePlay(context, resolved.get(), owner::addToDeck)) {

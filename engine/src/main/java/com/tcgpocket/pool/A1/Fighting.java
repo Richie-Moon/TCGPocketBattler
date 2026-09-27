@@ -57,13 +57,8 @@ public final class Fighting {
             .withWeakness(Type.GRASS);
 
     /**
-     * A1-140 - Dugtrio
-     *
-     * <p><b>Narrowed.</b> Dig prevents the damage but not the effects of
-     * attacks: {@link PreventDamage} only installs {@code PREVENT_DAMAGE}, and
-     * nothing yet blocks an attack's effects (statuses, energy discards) on a
-     * Pokemon. A {@code PREVENT_EFFECTS} modifier kind, checked wherever an
-     * attack's effect lands on the Defending Pokemon, would fix it.
+     * A1-140 - Dugtrio — Dig: the damage half and the effects half are two
+     * nodes, {@link PreventDamage} and {@link PreventEffects}, on the same flip.
      */
     public static final PokemonCard DUGTRIO = PokemonCard.evolution(
                     "A1-140", "Dugtrio", "Its three heads bob separately up and down to loosen the soil nearby, making it easier for it to burrow.",
@@ -72,7 +67,8 @@ public final class Fighting {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(40), new OpponentActive()),
                                     new FlipN(new Literal(1)),
-                                    new ConditionalEffect(new LastCoinTossHeads(), new PreventDamage(new Self(), new Literal(1)))
+                                    new ConditionalEffect(new LastCoinTossHeads(), new PreventDamage(new Self(), new Literal(1))),
+                                    new ConditionalEffect(new LastCoinTossHeads(), new PreventEffects(new Self(), new Literal(1)))
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.GRASS);
 

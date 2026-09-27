@@ -16,6 +16,14 @@ public enum ModifierKind {
     PREVENT_DAMAGE,
 
     /**
+     * Blocks the effects of the other side's attacks on this Pokemon —
+     * statuses, discards, being switched out. Read through
+     * {@code ResolutionContext.shields}, not by the damage pipeline:
+     * {@link #PREVENT_DAMAGE} is the damage half of the same card text.
+     */
+    PREVENT_EFFECTS,
+
+    /**
      * Forbids this Pokemon declaring an attack. Read by {@code Action.isLegal},
      * not by the damage pipeline — retreating, attaching, playing Trainers and
      * using abilities all stay legal.

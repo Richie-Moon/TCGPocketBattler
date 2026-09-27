@@ -17,6 +17,16 @@ public final class ResolutionScope {
 
     private FlipResult lastFlip;
     private int damageDealtThisResolution;
+    private boolean attack;
+
+    /** Whether this resolution is an attack, as opposed to a Trainer, an Ability or a trigger. */
+    public boolean isAttack() {
+        return attack;
+    }
+
+    public void markAttack() {
+        this.attack = true;
+    }
 
     public Optional<FlipResult> lastFlip() {
         return Optional.ofNullable(lastFlip);

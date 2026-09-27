@@ -28,6 +28,9 @@ public record ReturnToHand(ITarget target) implements IEffect {
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
         return ShuffleIntoDeck.leavePlay(context, resolved.get(), resolved.get().owner()::addToHand)
                 ? EffectOutcome.APPLIED
                 : EffectOutcome.FAILED;

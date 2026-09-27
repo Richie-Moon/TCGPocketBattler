@@ -30,6 +30,9 @@ public record DiscardTypeEnergy(Type energyType, INumber energyCount, ITarget ta
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
 
         int count = energyCount.evaluate(context);
         if (count <= 0) {

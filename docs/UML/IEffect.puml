@@ -17,6 +17,8 @@ enum EffectOutcome {
     /' Nothing to do, and that is fine — healing a Pokemon at full HP,
        discarding energy from a Pokemon with none. Does NOT abort. '/
     NO_OP
+    /' Shielded from the other side's attack — Dig, Dive. Does NOT abort. '/
+    PREVENTED
     /' Could not be done — target did not resolve, cost unpayable.
        ABORTS the rest of the attempt. '/
     FAILED
@@ -131,6 +133,12 @@ class DiscardRandomEnergy <<record>> implements IEffect {
     - target: ITarget
 }
 
+/' Pools every attached unit across the group before drawing. Gyarados ex. '/
+class DiscardRandomEnergyAmong <<record>> implements IEffect {
+    - energyCount: INumber
+    - from: IMultiTarget
+}
+
 class DiscardTypeEnergy <<record>> implements IEffect {
     - energyType: Type
     - energyCount: INumber
@@ -175,6 +183,11 @@ class IncreaseSideDamage <<record>> implements IDurationEffect {
 }
 
 class PreventDamage <<record>> implements IDurationEffect {
+    - target: ITarget
+}
+
+/' Read through ResolutionContext.shields by the effects an attack lands on a Pokemon. Dig, Dive. '/
+class PreventEffects <<record>> implements IDurationEffect {
     - target: ITarget
 }
 

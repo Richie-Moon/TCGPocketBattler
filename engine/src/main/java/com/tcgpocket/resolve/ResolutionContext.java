@@ -1,6 +1,7 @@
 package com.tcgpocket.resolve;
 
 import com.tcgpocket.state.Battle;
+import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.trigger.GameEvent;
@@ -66,6 +67,21 @@ public record ResolutionContext(
     /** The side opposing whoever controls the resolving card. */
     public Side opponent() {
         return battle.opponentOf(controller);
+    }
+
+    /**
+     * Whether this is an attack whose effects cannot touch that Pokemon — Dig,
+     * Dive. Only the other side's attacks are blocked: a Pokemon is never
+     * shielded from its own side's text, nor from Trainers and triggers.
+     *
+     * <p>Each effect that changes a single Pokemon asks this after resolving
+     * its target and answers {@code PREVENTED}, which like {@code NO_OP} does
+     * not abort: the attack still happened, this part of it just did nothing.
+     */
+    public boolean shields(PokemonInPlay pokemon) {
+        return scope.isAttack()
+                && pokemon.owner() != controller
+                && pokemon.hasModifier(ModifierKind.PREVENT_EFFECTS, battle.turn());
     }
 
     /**

@@ -40,6 +40,9 @@ public record PreventAttack(ITarget target, INumber duration) implements IDurati
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
 
         int expiry = context.battle().turn() + Math.max(0, duration.evaluate(context));
         resolved.get().addModifier(new ActiveModifier(ModifierKind.CANNOT_ATTACK, 0, expiry));

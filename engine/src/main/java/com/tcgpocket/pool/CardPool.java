@@ -2,6 +2,7 @@ package com.tcgpocket.pool;
 
 import com.tcgpocket.card.ICard;
 import com.tcgpocket.pool.A1.GeneticApex;
+import com.tcgpocket.pool.A1a.MythicalIsland;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -28,8 +29,9 @@ import java.util.stream.Stream;
  */
 public final class CardPool {
 
-    private static final Map<String, ICard> BY_ID = index(Stream.concat(
-            GeneticApex.CARDS.stream(), com.tcgpocket.pool.PA.Trainers.CARDS.stream()).toList());
+    private static final Map<String, ICard> BY_ID = index(Stream.of(
+            GeneticApex.CARDS, MythicalIsland.CARDS, com.tcgpocket.pool.PA.Trainers.CARDS)
+            .flatMap(List::stream).toList());
 
     private CardPool() {
     }

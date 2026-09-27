@@ -32,6 +32,10 @@ public record MoveEnergy(ITarget from, ITarget to, INumber energyCount) implemen
             return EffectOutcome.FAILED;
         }
 
+        if (context.shields(source.get())) {
+            return EffectOutcome.PREVENTED;
+        }
+
         int count = energyCount.evaluate(context);
         if (count <= 0) {
             return EffectOutcome.NO_OP;

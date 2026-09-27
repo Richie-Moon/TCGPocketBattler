@@ -369,7 +369,7 @@ public final class Water {
                                     new DealDamage(new Branch(
                                             List.of(new Branch.Case(new GreaterThan(
                                                     new EnergyOn(new Self(), Type.WATER),
-                                                    new Literal(4)),
+                                                    new Literal(3)),
                                                     new Literal(90))),
                                             new Literal(20)
                                     ), new OpponentActive())

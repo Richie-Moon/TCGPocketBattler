@@ -11,17 +11,17 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Stops the target retreating, for a number of turns — "during your opponent's
- * next turn, the Defending Pokemon can't retreat".
+ * Blocks the effects of the other side's attacks on the target, for a number
+ * of turns — the "and effects of" half of Dig and Dive.
  *
- * <p>The mirror of {@link PreventAttack}, and a modifier rather than a status
- * for the same reasons: Paralysis and Sleep would also forbid attacking, and
- * would compete for the special-condition slot. It still leaves the active spot
- * with its holder, so a switch effect gets around it.
+ * <p>A node of its own rather than a flag on {@link PreventDamage}: the two
+ * halves are separate card text elsewhere ("prevent all effects of attacks,
+ * except damage"), and composing them costs one more line on the cards that
+ * print both. The effects that honour it ask {@code ResolutionContext.shields}.
  */
-public record PreventRetreat(ITarget target, INumber duration) implements IDurationEffect {
+public record PreventEffects(ITarget target, INumber duration) implements IDurationEffect {
 
-    public PreventRetreat {
+    public PreventEffects {
         Objects.requireNonNull(target, "target");
         Objects.requireNonNull(duration, "duration");
     }
@@ -32,12 +32,8 @@ public record PreventRetreat(ITarget target, INumber duration) implements IDurat
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
-        if (context.shields(resolved.get())) {
-            return EffectOutcome.PREVENTED;
-        }
-
         int expiry = context.battle().turn() + Math.max(0, duration.evaluate(context));
-        resolved.get().addModifier(new ActiveModifier(ModifierKind.CANNOT_RETREAT, 0, expiry));
+        resolved.get().addModifier(new ActiveModifier(ModifierKind.PREVENT_EFFECTS, 0, expiry));
         return EffectOutcome.APPLIED;
     }
 }

@@ -67,7 +67,9 @@ public final class Trainers {
             new PlainAction(
                     "Put a random Basic Pokémon from your deck into your hand.",
                     new Attempt(List.of(
-                            new SearchDeck(new AttackerSide(), new Literal(1), new IsBasic())))));
+                            new SearchDeck(new AttackerSide(), new Literal(1), new IsBasic()),
+                                new ShuffleDeck(new AttackerSide())
+                            ))));
     /**
      * P-A-006 · Red Card
      */

@@ -22,6 +22,9 @@ public record DiscardAllEnergy(ITarget target) implements IEffect {
         if (resolved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
+        if (context.shields(resolved.get())) {
+            return EffectOutcome.PREVENTED;
+        }
         
         boolean paid = !Energies.takeAll(resolved.get()).isEmpty();
         return paid ? EffectOutcome.APPLIED : EffectOutcome.FAILED;
