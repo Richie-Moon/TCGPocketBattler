@@ -109,3 +109,80 @@ p {
 .pick.picked {
   border-color: #3a7bd5;
 }
+
+/* Landing — tokens from the Figma "color/*" variables. */
+:root {
+  --color-bg: #f1f2f4;
+  --color-text: #1f2328;
+  --color-text-muted: #636a73;
+  --color-accent: #3763af;
+  --color-on-accent: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #111317;
+    --color-text: #e9eaec;
+    --color-text-muted: #9097a0;
+    --color-accent: #6b93da;
+    --color-on-accent: #0b1220;
+  }
+}
+
+.landing {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 0 28px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: 'Cabin', system-ui, sans-serif;
+  line-height: normal;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.landing h1 {
+  margin: 0;
+  font-size: 88px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.landing p {
+  margin: 12px 0 48px;
+  font-size: 26px;
+  color: var(--color-text-muted);
+}
+
+.landing .login {
+  padding: 18px 56px;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 22px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+  .landing h1 {
+    width: 320px;
+    font-size: 34px;
+  }
+
+  .landing p {
+    margin: 8px 0 32px;
+    font-size: 17px;
+  }
+
+  .landing .login {
+    box-sizing: border-box;
+    width: 320px;
+    padding: 16px 0;
+    font-size: 18px;
+  }
+}
