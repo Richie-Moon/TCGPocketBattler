@@ -25,6 +25,7 @@ public final class MythicalIsland {
         cards.addAll(Grass.CARDS);
         cards.addAll(Fire.CARDS);
         cards.addAll(Water.CARDS);
+        cards.addAll(Lightning.CARDS);
         return List.copyOf(cards);
     }
 }
