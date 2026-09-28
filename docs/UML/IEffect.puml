@@ -253,8 +253,11 @@ class RepeatEffect <<record>> implements IEffect {
 }
 
 /' Resolves one of the opponent's attacks, chosen by the controller, as this
-   one. NO_OP when the copier lacks that attack's Energy. '/
-class CopyAttack <<record>> implements IEffect {}
+   one. With needsEnergy, NO_OP when the copier lacks that attack's Energy. '/
+class CopyAttack <<record>> implements IEffect {
+    - from: IMultiTarget
+    - needsEnergy: boolean
+}
 
 /' Null Object Pattern '/
 class NoEffect <<record>> implements IEffect {}

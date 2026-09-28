@@ -12,6 +12,7 @@ import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.condition.Always;
+import com.tcgpocket.condition.IsActive;
 import com.tcgpocket.condition.IsSpecies;
 import com.tcgpocket.condition.IsType;
 import com.tcgpocket.condition.HasType;
@@ -35,6 +36,7 @@ import com.tcgpocket.target.AttackerBench;
 import com.tcgpocket.target.AttackerBenchSpecific;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.target.Matching;
+import com.tcgpocket.target.OpponentAll;
 import com.tcgpocket.target.OpponentActive;
 import com.tcgpocket.target.OpponentBench;
 import com.tcgpocket.target.OpponentSide;
@@ -756,7 +758,7 @@ class IEffectTest {
 
         private final TestBoard board = new TestBoard(new ScriptedPlayer("you", 1), new ScriptedPlayer("them"));
         private final PokemonInPlay ditto = board.active(board.you, PokemonCard.basic("ditto", "Ditto", 70, Type.COLORLESS, 1,
-                List.of(new Action("Copy Anything", EnergyCost.of(Type.COLORLESS, 1), new Attempt(new CopyAttack())))));
+                List.of(new Action("Copy Anything", EnergyCost.of(Type.COLORLESS, 1), new Attempt(new CopyAttack(new OpponentAll(), true))))));
         private final ResolutionContext context = board.contextFor(ditto);
 
         {
@@ -766,7 +768,7 @@ class IEffectTest {
                     new Action("Poke", EnergyCost.of(Type.COLORLESS, 1),
                             new Attempt(new DealDamage(new Literal(30), new OpponentActive()))))));
             board.bench(board.them, PokemonCard.basic("ditto", "Ditto", 70, Type.COLORLESS, 1,
-                    List.of(new Action("Copy Anything", EnergyCost.of(Type.COLORLESS, 1), new Attempt(new CopyAttack())))));
+                    List.of(new Action("Copy Anything", EnergyCost.of(Type.COLORLESS, 1), new Attempt(new CopyAttack(new OpponentAll(), true))))));
         }
 
         @Test
@@ -774,14 +776,23 @@ class IEffectTest {
         void theChosenAttackResolvesAsThisOne() {
             ditto.attachEnergy(Type.COLORLESS, 1);
 
-            assertEquals(EffectOutcome.APPLIED, new CopyAttack().apply(context));
+            assertEquals(EffectOutcome.APPLIED, new CopyAttack(new OpponentAll(), true).apply(context));
             assertEquals(30, board.them.active().orElseThrow().damage(), "option 1 of two, Poke");
         }
 
         @Test
         void withoutTheEnergyItDoesNothing() {
-            assertEquals(EffectOutcome.NO_OP, new CopyAttack().apply(context));
+            assertEquals(EffectOutcome.NO_OP, new CopyAttack(new OpponentAll(), true).apply(context));
             assertEquals(0, board.them.active().orElseThrow().damage());
+        }
+
+        @Test
+        @DisplayName("Genome Hacking copies only the Active Pokemon, and needs no Energy")
+        void fromTheActiveWithoutEnergy() {
+            CopyAttack genomeHacking = new CopyAttack(new Matching(new OpponentAll(), new IsActive()), false);
+
+            assertEquals(EffectOutcome.APPLIED, genomeHacking.apply(context));
+            assertEquals(30, board.them.active().orElseThrow().damage(), "option 1 of Mew's two, Poke");
         }
     }
 

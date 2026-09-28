@@ -26,6 +26,7 @@ import com.tcgpocket.state.Zone;
 import com.tcgpocket.status.SleepStatus;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.target.OpponentActive;
+import com.tcgpocket.target.OpponentAll;
 import com.tcgpocket.target.OpponentSide;
 
 import java.util.List;
@@ -286,7 +287,7 @@ public final class Colorless {
                     70, Type.COLORLESS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
                             "Copy Anything", "Choose 1 of your opponent's Pokémon's attacks and use it as this attack. If this Pokémon doesn't have the necessary Energy to use that attack, this attack does nothing.", EnergyCost.of(Type.COLORLESS, 1),
                             new Attempt(List.of(
-                                    new CopyAttack()
+                                    new CopyAttack(new OpponentAll(), true)
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
 
