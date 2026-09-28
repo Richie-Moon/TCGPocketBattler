@@ -3,11 +3,11 @@ import type { CardView, DecisionMessage, PokemonView, SideView } from './protoco
 import { Landing } from './Landing'
 import { useGame } from './useGame'
 
-/** Landing page when signed out; the game otherwise, including when the server has no sign-in (no db profile). */
+/** The game only for a signed-in user; the landing page otherwise, including when the server has no sign-in (no db profile). */
 function App() {
   const [signedOut, setSignedOut] = useState<boolean | null>(null)
   useEffect(() => {
-    fetch('/api/me').then((response) => setSignedOut(response.status === 401), () => setSignedOut(false))
+    fetch('/api/me').then((response) => setSignedOut(!response.ok), () => setSignedOut(true))
   }, [])
   if (signedOut === null) return null
   return signedOut ? <Landing /> : <Game />
