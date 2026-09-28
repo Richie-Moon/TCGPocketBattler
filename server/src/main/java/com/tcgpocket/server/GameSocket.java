@@ -11,8 +11,10 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -53,12 +55,15 @@ final class GameSocket extends TextWebSocketHandler {
     }
 
     private final JsonMapper json;
+    private final Optional<Ratings> ratings;
     private final SecureRandom seeds = new SecureRandom();
     private final Map<String, Seat> seats = new ConcurrentHashMap<>();
     private WebSocketSession waiting; // guarded by this
 
-    GameSocket(JsonMapper json) {
+    /** {@code ratings} is empty without the db profile, and then no game is rated. */
+    GameSocket(JsonMapper json, Optional<Ratings> ratings) {
         this.json = json;
+        this.ratings = ratings;
     }
 
     @Override
@@ -86,7 +91,8 @@ final class GameSocket extends TextWebSocketHandler {
         seats.put(second.getId(), new Seat(game, game.players().get(1)));
 
         Thread.ofVirtual().name("game-" + first.getId()).start(() -> {
-            game.run();
+            // ponytail: a game someone leaves is unrated, so quitting dodges a loss; rate it as a forfeit to stop that.
+            game.run().ifPresent(score -> ratings.ifPresent(r -> r.record(subject(first), subject(second), score)));
             close(first);
             close(second);
         });
@@ -135,6 +141,12 @@ final class GameSocket extends TextWebSocketHandler {
                 LOG.debug("could not send to {}", session.getId(), e);
             }
         }
+    }
+
+    /** The Google subject of a signed-in player, or null. */
+    private static String subject(WebSocketSession session) {
+        Principal principal = session.getPrincipal();
+        return principal == null ? null : principal.getName();
     }
 
     private static void close(WebSocketSession session) {

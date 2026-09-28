@@ -11,6 +11,15 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT users_identity UNIQUE (provider, subject)
 );
 
+-- Ratings, as on Pokemon Showdown (see Ratings). ALTERs rather than columns above, so databases created
+-- before them get the columns too. GXE is not stored: it is worked out from glicko and glicko_rd.
+ALTER TABLE users ADD IF NOT EXISTS (elo NUMBER(10) DEFAULT 1000 NOT NULL);
+ALTER TABLE users ADD IF NOT EXISTS (glicko NUMBER DEFAULT 1500 NOT NULL);
+ALTER TABLE users ADD IF NOT EXISTS (glicko_rd NUMBER DEFAULT 350 NOT NULL);
+ALTER TABLE users ADD IF NOT EXISTS (rated_at TIMESTAMP);
+ALTER TABLE users ADD IF NOT EXISTS (wins NUMBER(10) DEFAULT 0 NOT NULL);
+ALTER TABLE users ADD IF NOT EXISTS (losses NUMBER(10) DEFAULT 0 NOT NULL);
+
 -- cards is a JSON array of printed ids (["A1-094", ...]) and energy an array of Type names.
 -- Legality is DeckValidator's job, not the database's.
 CREATE TABLE IF NOT EXISTS decks (

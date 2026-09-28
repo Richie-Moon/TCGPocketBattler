@@ -7,6 +7,8 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.Optional;
+
 /**
  * Starts the server: one WebSocket endpoint, {@code /play}. The page players
  * use is the {@code web/} client.
@@ -16,9 +18,11 @@ import tools.jackson.databind.json.JsonMapper;
 public class ServerApplication implements WebSocketConfigurer {
 
     private final JsonMapper json;
+    private final Optional<Ratings> ratings;
 
-    public ServerApplication(JsonMapper json) {
+    public ServerApplication(JsonMapper json, Optional<Ratings> ratings) {
         this.json = json;
+        this.ratings = ratings;
     }
 
     public static void main(String[] args) {
@@ -27,6 +31,6 @@ public class ServerApplication implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new GameSocket(json), "/play");
+        registry.addHandler(new GameSocket(json, ratings), "/play");
     }
 }
