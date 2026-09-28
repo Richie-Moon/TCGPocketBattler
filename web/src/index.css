@@ -278,7 +278,7 @@ p {
   }
 }
 
-/* Home — sized from the 1920x1080 and 390x844 Figma frames. */
+/* Home — sized from the 1920x900 and 390x844 Figma frames. */
 .home {
   display: flex;
   min-height: 100vh;
@@ -316,10 +316,6 @@ p {
   color: var(--color-text-muted);
 }
 
-.home .danger {
-  color: var(--color-danger);
-}
-
 .home .mobile-only,
 .home .tab-bar,
 .home .top-bar .logo,
@@ -352,9 +348,9 @@ p {
   align-items: center;
   gap: 12px;
   box-sizing: border-box;
-  width: 112px;
+  width: 80px;
   height: 100vh;
-  padding: 28px 16px;
+  padding: 28px 8px;
   border-right: 1px solid var(--color-border);
   background: var(--color-sidebar);
 }
@@ -368,7 +364,7 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  width: 80px;
+  width: 64px;
   padding: 12px 0;
   border-radius: 6px;
   color: var(--color-text-muted);
@@ -420,8 +416,11 @@ p {
   background: var(--color-surface);
 }
 
-.home .player > .icon {
-  color: var(--color-placeholder);
+.home .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .home .player-name {
@@ -492,8 +491,8 @@ p {
 }
 
 .home .play {
-  gap: 14px;
-  padding: 32px;
+  gap: 12px;
+  padding: 24px 32px;
 }
 
 .home .play h2 {
@@ -565,7 +564,7 @@ p {
 }
 
 .home .queue {
-  height: 84px;
+  height: 72px;
   border-radius: 6px;
   background: var(--color-accent);
   color: var(--color-on-accent);
@@ -574,6 +573,12 @@ p {
   letter-spacing: 0.03em;
   text-align: center;
   text-transform: uppercase;
+}
+
+.home button:disabled,
+.home input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .home .or {
@@ -632,30 +637,6 @@ p {
   padding-bottom: 8px;
 }
 
-.home .deck-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-.home .deck-row-name {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.home .deck-row.selected {
-  background: var(--color-accent-soft);
-}
-
-.home .deck-row.selected .deck-row-name {
-  color: var(--color-accent-strong);
-  font-weight: 600;
-}
-
 .home .modes {
   flex: 1;
   display: flex;
@@ -667,8 +648,7 @@ p {
   flex: 1;
   flex-direction: row;
   align-items: center;
-  gap: 16px;
-  min-height: 80px;
+  gap: 14px;
   padding: 0 20px;
 }
 
@@ -681,8 +661,8 @@ p {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   background: var(--color-accent-soft);
   color: var(--color-accent-strong);
@@ -692,12 +672,12 @@ p {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   font-size: 14px;
 }
 
 .home .mode-label {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -705,7 +685,7 @@ p {
 
 /* Fixed as in the design, so the Ladder, Tournaments and Friends buttons keep their size whatever it holds. */
 .home .recent {
-  height: 573px;
+  height: 529px;
 }
 
 .home .empty-state {
@@ -772,9 +752,9 @@ p {
     text-align: right;
   }
 
-  .home .player > .icon {
-    width: 36px !important;
-    height: 36px !important;
+  .home .avatar {
+    width: 36px;
+    height: 36px;
   }
 
   .home .welcome {
@@ -798,6 +778,10 @@ p {
 
   .home .recent {
     height: auto;
+  }
+
+  .home .news {
+    flex: 1;
   }
 
   .home h2 {
