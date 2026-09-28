@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react'
 import type { CardView, DecisionMessage, PokemonView, SideView } from './protocol'
+import { Landing } from './Landing'
 import { useGame } from './useGame'
 
+/** Landing page when signed out; the game otherwise, including when the server has no sign-in (no db profile). */
 function App() {
+  const [signedOut, setSignedOut] = useState<boolean | null>(null)
+  useEffect(() => {
+    fetch('/api/me').then((response) => setSignedOut(response.status === 401), () => setSignedOut(false))
+  }, [])
+  if (signedOut === null) return null
+  return signedOut ? <Landing /> : <Game />
+}
+
+function Game() {
   const { connection, board, decision, result, error, choose } = useGame()
 
   let status: string

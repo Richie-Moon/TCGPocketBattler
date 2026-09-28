@@ -117,6 +117,8 @@ p {
   --color-text-muted: #636a73;
   --color-accent: #3763af;
   --color-on-accent: #fff;
+  --color-card-line: rgba(31, 36, 43, 0.06);
+  --color-card-fill: rgba(31, 36, 43, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -126,10 +128,14 @@ p {
     --color-text-muted: #9097a0;
     --color-accent: #6b93da;
     --color-on-accent: #0b1220;
+    --color-card-line: rgba(255, 255, 255, 0.07);
+    --color-card-fill: rgba(255, 255, 255, 0.06);
   }
 }
 
 .landing {
+  position: relative;
+  overflow: hidden;
   min-height: 100vh;
   box-sizing: border-box;
   padding: 0 28px 40px;
@@ -142,6 +148,65 @@ p {
   line-height: normal;
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+.landing > :not(.card-outlines) {
+  position: relative;
+}
+
+.card-outlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Measured in em against a 600px-wide card (60em); the card's font-size scales the whole thing. */
+.card-outline {
+  position: absolute;
+  width: 60em;
+  height: 83.833em;
+  border-radius: 3.333em;
+  box-shadow: inset 0 0 0 0.5em var(--color-card-line);
+}
+
+.card-outline > * {
+  position: absolute;
+  left: 5em;
+  box-sizing: border-box;
+}
+
+.card-outline .name,
+.card-outline .attack {
+  width: 50em;
+  height: 2.667em;
+  border-radius: 1.333em;
+  background: var(--color-card-fill);
+}
+
+.card-outline .name {
+  top: 5em;
+  width: 25em;
+}
+
+.card-outline .art {
+  top: 11em;
+  width: 50em;
+  height: 32.667em;
+  border: 0.5em solid var(--color-card-line);
+  border-radius: 1.667em;
+}
+
+.card-outline .attack {
+  top: 51.667em;
+}
+
+.card-outline .attack.short {
+  top: 63.333em;
+  width: 36.667em;
+}
+
+.card-outline.mobile {
+  display: none;
 }
 
 .landing h1 {
@@ -169,6 +234,14 @@ p {
 }
 
 @media (max-width: 600px) {
+  .card-outline {
+    display: none;
+  }
+
+  .card-outline.mobile {
+    display: block;
+  }
+
   .landing h1 {
     width: 320px;
     font-size: 34px;
