@@ -78,7 +78,7 @@ class Accounts {
             this.db = db;
         }
 
-        record Account(String name, int elo) {
+        record Account(String name, int elo, String profileIcon) {
         }
 
         /** 401 when signed out, which is how the web client knows to offer "Sign in with Google". */
@@ -87,9 +87,9 @@ class Accounts {
             if (user == null) {
                 return ResponseEntity.status(401).build();
             }
-            return ResponseEntity.ok(db.sql("SELECT display_name, elo FROM users WHERE provider = 'google' AND subject = ?")
+            return ResponseEntity.ok(db.sql("SELECT display_name, elo, profile_icon FROM users WHERE provider = 'google' AND subject = ?")
                     .param(user.getSubject())
-                    .query((row, n) -> new Account(row.getString(1), row.getInt(2)))
+                    .query((row, n) -> new Account(row.getString(1), row.getInt(2), row.getString(3)))
                     .single());
         }
     }
