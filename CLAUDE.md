@@ -144,8 +144,10 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
   turns on the datasource (`application-db.properties`, wallet folder in `DB_WALLET`, password in
   `DB_PASSWORD`) and runs the idempotent `schema.sql`. Keep it free: `--is-free-tier true`, never
   commit the wallet. Users sign in with Google only (OAuth; identity is `provider` + `subject`). No passwords
-  are stored, and `display_name` is deliberately not unique. `Accounts` wires it: everything stays
-  open (sign-in only identifies you), and without the `db` profile there is no sign-in at all. CSRF
+  are stored, and `display_name` is deliberately not unique. `Accounts` wires it: the server keeps
+  every endpoint open, and without the `db` profile there is no sign-in at all. The web client is
+  what gates play: it shows the landing page unless `/api/me` answers 200, so without the `db`
+  profile the browser never reaches the game. CSRF
   tokens are off because the session cookie is `SameSite=Lax`; keep it that way if you add POSTs.
 
 ## Not built yet

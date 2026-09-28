@@ -1,8 +1,27 @@
 import { useEffect, useState } from 'react'
 import type { CardView, DecisionMessage, PokemonView, SideView } from './protocol'
+import { Home } from './Home'
+import { Landing } from './Landing'
 import { useGame } from './useGame'
 
+/**
+ * Home, then the game once they queue, only for a signed-in user; the landing page otherwise, including when the
+ * server has no sign-in (no db profile).
+ */
 function App() {
+  const [me, setMe] = useState<{ name: string; elo: number } | 'signed-out' | null>(null)
+  const [playing, setPlaying] = useState(false)
+  useEffect(() => {
+    fetch('/api/me')
+      .then((response) => (response.ok ? response.json() : 'signed-out'))
+      .then(setMe, () => setMe('signed-out'))
+  }, [])
+  if (me === null) return null
+  if (me === 'signed-out') return <Landing />
+  return playing ? <Game /> : <Home name={me.name} onQueue={() => setPlaying(true)} />
+}
+
+function Game() {
   const { connection, board, decision, result, error, choose } = useGame()
 
   let status: string
@@ -54,7 +73,7 @@ function App() {
 
 /** Who is signed in. Renders nothing when the server runs without the db profile (no /api/me). */
 function Account() {
-  const [account, setAccount] = useState<{ name: string } | 'signed-out' | null>(null)
+  const [account, setAccount] = useState<{ name: string; elo: number } | 'signed-out' | null>(null)
   useEffect(() => {
     fetch('/api/me').then(
       (response) => {

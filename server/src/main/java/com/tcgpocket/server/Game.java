@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -73,16 +75,21 @@ final class Game {
         return seats.stream().map(Seat::player).toList();
     }
 
-    /** Plays to the end, then tells both players the result. Never throws. */
-    void run() {
+    /**
+     * Plays to the end, then tells both players the result. Never throws.
+     *
+     * @return the first player's score (1 win, 0.5 tie, 0 loss), or empty when the game did not finish
+     */
+    OptionalDouble run() {
         String result;
+        OptionalDouble score = OptionalDouble.empty();
         try {
             TurnEngine engine = new TurnEngine(battle);
             engine.dealOpeningHands();
             placeTogether(engine);
-            result = engine.playOut()
-                    .map(winner -> winner.name() + " wins")
-                    .orElse("Tie");
+            Optional<Side> winner = engine.playOut();
+            result = winner.map(side -> side.name() + " wins").orElse("Tie");
+            score = OptionalDouble.of(winner.map(side -> side == seats.getFirst().side() ? 1.0 : 0.0).orElse(0.5));
         } catch (RemotePlayer.Left e) {
             result = "A player left";
         } catch (RuntimeException e) {
@@ -92,6 +99,7 @@ final class Game {
         for (Seat seat : seats) {
             seat.send().accept(new OverMessage(BoardView.of(battle, seat.side()), result));
         }
+        return score;
     }
 
     /**
