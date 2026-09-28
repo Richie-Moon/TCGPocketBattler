@@ -1,5 +1,4 @@
 import { useState, type CSSProperties } from 'react'
-import avatar from './assets/home/avatar.svg'
 import bot from './assets/home/bot.svg'
 import chevronDown from './assets/home/chevron-down.svg'
 import chevronRight from './assets/home/chevron-right.svg'
@@ -12,6 +11,9 @@ import replays from './assets/home/replays.svg'
 import tournaments from './assets/home/tournaments.svg'
 import users from './assets/home/users.svg'
 
+/** Profile icons, "Icon_<name>.png", in the same public bucket as the card art. */
+const ICON_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/icons'
+
 const nav = [
   { label: 'Home', icon: homeIcon },
   { label: 'Decks', icon: decksIcon },
@@ -20,7 +22,7 @@ const nav = [
 ]
 
 const modes = [
-  { label: 'Ladder', detail: 'Ranked matches and the leaderboard', icon: ladder },
+  { label: 'Leaderboard', detail: 'View the current rankings', icon: ladder },
   { label: 'Tournaments', detail: 'Join scheduled bracket events', icon: tournaments },
   { label: 'Friends', detail: "See who's online and send challenges", icon: friends },
 ]
@@ -31,8 +33,8 @@ function Icon({ src, size }: { src: string; size: number }) {
 }
 
 /** The signed-in home screen. Only Queue does anything yet: it starts a game, once a deck is chosen. */
-export function Home({ name, onQueue }: { name: string; onQueue: () => void }) {
-  // ponytail: always null until there is deck building to choose from, so Queue stays disabled.
+export function Home({ name, profileIcon, onQueue }: { name: string; profileIcon: string; onQueue: () => void }) {
+  // ponytail: always null until there is deck building to choose from, so every way to start a game stays disabled.
   const [deck] = useState<{ name: string; cards: number; type: string } | null>(null)
   const [format, setFormat] = useState<'Standard' | 'Ranked'>('Standard')
 
@@ -55,7 +57,7 @@ export function Home({ name, onQueue }: { name: string; onQueue: () => void }) {
           <div className="logo">PB</div>
           <h1>TCG Pocket Battler</h1>
           <div className="player">
-            <Icon src={avatar} size={40} />
+            <img className="avatar" src={`${ICON_BASE}/${profileIcon}`} alt="" />
             <div>
               <div className="welcome">Welcome back</div>
               <div className="player-name">
@@ -98,19 +100,19 @@ export function Home({ name, onQueue }: { name: string; onQueue: () => void }) {
               </button>
               <div className="or">or</div>
               <div className="other-modes">
-                <button type="button" className="secondary">
+                <button type="button" className="secondary" disabled={!deck}>
                   <Icon src={users} size={18} />
                   Play a friend
                 </button>
-                <button type="button" className="secondary">
+                <button type="button" className="secondary" disabled={!deck}>
                   <Icon src={bot} size={18} />
                   <span className="desktop-only">Practice vs bot</span>
                   <span className="mobile-only">Vs bot</span>
                 </button>
               </div>
               <div className="join-room">
-                <input placeholder="Room code" aria-label="Room code" />
-                <button type="button" className="secondary">
+                <input placeholder="Room code" aria-label="Room code" disabled={!deck} />
+                <button type="button" className="secondary" disabled={!deck}>
                   Join
                 </button>
               </div>
