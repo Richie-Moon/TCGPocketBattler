@@ -58,6 +58,11 @@ class RevealHand <<record>> implements IEffect {
     - side: ISideTarget
 }
 
+class LookAtTopCards <<record>> implements IEffect {
+    - cardCount: INumber
+    - side: ISideTarget
+}
+
 class DiscardFromHand <<record>> implements IEffect {
     - side: ISideTarget
     - cardCount: INumber

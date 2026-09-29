@@ -113,6 +113,14 @@ function Side({ title, side }: { title: string; side: SideView }) {
           ))}
         </div>
       )}
+      {side.topCards.length > 0 && (
+        <div className="row">
+          Top of deck:
+          {side.topCards.map((card) => (
+            <Card key={card.id} card={card} />
+          ))}
+        </div>
+      )}
       <p>
         Deck {side.deckSize} · Discard {side.discard.length} · Energy {side.energy ?? '—'} (next{' '}
         {side.nextEnergy ?? '—'})

@@ -686,6 +686,35 @@ class IEffectTest {
         }
 
         @Test
+        @DisplayName("a look at the top cards: drawing keeps the rest known, a shuffle forgets them")
+        void lookingAtTheTopCards() {
+            CardInstance first = board.inDeck(board.you, PIKACHU);
+            CardInstance second = board.inDeck(board.you, SNORLAX);
+            board.inDeck(board.you, PIKACHU);
+
+            assertEquals(EffectOutcome.APPLIED, new LookAtTopCards(new Literal(2), new AttackerSide()).apply(context));
+            assertEquals(List.of(first, second), board.you.seenTopCards());
+            board.you.drawCard();
+            assertEquals(List.of(second), board.you.seenTopCards());
+
+            new LookAtTopCards(new Literal(2), new AttackerSide()).apply(context);
+            board.you.shuffleDeck(board.battle.rng());
+            assertEquals(List.of(), board.you.seenTopCards());
+        }
+
+        @Test
+        void lookingPastTheBottomShowsTheWholeDeck() {
+            CardInstance only = board.inDeck(board.you, PIKACHU);
+            new LookAtTopCards(new Literal(3), new AttackerSide()).apply(context);
+            assertEquals(List.of(only), board.you.seenTopCards());
+        }
+
+        @Test
+        void lookingAtAnEmptyDeckIsANoOp() {
+            assertEquals(EffectOutcome.NO_OP, new LookAtTopCards(new Literal(1), new AttackerSide()).apply(context));
+        }
+
+        @Test
         void revealingAnEmptyHandIsANoOp() {
             assertEquals(EffectOutcome.NO_OP, new RevealHand(new OpponentSide()).apply(context));
         }
