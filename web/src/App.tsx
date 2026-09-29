@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { CardView, DecisionMessage, PokemonView, SideView } from './protocol'
-import { Home } from './Home'
+import { CARD_BASE } from './art'
+import { Decks } from './Decks'
+import { Home, type Page } from './Home'
 import { Landing } from './Landing'
 import { useGame } from './useGame'
 
@@ -11,6 +13,7 @@ import { useGame } from './useGame'
 function App() {
   const [me, setMe] = useState<{ name: string; elo: number; profileIcon: string } | 'signed-out' | null>(null)
   const [playing, setPlaying] = useState(false)
+  const [page, setPage] = useState<Page>('Home')
   useEffect(() => {
     fetch('/api/me')
       .then((response) => (response.ok ? response.json() : 'signed-out'))
@@ -18,7 +21,12 @@ function App() {
   }, [])
   if (me === null) return null
   if (me === 'signed-out') return <Landing />
-  return playing ? <Game /> : <Home name={me.name} profileIcon={me.profileIcon} onQueue={() => setPlaying(true)} />
+  if (playing) return <Game />
+  return page === 'Decks' ? (
+    <Decks name={me.name} profileIcon={me.profileIcon} onNavigate={setPage} />
+  ) : (
+    <Home name={me.name} profileIcon={me.profileIcon} onQueue={() => setPlaying(true)} onNavigate={setPage} />
+  )
 }
 
 function Game() {
@@ -203,10 +211,6 @@ function SetupPicker({
     </section>
   )
 }
-
-/** Card art, named by printed id, in a public bucket; VITE_CARD_BASE=/cards uses local files. */
-const CARD_BASE = import.meta.env.VITE_CARD_BASE ??
-  'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/cards'
 
 function Card({ card }: { card: Pick<CardView, 'card' | 'name'> }) {
   return <img className="card" src={`${CARD_BASE}/${card.card}.webp`} alt={card.name} title={card.name} />

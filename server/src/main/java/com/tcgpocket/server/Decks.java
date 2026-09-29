@@ -41,9 +41,22 @@ import java.util.Set;
 @Profile("db")
 class Decks {
 
-    /** {@code cards} are printed ids ({@code "A1-094"}), in the order the player listed them. */
-    record Deck(long id, String name, List<String> cards, Set<Type> energy) {
+    /**
+     * What the editor needs. {@code cards} are printed ids ({@code "A1-094"}), in the order the player listed
+     * them; the focus cards are printed ids too, or null. Cosmetics are object-storage names ({@code "Coin_<name>.png"}).
+     */
+    record Deck(long id, String name, List<String> cards, Set<Type> energy,
+                String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
     }
+
+    /** What the decks page needs: a {@link Deck} with its card list reduced to a count. */
+    record Summary(long id, String name, int cardCount, Set<Type> energy,
+                   String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
+    }
+
+    /** Shared by both reads so {@link #deck} and {@link #summary} agree on column positions; the 9th differs. */
+    private static final String COLUMNS =
+            "id, name, JSON_SERIALIZE(energy), focus_card_1, focus_card_2, coin, sleeve, playmat";
 
     private static final String OWNER = "(SELECT id FROM users WHERE provider = 'google' AND subject = ?)";
 
@@ -55,17 +68,17 @@ class Decks {
         this.json = json;
     }
 
-    /** Most recently edited first. */
-    List<Deck> all(String subject) {
-        return db.sql("SELECT id, name, JSON_SERIALIZE(cards), JSON_SERIALIZE(energy) FROM decks"
+    /** Most recently edited first. The card lists stay in the database; only their sizes come back. */
+    List<Summary> all(String subject) {
+        return db.sql("SELECT " + COLUMNS + ", JSON_VALUE(cards, '$.size()' RETURNING NUMBER) FROM decks"
                         + " WHERE user_id = " + OWNER + " ORDER BY updated_at DESC")
                 .param(subject)
-                .query((row, n) -> deck(row))
+                .query((row, n) -> summary(row))
                 .list();
     }
 
     Optional<Deck> find(String subject, long id) {
-        return db.sql("SELECT id, name, JSON_SERIALIZE(cards), JSON_SERIALIZE(energy) FROM decks"
+        return db.sql("SELECT " + COLUMNS + ", JSON_SERIALIZE(cards) FROM decks"
                         + " WHERE id = ? AND user_id = " + OWNER)
                 .params(id, subject)
                 .query((row, n) -> deck(row))
@@ -97,14 +110,23 @@ class Decks {
     }
 
     private Deck deck(ResultSet row) throws SQLException {
-        return new Deck(row.getLong(1), row.getString(2),
-                List.of(json.readValue(row.getString(3), String[].class)),
-                Set.of(json.readValue(row.getString(4), Type[].class)));
+        return new Deck(row.getLong(1), row.getString(2), List.of(json.readValue(row.getString(9), String[].class)),
+                energy(row), row.getString(4), row.getString(5), row.getString(6), row.getString(7), row.getString(8));
+    }
+
+    private Summary summary(ResultSet row) throws SQLException {
+        return new Summary(row.getLong(1), row.getString(2), row.getInt(9),
+                energy(row), row.getString(4), row.getString(5), row.getString(6), row.getString(7), row.getString(8));
+    }
+
+    private Set<Type> energy(ResultSet row) throws SQLException {
+        return Set.of(json.readValue(row.getString(3), Type[].class));
     }
 
     /**
      * {@code /api/decks}, for the signed-in player only: 401 when signed out, 404 for a deck that is
-     * missing or someone else's. Drafts are allowed, so a deck is only checked for being well-formed
+     * missing or someone else's. The list returns {@link Summary summaries}; only {@code /{id}} carries the cards.
+     * Drafts are allowed, so a deck is only checked for being well-formed
      * (known card ids, no more than a full deck), never for legality.
      */
     @RestController
@@ -123,7 +145,7 @@ class Decks {
         }
 
         @GetMapping
-        List<Deck> all(@AuthenticationPrincipal OidcUser user) {
+        List<Summary> all(@AuthenticationPrincipal OidcUser user) {
             return decks.all(subject(user));
         }
 
