@@ -2,19 +2,26 @@ package com.tcgpocket.pool.A1;
 
 import com.tcgpocket.action.Action;
 import com.tcgpocket.card.CardRarity;
+import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.condition.EventSideIs;
 import com.tcgpocket.condition.LastCoinTossHeads;
+import com.tcgpocket.condition.Not;
 import com.tcgpocket.effect.AttachEnergy;
 import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.ConditionalEffect;
 import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DiscardRandomEnergy;
 import com.tcgpocket.effect.FlipN;
+import com.tcgpocket.effect.ReduceDamageTaken;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
 import com.tcgpocket.target.OpponentActive;
 import com.tcgpocket.target.Self;
+import com.tcgpocket.target.SelfSide;
+import com.tcgpocket.trigger.Trigger;
+import com.tcgpocket.trigger.TurnStart;
 
 import java.util.List;
 
@@ -86,6 +93,12 @@ public final class Metal {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(120), new OpponentActive())
                             )))), CardRarity.RARE)
+            .withAbility(new PassiveAbility("Hard Coat", 
+                    "This Pokémon takes -20 damage from attacks.", List.of(
+                            // Renewed each opponent turn: Melmetal can only enter play or evolve on its owner's turn.
+                            new Trigger(TurnStart.class, new Not<>(new EventSideIs(new SelfSide())),
+                                    new Attempt(List.of(new ReduceDamageTaken(new Literal(20), new Self(), new Literal(0)))))
+                    )))
             .withWeakness(Type.FIRE);
 
     static final List<PokemonCard> CARDS = List.of(MAWILE, PAWNIARD, BISHARP, MELTAN, MELMETAL);

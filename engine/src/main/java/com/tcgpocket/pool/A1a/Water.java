@@ -1,14 +1,23 @@
 package com.tcgpocket.pool.A1a;
 
 import com.tcgpocket.action.Action;
+import com.tcgpocket.action.PlainAction;
+import com.tcgpocket.card.ActivatedAbility;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.condition.And;
+import com.tcgpocket.condition.For;
+import com.tcgpocket.condition.ForAny;
+import com.tcgpocket.condition.HasEnergy;
+import com.tcgpocket.condition.HasType;
+import com.tcgpocket.condition.ICondition;
 import com.tcgpocket.condition.LastCoinTossHeads;
 import com.tcgpocket.effect.*;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
+import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.*;
 
 import java.util.List;
@@ -42,6 +51,10 @@ public final class Water {
             )), CardRarity.DOUBLE_RARE
     ).withWeakness(Type.LIGHTNING).withTags(CardTag.EX);
 
+    /** Wash Out's source: a Benched Water Pokémon with a Water Energy to give. */
+    private static final ICondition<PokemonInPlay> BENCHED_WATER_WITH_WATER =
+            new And<>(new HasType(Type.WATER), new HasEnergy(EnergyCost.of(Type.WATER, 1)));
+
     /**
      * A1a-019 - Vaporeon
      */
@@ -50,8 +63,17 @@ public final class Water {
             1, "Eevee", 120, Type.WATER, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
                     "Wave Splash", "", EnergyCost.of(Type.WATER, 1, Type.COLORLESS, 2), new Attempt(List.of(
                     new DealDamage(new Literal(60), new OpponentActive())))
-            )), CardRarity.RARE
-    ).withWeakness(Type.LIGHTNING);
+            )), CardRarity.RARE)
+            .withAbility(new ActivatedAbility("Wash Out",
+                    "As often as you like during your turn, you may move a Water Energy from 1 of your Benched Water Pokémon to your Active Water Pokémon.",
+                    new PlainAction("", new Attempt(List.of(
+                            new MoveEnergy(new ChosenFrom(new AttackerBench(), new AttackerSide(), BENCHED_WATER_WITH_WATER,
+                                    "Choose a Benched Water Pokémon to move a Water Energy from"),
+                                    new AttackerActive(), new Literal(1), Type.WATER)))),
+                    false,
+                    new And<>(new For(new HasType(Type.WATER), new AttackerActive()),
+                            new ForAny(BENCHED_WATER_WITH_WATER, new AttackerBench()))))
+            .withWeakness(Type.LIGHTNING);
 
     /**
      * A1a-020 - Finneon

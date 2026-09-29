@@ -3,7 +3,10 @@ package com.tcgpocket.pool.A1a;
 import com.tcgpocket.action.Action;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
+import com.tcgpocket.card.EvolutionLock;
+import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.condition.IsActive;
 import com.tcgpocket.condition.KnockedOutLastTurn;
 import com.tcgpocket.condition.LastCoinTossHeads;
 import com.tcgpocket.condition.Not;
@@ -90,6 +93,9 @@ public final class Fighting {
                     "Land Crush", "", EnergyCost.of(Type.FIGHTING, 1, Type.COLORLESS, 1), new Attempt(List.of(
                     new DealDamage(new Literal(80), new OpponentActive())))
             )), CardRarity.DOUBLE_RARE)
+            .withAbility(new PassiveAbility("Primeval Law", 
+                    "Your opponent can't play any Pokémon from their hand to evolve their Active Pokémon.",
+                    new EvolutionLock(new IsActive())))
             .withWeakness(Type.LIGHTNING).withTags(CardTag.EX);
 
     /**

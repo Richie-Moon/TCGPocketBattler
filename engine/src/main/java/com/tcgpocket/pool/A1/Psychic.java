@@ -1,28 +1,15 @@
 package com.tcgpocket.pool.A1;
 
 import com.tcgpocket.action.Action;
-import com.tcgpocket.card.CardRarity;
-import com.tcgpocket.card.CardTag;
-import com.tcgpocket.card.PokemonCard;
-import com.tcgpocket.effect.Attempt;
-import com.tcgpocket.effect.DealDamage;
-import com.tcgpocket.effect.DiscardTypeEnergy;
-import com.tcgpocket.effect.FlipN;
-import com.tcgpocket.effect.RevealHand;
-import com.tcgpocket.effect.PreventSupporter;
-import com.tcgpocket.effect.ReduceDamageTaken;
-import com.tcgpocket.effect.SwitchActive;
+import com.tcgpocket.action.PlainAction;
+import com.tcgpocket.card.*;
+import com.tcgpocket.condition.*;
+import com.tcgpocket.effect.*;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
-import com.tcgpocket.number.EnergyOn;
-import com.tcgpocket.number.Literal;
-import com.tcgpocket.number.NumberHeads;
-import com.tcgpocket.number.Product;
-import com.tcgpocket.number.Sum;
-import com.tcgpocket.target.OpponentActive;
-import com.tcgpocket.target.OpponentSide;
-import com.tcgpocket.target.Self;
-import com.tcgpocket.target.SelfSide;
+import com.tcgpocket.number.*;
+import com.tcgpocket.status.SleepStatus;
+import com.tcgpocket.target.*;
 
 import java.util.List;
 
@@ -65,7 +52,7 @@ public final class Psychic {
                                     new SwitchActive(new SelfSide())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.DARKNESS);
-    
+
     /**
      * A1-116 - Kadabra
      */
@@ -162,6 +149,9 @@ public final class Psychic {
                                     new DealDamage(new Literal(100), new OpponentActive())
                             )))), CardRarity.DOUBLE_RARE)
             .withWeakness(Type.DARKNESS)
+            .withAbility(new PassiveAbility("Shadowy Spellbind",
+                    "As long as this Pokémon is in the Active Spot, your opponent can't use any Supporter cards from their hand.",
+                    new SupporterLock(new IsActive())))
             .withTags(CardTag.EX);
 
     /**
@@ -186,6 +176,12 @@ public final class Psychic {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(50), new OpponentActive())
                             )))), CardRarity.RARE)
+            .withAbility(new ActivatedAbility("Sleep Pendulum",
+                    "Once during your turn, you may flip a coin. If heads, your opponent's Active Pokémon is now asleep.",
+                    new PlainAction("", new Attempt(List.of(
+                            new FlipN(new Literal(1)),
+                            new ConditionalEffect(new LastCoinTossHeads(), new AddStatus(new SleepStatus(), new OpponentActive())
+                            )))), true, new Not<>(new For(new IsAsleep(), new OpponentActive()))))
             .withWeakness(Type.DARKNESS);
 
     /**
@@ -292,6 +288,11 @@ public final class Psychic {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(60), new OpponentActive())
                             )))), CardRarity.RARE)
+            .withAbility(new ActivatedAbility("Psy Shadow",
+                    "Once during your turn, you may take a Psychic Energy from your Energy Zone and attach it to the Psychic Pokémon in the Active Spot.",
+                    new PlainAction("", new Attempt(List.of(
+                            new AttachEnergy(Type.PSYCHIC, new AttackerActive()))
+                    )), true, new For(new IsType(Type.PSYCHIC), new AttackerActive())))
             .withWeakness(Type.DARKNESS);
 
     /**

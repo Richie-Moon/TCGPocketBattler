@@ -34,6 +34,7 @@ import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.trigger.TriggerDispatcher;
 import com.tcgpocket.trigger.TurnEnd;
+import com.tcgpocket.trigger.TurnStart;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -75,6 +76,83 @@ class GeneticApexTest {
                         && attackAction.name().equals(name))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError(card.name() + " has no attack " + name));
+    }
+
+    @Nested
+    @DisplayName("Metal — Melmetal's Hard Coat")
+    class HardCoat {
+
+        private final TestBoard board = new TestBoard();
+
+        private int heavyImpactInto(PokemonInPlay target, com.tcgpocket.state.Side turnStarting) {
+            PokemonInPlay attacker = board.active(board.you, Metal.MELMETAL);
+            TriggerDispatcher.dispatch(board.battle, new TurnStart(turnStarting));
+            attack(Metal.MELMETAL, "Heavy Impact").execute(board.contextFor(attacker));
+            return target.damage();
+        }
+
+        @Test
+        @DisplayName("takes 20 less from the opponent's attacks")
+        void takesTwentyLess() {
+            PokemonInPlay melmetal = board.active(board.them, Metal.MELMETAL);
+            assertEquals(100, heavyImpactInto(melmetal, board.you));
+        }
+
+        @Test
+        @DisplayName("the reduction is set by the opponent's turn starting, not its owner's")
+        void onlyOnTheOpponentsTurn() {
+            PokemonInPlay melmetal = board.active(board.them, Metal.MELMETAL);
+            assertEquals(120, heavyImpactInto(melmetal, board.them));
+        }
+    }
+
+    @Nested
+    @DisplayName("Psychic — Gengar ex's Shadowy Spellbind")
+    class ShadowySpellbind {
+
+        private final TestBoard board = new TestBoard();
+
+        private final CardInstance giovanni = board.inHand(board.you, Trainers.GIOVANNI);
+
+        private boolean giovanniPlayable() {
+            return new PlayCardAction(giovanni).isLegal(board.contextWithoutSource());
+        }
+
+        @Test
+        @DisplayName("their Active Gengar ex locks your Supporters")
+        void locksSupportersFromTheActiveSpot() {
+            board.active(board.them, Psychic.GENGAR_EX);
+            assertFalse(giovanniPlayable());
+        }
+
+        @Test
+        @DisplayName("on the Bench it does nothing")
+        void benchedDoesNothing() {
+            board.active(board.them, WALL);
+            board.bench(board.them, Psychic.GENGAR_EX);
+            assertTrue(giovanniPlayable());
+        }
+
+        @Test
+        @DisplayName("your own Gengar ex never locks you")
+        void neverLocksItsOwner() {
+            board.active(board.you, Psychic.GENGAR_EX);
+            assertTrue(giovanniPlayable());
+        }
+
+        @Test
+        @DisplayName("the lock lifts the moment Gengar ex leaves the Active Spot mid-turn")
+        void liftsWhenSwitchedOut() {
+            PokemonInPlay gengar = board.active(board.them, Psychic.GENGAR_EX);
+            PokemonInPlay wall = board.bench(board.them, WALL);
+            assertFalse(giovanniPlayable());
+
+            board.them.removeFromBench(wall);
+            board.them.setActive(wall);
+            board.them.addToBench(gengar);
+
+            assertTrue(giovanniPlayable());
+        }
     }
 
     @Nested
