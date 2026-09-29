@@ -63,6 +63,11 @@ public record PlayableItemCard(
                 CardRarity.COMMON);
     }
 
+    /** The same card under another id: a reprint in a later set. */
+    public PlayableItemCard withId(String id) {
+        return new PlayableItemCard(id, name, description, tags, actions, maxHp);
+    }
+
     /** A Fossil of the given HP, tagged {@link CardTag#FOSSIL}. */
     public static PlayableItemCard fossil(String id, String name, int maxHp, IAction action) {
         return new PlayableItemCard(id, name, "", Set.of(CardTag.FOSSIL), List.of(action), maxHp);

@@ -48,6 +48,7 @@ public final class Side {
     private boolean retreatedThisTurn;
     private int knockedOutByAttackOnTurn = -1;
     private final List<AttackBonus> attackBonuses = new ArrayList<>();
+    private final List<DamageReduction> damageReductions = new ArrayList<>();
 
     public Side(String name, IPlayer player) {
         this.name = name;
@@ -197,6 +198,10 @@ public final class Side {
      */
     public boolean removeFromDeck(CardInstance card) {
         return deck.remove(card);
+    }
+
+    public boolean removeFromDiscard(CardInstance card) {
+        return discardPile.remove(card);
     }
 
     /**
@@ -353,6 +358,28 @@ public final class Side {
                 .filter(bonus -> currentTurn <= bonus.expiresOnTurn())
                 .filter(bonus -> bonus.appliesTo().test(attacker))
                 .mapToInt(AttackBonus::amount)
+                .sum();
+    }
+
+    /**
+     * Less damage from the opponent's attacks for every one of this side's
+     * Pokemon — Blue. On the {@code Side} for the same reason as
+     * {@link AttackBonus}: it covers whichever Pokemon is hit, including one
+     * benched after the card was played.
+     */
+    public record DamageReduction(int amount, int expiresOnTurn) {
+    }
+
+    public void addDamageReduction(int amount, int expiresOnTurn) {
+        damageReductions.add(new DamageReduction(amount, expiresOnTurn));
+    }
+
+    /** How much less damage this side's Pokemon take from the opponent's attacks this turn. */
+    public int damageReductionOn(int currentTurn) {
+        // ponytail: never pruned, like attackBonuses.
+        return damageReductions.stream()
+                .filter(reduction -> currentTurn <= reduction.expiresOnTurn())
+                .mapToInt(DamageReduction::amount)
                 .sum();
     }
 

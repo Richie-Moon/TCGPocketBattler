@@ -1078,6 +1078,75 @@ class IEffectTest {
     }
 
     @Nested
+    @DisplayName("BenchFromDiscard — Pokémon Flute")
+    class BenchingFromDiscard {
+
+        private final TestBoard board = new TestBoard();
+        private final ResolutionContext context = board.contextWithoutSource();
+        private final IEffect flute = new BenchFromDiscard(new OpponentSide(), new Always<>());
+
+        @Test
+        @DisplayName("moves a Basic from the opponent's discard pile onto their Bench")
+        void benchesFromTheirDiscard() {
+            CardInstance oddish = board.inDiscard(board.them, ODDISH);
+
+            assertEquals(EffectOutcome.APPLIED, flute.apply(context));
+
+            assertTrue(board.them.discardPile().isEmpty());
+            assertEquals(oddish.instanceId(), board.them.bench().get(0).instanceId());
+        }
+
+        @Test
+        @DisplayName("a Trainer or an evolved Pokemon in the discard pile is never benched")
+        void onlyBasics() {
+            board.inDiscard(board.them, Trainers.OLD_AMBER);
+            board.inDiscard(board.them, PokemonCard.evolution(
+                    "gloom", "Gloom", 1, "Oddish", 80, Type.GRASS, 1, List.of()));
+
+            assertEquals(EffectOutcome.NO_OP, flute.apply(context));
+            assertEquals(2, board.them.discardPile().size());
+        }
+    }
+
+    @Nested
+    @DisplayName("TopCardToHand — Mythical Slab")
+    class TopCardToHandTests {
+
+        private final TestBoard board = new TestBoard();
+        private final ResolutionContext context = board.contextWithoutSource();
+        private final IEffect slab = new TopCardToHand(new AttackerSide(), new IsType(Type.GRASS));
+
+        @Test
+        @DisplayName("a matching top card goes to the hand")
+        void matchGoesToHand() {
+            CardInstance oddish = board.inDeck(board.you, ODDISH);
+            board.inDeck(board.you, PIKACHU);
+
+            assertEquals(EffectOutcome.APPLIED, slab.apply(context));
+
+            assertEquals(List.of(oddish), board.you.hand());
+        }
+
+        @Test
+        @DisplayName("anything else goes to the bottom of the deck")
+        void missGoesToBottom() {
+            CardInstance pikachu = board.inDeck(board.you, PIKACHU);
+            CardInstance oddish = board.inDeck(board.you, ODDISH);
+
+            assertEquals(EffectOutcome.APPLIED, slab.apply(context));
+
+            assertTrue(board.you.hand().isEmpty());
+            assertEquals(List.of(oddish, pikachu), board.you.deck());
+        }
+
+        @Test
+        @DisplayName("an empty deck is a no-op")
+        void emptyDeck() {
+            assertEquals(EffectOutcome.NO_OP, slab.apply(context));
+        }
+    }
+
+    @Nested
     @DisplayName("HealEach — healing a group")
     class GroupHealing {
 

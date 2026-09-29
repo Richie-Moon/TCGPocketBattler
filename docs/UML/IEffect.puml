@@ -63,6 +63,18 @@ class LookAtTopCards <<record>> implements IEffect {
     - side: ISideTarget
 }
 
+/' Top card to the hand if it matches, else to the bottom. Mythical Slab. '/
+class TopCardToHand <<record>> implements IEffect {
+    - side: ISideTarget
+    - matching: ICondition<CardInstance>
+}
+
+/' The controller chooses a Basic from that side's discard pile. Pokémon Flute. '/
+class BenchFromDiscard <<record>> implements IEffect {
+    - side: ISideTarget
+    - matching: ICondition<CardInstance>
+}
+
 class DiscardFromHand <<record>> implements IEffect {
     - side: ISideTarget
     - cardCount: INumber
@@ -185,6 +197,12 @@ class IncreaseDamage <<record>> implements IDurationEffect {
 class IncreaseSideDamage <<record>> implements IDurationEffect {
     - increaseAmount: INumber
     - matching: Optional<ICondition<? super PokemonInPlay>>
+}
+
+/' Its defensive twin: less damage from the opponent's attacks for all of the
+   controller's Pokemon. Blue. '/
+class ReduceSideDamageTaken <<record>> implements IDurationEffect {
+    - reductionAmount: INumber
 }
 
 class PreventDamage <<record>> implements IDurationEffect {
