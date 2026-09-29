@@ -132,6 +132,6 @@ How it works is in `server/CLAUDE.md`. These rules hold everywhere:
 
 ## Not built yet
 
-`CoinFlipped`, `EventSource`, and choosing which cards
+`CoinFlipped` and choosing which cards
 `DiscardFromHand` takes are designed or marked TODO but not built. Check the code before assuming a
 documented piece exists.

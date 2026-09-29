@@ -17,9 +17,7 @@ import java.util.Optional;
 public sealed interface ITarget permits
         AttackerActive, OpponentActive, Self,
         AttackerBenchSpecific, OpponentBenchSpecific,
-        ChosenFrom, RandomFrom, PlayTarget {
-
-    // TODO: EventSource.
+        ChosenFrom, RandomFrom, PlayTarget, EventSource {
 
     Optional<PokemonInPlay> resolve(ResolutionContext context);
 }

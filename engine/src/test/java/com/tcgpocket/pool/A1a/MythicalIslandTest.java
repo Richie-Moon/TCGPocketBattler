@@ -11,8 +11,11 @@ import com.tcgpocket.action.RetreatAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.condition.HasEnergy;
+import com.tcgpocket.effect.DealDamage;
+import com.tcgpocket.effect.PlaceDamage;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
+import com.tcgpocket.number.Literal;
 import com.tcgpocket.player.ScriptedPlayer;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
@@ -20,6 +23,9 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.AttackerActive;
 import com.tcgpocket.target.AttackerBenchSpecific;
 import com.tcgpocket.target.ITarget;
+import com.tcgpocket.target.OpponentActive;
+import com.tcgpocket.target.OpponentBenchSpecific;
+import com.tcgpocket.target.Self;
 
 import java.util.Map;
 
@@ -212,6 +218,51 @@ class MythicalIslandTest {
             assertTrue(retreat.execute(board.contextWithoutSource()).succeeded());
 
             assertEquals(Map.of(Type.GRASS, 1), leaf.attachedEnergy());
+        }
+    }
+
+    @Nested
+    @DisplayName("Dragon — Druddigon's Rough Skin")
+    class RoughSkin {
+
+        private static final PokemonCard HITTER = PokemonCard.basic("test-hitter", "Hitter", 100, Type.FIGHTING, 1);
+
+        private final TestBoard board = new TestBoard();
+
+        @Test
+        @DisplayName("in the Active Spot, 20 damage back at the attacker")
+        void hitsBack() {
+            PokemonInPlay hitter = board.active(board.you, HITTER);
+            PokemonInPlay druddigon = board.active(board.them, Dragon.DRUDDIGON);
+
+            new DealDamage(new Literal(30), new OpponentActive()).apply(board.contextFor(hitter));
+
+            assertEquals(30, druddigon.damage());
+            assertEquals(20, hitter.damage());
+        }
+
+        @Test
+        @DisplayName("not from the Bench")
+        void notFromBench() {
+            PokemonInPlay hitter = board.active(board.you, HITTER);
+            board.active(board.them, HITTER);
+            PokemonInPlay druddigon = board.bench(board.them, Dragon.DRUDDIGON);
+
+            new DealDamage(new Literal(30), new OpponentBenchSpecific(0)).apply(board.contextFor(hitter));
+
+            assertEquals(30, druddigon.damage());
+            assertEquals(0, hitter.damage());
+        }
+
+        @Test
+        @DisplayName("damage nobody dealt, like Poison, is not answered")
+        void ignoresSourcelessDamage() {
+            PokemonInPlay hitter = board.active(board.you, HITTER);
+            PokemonInPlay druddigon = board.active(board.them, Dragon.DRUDDIGON);
+
+            new PlaceDamage(new Literal(10), new Self()).apply(board.contextFor(druddigon));
+
+            assertEquals(0, hitter.damage());
         }
     }
 }
