@@ -30,6 +30,8 @@ public final class MythicalIsland {
         cards.addAll(Fighting.CARDS);
         cards.addAll(Darkness.CARDS);
         cards.addAll(Dragon.CARDS);
+        cards.addAll(Colorless.CARDS);
+        cards.addAll(Trainers.CARDS);
         return List.copyOf(cards);
     }
 }
