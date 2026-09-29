@@ -49,6 +49,19 @@ class DamageCalculatorTest {
     }
 
     @Test
+    @DisplayName("a side's damage reduction (Blue) applies after weakness, and only against the opponent's attacks")
+    void sideReductionAfterWeakness() {
+        board.them.addDamageReduction(10, 2);
+
+        assertEquals(40, DamageCalculator.calculate(attack(30), 2), "30 + 20 weakness - 10");
+        assertEquals(50, DamageCalculator.calculate(attack(30), 3), "expired");
+
+        PokemonInPlay ownBenched = board.bench(board.them, PIKACHU);
+        DamageEvent friendlyFire = new DamageEvent(Optional.of(defender), ownBenched, 30, true, 20);
+        assertEquals(30, DamageCalculator.calculate(friendlyFire, 2));
+    }
+
+    @Test
     @DisplayName("weakness adds its bonus when the defender is weak to the attacker's type")
     void weaknessApplies() {
         assertTrue(DamageCalculator.weaknessApplies(attack(30)));

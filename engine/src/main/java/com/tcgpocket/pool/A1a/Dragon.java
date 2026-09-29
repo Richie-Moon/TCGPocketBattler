@@ -26,8 +26,6 @@ public final class Dragon {
                     new DealDamage(new Literal(90), new OpponentActive())))
             )), CardRarity.UNCOMMON
     );
-    
-    // TODO REMINDER: TCGDexAPIFetcher doesn't fetch abilities apparently...
 
     static final List<PokemonCard> CARDS = List.of(DRUDDIGON);
 

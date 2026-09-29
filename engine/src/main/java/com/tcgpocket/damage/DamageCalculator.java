@@ -15,7 +15,7 @@ import com.tcgpocket.state.Zone;
  *   <li>base
  *   <li>plus the source's INCREASE_DAMAGE_DEALT modifiers, minus its REDUCE_DAMAGE_DEALT ones
  *   <li>plus weakness, applied to the already-increased amount
- *   <li>minus the target's REDUCE_DAMAGE_TAKEN modifiers
+ *   <li>minus the target's REDUCE_DAMAGE_TAKEN modifiers, and its side's reduction (Blue)
  *   <li>zero if the target has PREVENT_DAMAGE
  *   <li>floored at zero
  * </ol>
@@ -53,6 +53,7 @@ public final class DamageCalculator {
         }
 
         amount -= sumModifiers(event.target(), ModifierKind.REDUCE_DAMAGE_TAKEN, currentTurn);
+        amount -= sideReduction(event, currentTurn);
 
         if (event.target().hasModifier(ModifierKind.PREVENT_DAMAGE, currentTurn)) {
             return 0;
@@ -90,6 +91,18 @@ public final class DamageCalculator {
             return 0;
         }
         return source.owner().attackBonusFor(source, currentTurn);
+    }
+
+    /**
+     * The defending side's reduction from Blue and the like, which card text
+     * confines to "attacks from your opponent's Pokemon".
+     */
+    private static int sideReduction(DamageEvent event, int currentTurn) {
+        PokemonInPlay target = event.target();
+        if (event.source().filter(source -> source.owner() != target.owner()).isEmpty()) {
+            return 0;
+        }
+        return target.owner().damageReductionOn(currentTurn);
     }
 
     private static int sumModifiers(PokemonInPlay pokemon, ModifierKind kind, int currentTurn) {
