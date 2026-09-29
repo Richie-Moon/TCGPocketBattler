@@ -3,8 +3,11 @@ package com.tcgpocket.pool.A1a;
 import com.tcgpocket.action.Action;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
+import com.tcgpocket.card.EnergyBoost;
+import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.condition.GreaterThan;
+import com.tcgpocket.condition.HasType;
 import com.tcgpocket.effect.*;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
@@ -91,8 +94,14 @@ public final class Grass {
             2, "Servine", 110, Type.GRASS, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
                     "Solar Beam", "", EnergyCost.of(Type.GRASS, 1, Type.COLORLESS, 3), new Attempt(List.of(
                     new DealDamage(new Literal(70), new OpponentActive())))
-            )), CardRarity.RARE
-    ).withWeakness(Type.FIRE);
+            )), CardRarity.RARE)
+            .withAbility(
+                    new PassiveAbility("Jungle Totem", 
+                            "Each Grass Energy attached to your Grass Pokémon provides 2 Grass Energy. This effect does not stack.",
+                            new EnergyBoost(Type.GRASS, new HasType(Type.GRASS), 2)
+                    )
+            )
+            .withWeakness(Type.FIRE);
 
     /**
      * A1a-007 - Morelull

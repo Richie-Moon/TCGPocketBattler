@@ -59,7 +59,7 @@ public record DistributeEnergy(
                 ? placements.get(0)
                 : ask(context, placements);
 
-        chosen.forEach(pokemon -> pokemon.attachEnergy(energyType, 1));
+        chosen.forEach(pokemon -> Energies.attach(context, pokemon, energyType, 1));
         return EffectOutcome.APPLIED;
     }
 

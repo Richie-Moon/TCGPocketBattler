@@ -20,6 +20,6 @@ public record HasEnergy(EnergyCost cost) implements ICondition<PokemonInPlay> {
 
     @Override
     public boolean evaluate(PokemonInPlay subject) {
-        return cost.isSatisfiedBy(subject.attachedEnergy());
+        return cost.isSatisfiedBy(subject.providedEnergy());
     }
 }

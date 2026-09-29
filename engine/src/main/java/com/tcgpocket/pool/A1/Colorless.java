@@ -6,20 +6,10 @@ import com.tcgpocket.card.ActivatedAbility;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.condition.Always;
 import com.tcgpocket.condition.GreaterThan;
 import com.tcgpocket.condition.LastCoinTossHeads;
-import com.tcgpocket.effect.AddStatus;
-import com.tcgpocket.effect.Attempt;
-import com.tcgpocket.effect.ConditionalEffect;
-import com.tcgpocket.effect.CopyAttack;
-import com.tcgpocket.effect.DealDamage;
-import com.tcgpocket.effect.DiscardRandomEnergy;
-import com.tcgpocket.effect.DiscardRandomFromHand;
-import com.tcgpocket.effect.DrawCard;
-import com.tcgpocket.effect.FlipN;
-import com.tcgpocket.effect.FlipUntilTails;
-import com.tcgpocket.effect.LookAtTopCards;
-import com.tcgpocket.effect.ShuffleIntoDeck;
+import com.tcgpocket.effect.*;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.CountCards;
@@ -36,11 +26,10 @@ import com.tcgpocket.target.OpponentSide;
 import java.util.List;
 import java.util.Optional;
 
-/** Genetic Apex — Colorless. */
+/**
+ * Genetic Apex — Colorless.
+ */
 public final class Colorless {
-
-    private Colorless() {
-    }
 
     /**
      * A1-186 - Pidgey
@@ -53,7 +42,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(10), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-187 - Pidgeotto
      */
@@ -65,7 +53,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(30), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-188 - Pidgeot
      */
@@ -76,8 +63,12 @@ public final class Colorless {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(70), new OpponentActive())
                             )))), CardRarity.RARE)
+            .withAbility(new ActivatedAbility("Drive Off",
+                    "Once during your turn, you may switch out your opponent's Active Pokémon to the bench. (You opponent chooses the new Active Pokémon.)",
+                    new PlainAction("", new Attempt(List.of(
+                            new SwitchActive(new OpponentSide())
+                    ))), true, new Always<>()))
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-189 - Rattata
      */
@@ -89,7 +80,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-190 - Raticate
      */
@@ -101,7 +91,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(40), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-191 - Spearow
      */
@@ -113,7 +102,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-192 - Fearow
      */
@@ -129,7 +117,6 @@ public final class Colorless {
                                             new DiscardRandomEnergy(new Literal(1), new OpponentActive()))
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-193 - Jigglypuff
      */
@@ -141,7 +128,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(30), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-194 - Wigglytuff
      */
@@ -153,7 +139,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(60), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-195 - Wigglytuff ex
      */
@@ -167,7 +152,6 @@ public final class Colorless {
                             )))), CardRarity.DOUBLE_RARE)
             .withWeakness(Type.FIGHTING)
             .withTags(CardTag.EX);
-
     /**
      * A1-196 - Meowth
      */
@@ -180,7 +164,6 @@ public final class Colorless {
                                     new DrawCard(new Literal(1), new AttackerSide())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-197 - Persian
      */
@@ -196,7 +179,6 @@ public final class Colorless {
                                             new DiscardRandomFromHand(new OpponentSide(), new Literal(1)))
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-198 - Farfetch'd
      */
@@ -208,7 +190,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(40), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-199 - Doduo
      */
@@ -220,7 +201,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-200 - Dodrio
      */
@@ -232,7 +212,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(40), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-201 - Lickitung
      */
@@ -245,7 +224,6 @@ public final class Colorless {
                                     new DealDamage(new Product(new Literal(60), new NumberHeads()), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-202 - Chansey
      */
@@ -257,7 +235,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(60), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-203 - Kangaskhan
      */
@@ -270,7 +247,6 @@ public final class Colorless {
                                     new DealDamage(new Product(new Literal(30), new NumberHeads()), new OpponentActive())
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-204 - Tauros
      */
@@ -282,7 +258,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(50), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-205 - Ditto
      */
@@ -294,34 +269,18 @@ public final class Colorless {
                                     new CopyAttack(new OpponentAll(), true)
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-206 - Eevee
      */
     public static final PokemonCard EEVEE_206 = eevee("A1-206");
-
     /**
      * A1-207 - Eevee
      */
     public static final PokemonCard EEVEE_207 = eevee("A1-207");
-
     /**
      * A1-208 - Eevee
      */
     public static final PokemonCard EEVEE_208 = eevee("A1-208");
-
-    /** The three Eevee prints differ only in id. */
-    private static PokemonCard eevee(String id) {
-        return PokemonCard.basic(
-                        id, "Eevee", "Its ability to evolve into many forms allows it to adapt smoothly and perfectly to any environment.",
-                        60, Type.COLORLESS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
-                                "Tackle", "", EnergyCost.of(Type.COLORLESS, 1),
-                                new Attempt(List.of(
-                                        new DealDamage(new Literal(20), new OpponentActive())
-                                )))), CardRarity.COMMON)
-                .withWeakness(Type.FIGHTING);
-    }
-
     /**
      * A1-209 - Porygon
      */
@@ -334,11 +293,10 @@ public final class Colorless {
                             )))), CardRarity.UNCOMMON)
             .withAbility(new ActivatedAbility("Data Scan", "Once during your turn, you may look at the top card of your deck.", new PlainAction(
                     "", new Attempt(List.of(
-                            new LookAtTopCards(new Literal(1), new AttackerSide())
-                    ))), true, new GreaterThan(new CountCards(new AttackerSide(), Zone.DECK), new Literal(0))
+                    new LookAtTopCards(new Literal(1), new AttackerSide())
+            ))), true, new GreaterThan(new CountCards(new AttackerSide(), Zone.DECK), new Literal(0))
             ))
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-210 - Aerodactyl
      */
@@ -353,7 +311,6 @@ public final class Colorless {
                                             new ShuffleIntoDeck(new OpponentActive()))
                             )))), CardRarity.RARE)
             .withWeakness(Type.LIGHTNING);
-
     /**
      * A1-211 - Snorlax
      */
@@ -365,7 +322,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(70), new OpponentActive())
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-212 - Minccino
      */
@@ -377,7 +333,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-213 - Cinccino
      */
@@ -391,7 +346,6 @@ public final class Colorless {
                                     ), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-214 - Wooloo
      */
@@ -403,7 +357,6 @@ public final class Colorless {
                                     new DealDamage(new Literal(30), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-215 - Dubwool
      */
@@ -415,11 +368,27 @@ public final class Colorless {
                                     new DealDamage(new Literal(80), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     static final List<PokemonCard> CARDS = List.of(
             PIDGEY, PIDGEOTTO, PIDGEOT, RATTATA, RATICATE, SPEAROW, FEAROW,
             JIGGLYPUFF, WIGGLYTUFF, WIGGLYTUFF_EX, MEOWTH, PERSIAN, FARFETCHD,
             DODUO, DODRIO, LICKITUNG, CHANSEY, KANGASKHAN, TAUROS, DITTO,
             EEVEE_206, EEVEE_207, EEVEE_208, PORYGON, AERODACTYL, SNORLAX,
             MINCCINO, CINCCINO, WOOLOO, DUBWOOL);
+
+    private Colorless() {
+    }
+
+    /**
+     * The three Eevee prints differ only in id.
+     */
+    private static PokemonCard eevee(String id) {
+        return PokemonCard.basic(
+                        id, "Eevee", "Its ability to evolve into many forms allows it to adapt smoothly and perfectly to any environment.",
+                        60, Type.COLORLESS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
+                                "Tackle", "", EnergyCost.of(Type.COLORLESS, 1),
+                                new Attempt(List.of(
+                                        new DealDamage(new Literal(20), new OpponentActive())
+                                )))), CardRarity.COMMON)
+                .withWeakness(Type.FIGHTING);
+    }
 }

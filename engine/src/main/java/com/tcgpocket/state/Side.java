@@ -1,5 +1,7 @@
 package com.tcgpocket.state;
 
+import com.tcgpocket.card.IRule;
+import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.player.IPlayer;
 import com.tcgpocket.resolve.RandomSource;
@@ -99,6 +101,21 @@ public final class Side {
         active().ifPresent(all::add);
         all.addAll(bench);
         return Collections.unmodifiableList(all);
+    }
+
+    /** A standing rule and the Pokemon holding it, for rules that ask about their holder. */
+    public record HeldRule(IRule rule, PokemonInPlay holder) {
+    }
+
+    /** The standing rules this side's Pokemon in play hold right now; see {@link IRule}. */
+    public List<HeldRule> standingRules() {
+        List<HeldRule> held = new ArrayList<>();
+        for (PokemonInPlay pokemon : inPlay()) {
+            if (pokemon.definition().ability().orElse(null) instanceof PassiveAbility passive) {
+                passive.rule().ifPresent(rule -> held.add(new HeldRule(rule, pokemon)));
+            }
+        }
+        return held;
     }
 
     public boolean hasPokemonInPlay() {

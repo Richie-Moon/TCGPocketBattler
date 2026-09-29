@@ -1,23 +1,18 @@
 package com.tcgpocket.pool.A1;
 
 import com.tcgpocket.action.Action;
+import com.tcgpocket.action.PlainAction;
+import com.tcgpocket.card.ActivatedAbility;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.condition.For;
 import com.tcgpocket.condition.IsPoisoned;
 import com.tcgpocket.condition.IsSpecies;
-import com.tcgpocket.effect.AddStatus;
-import com.tcgpocket.effect.Attempt;
-import com.tcgpocket.effect.BenchFromDeck;
-import com.tcgpocket.effect.DealDamage;
-import com.tcgpocket.effect.PreventRetreat;
+import com.tcgpocket.condition.Not;
+import com.tcgpocket.effect.*;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
-import com.tcgpocket.number.Branch;
-import com.tcgpocket.number.CountCards;
-import com.tcgpocket.number.Literal;
-import com.tcgpocket.number.Product;
-import com.tcgpocket.number.Sum;
+import com.tcgpocket.number.*;
 import com.tcgpocket.state.Zone;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.target.AttackerSide;
@@ -26,11 +21,10 @@ import com.tcgpocket.target.OpponentActive;
 import java.util.List;
 import java.util.Optional;
 
-/** Genetic Apex — Darkness. */
+/**
+ * Genetic Apex — Darkness.
+ */
 public final class Darkness {
-
-    private Darkness() {
-    }
 
     /**
      * A1-164 - Ekans
@@ -43,7 +37,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-165 - Arbok
      */
@@ -56,7 +49,6 @@ public final class Darkness {
                                     new PreventRetreat(new OpponentActive(), new Literal(1))
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-166 - Nidoran♀
      */
@@ -68,7 +60,6 @@ public final class Darkness {
                                     new BenchFromDeck(new AttackerSide(), new IsSpecies("Nidoran♂"))
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-167 - Nidorina
      */
@@ -80,7 +71,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(30), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-168 - Nidoqueen
      */
@@ -94,7 +84,6 @@ public final class Darkness {
                                     )), new OpponentActive())
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-169 - Nidoran♂
      */
@@ -106,7 +95,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-170 - Nidorino
      */
@@ -118,7 +106,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(40), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-171 - Nidoking
      */
@@ -131,7 +118,6 @@ public final class Darkness {
                                     new AddStatus(new PoisonStatus(), new OpponentActive())
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-172 - Zubat
      */
@@ -143,7 +129,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(10), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-173 - Golbat
      */
@@ -155,7 +140,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(40), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-174 - Grimer
      */
@@ -168,7 +152,6 @@ public final class Darkness {
                                     new AddStatus(new PoisonStatus(), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-175 - Muk
      */
@@ -182,7 +165,6 @@ public final class Darkness {
                                     ), new Literal(70)), new OpponentActive())
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-176 - Koffing
      */
@@ -194,7 +176,6 @@ public final class Darkness {
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
-
     /**
      * A1-177 - Weezing
      */
@@ -205,9 +186,17 @@ public final class Darkness {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(30), new OpponentActive())
                             )))), CardRarity.RARE)
-            .withWeakness(Type.FIGHTING);
-
+            .withWeakness(Type.FIGHTING)
+            .withAbility(new ActivatedAbility("Gas Leak", "Once during your turn, if this Pokémon is in the Active Spot, you may make your opponent's Active Pokémon Poisoned.",
+                    new PlainAction("", new Attempt(List.of(
+                            new AddStatus(new PoisonStatus(), new OpponentActive())
+                    ))), true, new Not<>(new For(new IsPoisoned(), new OpponentActive()))
+            ));
+    
     static final List<PokemonCard> CARDS = List.of(
             EKANS, ARBOK, NIDORAN_F, NIDORINA, NIDOQUEEN, NIDORAN_M, NIDORINO, NIDOKING,
             ZUBAT, GOLBAT, GRIMER, MUK, KOFFING, WEEZING);
+
+    private Darkness() {
+    }
 }

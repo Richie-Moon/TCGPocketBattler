@@ -41,7 +41,7 @@ public record AttachEnergy(Type energyType, INumber energyCount, ITarget target)
             return EffectOutcome.NO_OP;
         }
 
-        resolved.get().attachEnergy(energyType, count);
+        Energies.attach(context, resolved.get(), energyType, count);
         return EffectOutcome.APPLIED;
     }
 }
