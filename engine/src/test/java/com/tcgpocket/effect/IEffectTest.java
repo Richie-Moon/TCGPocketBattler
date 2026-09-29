@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.tcgpocket.ScriptedRandom;
 import com.tcgpocket.TestBoard;
 import com.tcgpocket.action.Action;
 import com.tcgpocket.action.PlayCardAction;
@@ -417,6 +418,27 @@ class IEffectTest {
             assertEquals(com.tcgpocket.state.ModifierKind.CANNOT_ATTACK,
                     pokemon.modifiers().get(0).kind());
             assertTrue(pokemon.statuses().isEmpty(), "Paralysis would also stop it retreating");
+        }
+
+        @Test
+        @DisplayName("a hindered attack stays legal, and goes through only on heads")
+        void hinderedAttackNeedsHeads() {
+            Action tackle = new Action("Tackle", EnergyCost.free(),
+                    new Attempt(List.of(new DealDamage(new Literal(30), new OpponentActive()))));
+            for (boolean heads : List.of(true, false)) {
+                TestBoard flips = new TestBoard(ScriptedRandom.flipping(heads));
+                PokemonInPlay attacker = flips.active(flips.you, PIKACHU);
+                PokemonInPlay defender = flips.active(flips.them, SNORLAX);
+                ResolutionContext attacking = flips.contextFor(attacker);
+
+                assertEquals(EffectOutcome.APPLIED, new HinderAttack(new Self(), new Literal(1)).apply(attacking));
+                assertTrue(tackle.isLegal(attacking), "not a lock");
+                AttemptResult result = tackle.execute(attacking);
+
+                assertEquals(heads, result.succeeded());
+                assertEquals(heads ? 30 : 0, defender.damage());
+                assertTrue(attacker.statuses().isEmpty(), "not Confusion");
+            }
         }
 
         @Test

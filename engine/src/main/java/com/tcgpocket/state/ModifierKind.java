@@ -31,6 +31,13 @@ public enum ModifierKind {
     CANNOT_ATTACK,
 
     /**
+     * This Pokemon's attacks happen only on heads. Read by
+     * {@code TriggerDispatcher}, which gives the Pokemon Confusion's
+     * flip-on-attack trigger while it lasts.
+     */
+    ATTACK_NEEDS_HEADS,
+
+    /**
      * Forbids this Pokemon retreating. Read by {@code RetreatAction.isLegal};
      * attacking and everything else stay legal.
      */
