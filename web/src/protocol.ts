@@ -27,6 +27,8 @@ export interface SideView {
   hand: CardView[]
   handSize: number
   deckSize: number
+  /** Your own deck's top cards, top first, once you've looked at them (Porygon); always empty for the opponent. */
+  topCards: CardView[]
   discard: CardView[]
   active: PokemonView | null
   bench: PokemonView[]

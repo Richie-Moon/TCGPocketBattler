@@ -9,6 +9,7 @@ import com.tcgpocket.TestBoard;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.energy.EnergyCost;
+import com.tcgpocket.engine.TurnEngine;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.CurrentHP;
 import com.tcgpocket.number.Literal;
@@ -302,6 +303,36 @@ class IConditionTest {
 
             assertTrue(new StadiumInPlay("pikachu").evaluate(context));
             assertFalse(new StadiumInPlay("snorlax").evaluate(context));
+        }
+
+        @Test
+        void knockedOutLastTurnRemembersOnlyTheOpponentsAttack() {
+            TurnEngine engine = new TurnEngine(board.battle);
+            PokemonInPlay attacker = board.active(board.you, SNORLAX);
+            board.active(board.them, PIKACHU).takeDamage(60);
+            board.bench(board.them, PIKACHU);
+
+            engine.checkKnockouts(Optional.of(attacker));
+            board.battle.switchSides();
+            assertTrue(new KnockedOutLastTurn().evaluate(ResolutionContext.of(board.battle, board.them)));
+            assertFalse(new KnockedOutLastTurn().evaluate(ResolutionContext.of(board.battle, board.you)));
+
+            board.battle.switchSides();
+            board.battle.switchSides();
+            assertFalse(new KnockedOutLastTurn().evaluate(ResolutionContext.of(board.battle, board.them)),
+                    "only the turn just gone counts");
+        }
+
+        @Test
+        void knockedOutLastTurnIgnoresKnockoutsNoAttackCaused() {
+            board.active(board.you, SNORLAX);
+            board.active(board.them, PIKACHU).takeDamage(60);
+            board.bench(board.them, PIKACHU);
+
+            new TurnEngine(board.battle).checkKnockouts(Optional.empty());
+            board.battle.switchSides();
+
+            assertFalse(new KnockedOutLastTurn().evaluate(ResolutionContext.of(board.battle, board.them)));
         }
     }
 

@@ -30,6 +30,7 @@ public final class Side {
     private final List<CardInstance> deck = new ArrayList<>();
     private final List<CardInstance> discardPile = new ArrayList<>();
     private List<CardInstance> revealed = List.of();
+    private List<CardInstance> seenTop = List.of();
 
     /** Types this deck registered; the Energy Zone draws from these. */
     private final Set<Type> registeredTypes = EnumSet.noneOf(Type.class);
@@ -43,6 +44,7 @@ public final class Side {
     private boolean supporterPlayedThisTurn;
     private int supportersLockedUntilTurn = -1;
     private boolean retreatedThisTurn;
+    private int knockedOutByAttackOnTurn = -1;
     private final List<AttackBonus> attackBonuses = new ArrayList<>();
 
     public Side(String name, IPlayer player) {
@@ -151,6 +153,21 @@ public final class Side {
         revealed = List.of();
     }
 
+    /** Shows this side's owner the top {@code count} cards of their deck; see {@link #seenTopCards()}. */
+    public void lookAtTopCards(int count) {
+        seenTop = List.copyOf(deck.subList(0, Math.min(count, deck.size())));
+    }
+
+    /**
+     * The top cards this side's owner has looked at, top first. Drawing one
+     * leaves the rest known; anything else that disturbs the top of the deck
+     * forgets them all.
+     */
+    public List<CardInstance> seenTopCards() {
+        List<CardInstance> still = seenTop.stream().filter(deck::contains).toList();
+        return deck.subList(0, still.size()).equals(still) ? still : List.of();
+    }
+
     public boolean removeFromHand(CardInstance card) {
         return hand.remove(card);
     }
@@ -182,6 +199,8 @@ public final class Side {
 
     public void shuffleDeck(RandomSource rng) {
         rng.shuffle(deck);
+        // A shuffle that happens to leave the same card on top must not tell the owner so.
+        seenTop = List.of();
     }
 
     /**
@@ -318,6 +337,18 @@ public final class Side {
                 .filter(bonus -> bonus.appliesTo().test(attacker))
                 .mapToInt(AttackBonus::amount)
                 .sum();
+    }
+
+    /**
+     * Whether one of this side's Pokemon was Knocked Out by an attack on {@code turn} — Marshadow's
+     * Revenge. A turn stamp, like {@link #supportersLocked}, because it is read a turn after it is set.
+     */
+    public boolean knockedOutByAttackOn(int turn) {
+        return knockedOutByAttackOnTurn == turn;
+    }
+
+    public void markKnockedOutByAttack(int turn) {
+        knockedOutByAttackOnTurn = turn;
     }
 
     public boolean retreatedThisTurn() {

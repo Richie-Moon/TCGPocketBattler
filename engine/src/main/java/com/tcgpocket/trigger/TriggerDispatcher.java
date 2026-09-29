@@ -5,8 +5,10 @@ import com.tcgpocket.card.StadiumCard;
 import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.state.Battle;
+import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
+import com.tcgpocket.status.ConfusionStatus;
 import com.tcgpocket.status.IStatus;
 
 import java.util.ArrayList;
@@ -31,7 +33,8 @@ import java.util.List;
  *
  * <p>Fixed, so a seeded game replays identically: attacker's side then
  * defender's, active before bench, and per Pokemon its statuses (in the order
- * they were applied), then its Tool, then its passive ability. The Stadium
+ * they were applied), then its Tool, then its passive ability, then any
+ * {@code ATTACK_NEEDS_HEADS} modifier. The Stadium
  * goes last, as it belongs to neither board.
  */
 public final class TriggerDispatcher {
@@ -86,6 +89,10 @@ public final class TriggerDispatcher {
         for (Side side : List.of(battle.attacker(), battle.defender())) {
             for (PokemonInPlay pokemon : side.inPlay()) {
                 collectFrom(found, pokemon);
+                // Smokescreen: the same flip-or-cancel as Confusion, without being a special condition.
+                if (pokemon.hasModifier(ModifierKind.ATTACK_NEEDS_HEADS, battle.turn())) {
+                    held(found, new ConfusionStatus().triggers(), pokemon);
+                }
             }
         }
 

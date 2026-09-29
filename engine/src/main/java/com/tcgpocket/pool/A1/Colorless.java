@@ -1,9 +1,12 @@
 package com.tcgpocket.pool.A1;
 
 import com.tcgpocket.action.Action;
+import com.tcgpocket.action.PlainAction;
+import com.tcgpocket.card.ActivatedAbility;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.condition.GreaterThan;
 import com.tcgpocket.condition.LastCoinTossHeads;
 import com.tcgpocket.effect.AddStatus;
 import com.tcgpocket.effect.Attempt;
@@ -15,6 +18,7 @@ import com.tcgpocket.effect.DiscardRandomFromHand;
 import com.tcgpocket.effect.DrawCard;
 import com.tcgpocket.effect.FlipN;
 import com.tcgpocket.effect.FlipUntilTails;
+import com.tcgpocket.effect.LookAtTopCards;
 import com.tcgpocket.effect.ShuffleIntoDeck;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
@@ -26,6 +30,7 @@ import com.tcgpocket.state.Zone;
 import com.tcgpocket.status.SleepStatus;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.target.OpponentActive;
+import com.tcgpocket.target.OpponentAll;
 import com.tcgpocket.target.OpponentSide;
 
 import java.util.List;
@@ -286,7 +291,7 @@ public final class Colorless {
                     70, Type.COLORLESS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
                             "Copy Anything", "Choose 1 of your opponent's Pokémon's attacks and use it as this attack. If this Pokémon doesn't have the necessary Energy to use that attack, this attack does nothing.", EnergyCost.of(Type.COLORLESS, 1),
                             new Attempt(List.of(
-                                    new CopyAttack()
+                                    new CopyAttack(new OpponentAll(), true)
                             )))), CardRarity.RARE)
             .withWeakness(Type.FIGHTING);
 
@@ -327,6 +332,11 @@ public final class Colorless {
                             new Attempt(List.of(
                                     new DealDamage(new Literal(20), new OpponentActive())
                             )))), CardRarity.UNCOMMON)
+            .withAbility(new ActivatedAbility("Data Scan", "Once during your turn, you may look at the top card of your deck.", new PlainAction(
+                    "", new Attempt(List.of(
+                            new LookAtTopCards(new Literal(1), new AttackerSide())
+                    ))), true, new GreaterThan(new CountCards(new AttackerSide(), Zone.DECK), new Literal(0))
+            ))
             .withWeakness(Type.FIGHTING);
 
     /**

@@ -25,6 +25,11 @@ public final class MythicalIsland {
         cards.addAll(Grass.CARDS);
         cards.addAll(Fire.CARDS);
         cards.addAll(Water.CARDS);
+        cards.addAll(Lightning.CARDS);
+        cards.addAll(Psychic.CARDS);
+        cards.addAll(Fighting.CARDS);
+        cards.addAll(Darkness.CARDS);
+        cards.addAll(Dragon.CARDS);
         return List.copyOf(cards);
     }
 }

@@ -39,7 +39,7 @@ public sealed interface ICondition<T> permits
         And, Or, Not, All, Any, Always,
         // subject: ResolutionContext
         GreaterThan, LessThan, EqualTo, Probability, For, ForAny,
-        LastCoinTossHeads, AllFlipsHeads, StadiumInPlay,
+        LastCoinTossHeads, AllFlipsHeads, StadiumInPlay, KnockedOutLastTurn,
         EventConcerns, EventSideIs,
         // subject: PokemonInPlay
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
