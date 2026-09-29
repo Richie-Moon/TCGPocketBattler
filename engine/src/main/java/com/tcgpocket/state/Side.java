@@ -44,6 +44,7 @@ public final class Side {
     private boolean supporterPlayedThisTurn;
     private int supportersLockedUntilTurn = -1;
     private boolean retreatedThisTurn;
+    private int knockedOutByAttackOnTurn = -1;
     private final List<AttackBonus> attackBonuses = new ArrayList<>();
 
     public Side(String name, IPlayer player) {
@@ -336,6 +337,18 @@ public final class Side {
                 .filter(bonus -> bonus.appliesTo().test(attacker))
                 .mapToInt(AttackBonus::amount)
                 .sum();
+    }
+
+    /**
+     * Whether one of this side's Pokemon was Knocked Out by an attack on {@code turn} — Marshadow's
+     * Revenge. A turn stamp, like {@link #supportersLocked}, because it is read a turn after it is set.
+     */
+    public boolean knockedOutByAttackOn(int turn) {
+        return knockedOutByAttackOnTurn == turn;
+    }
+
+    public void markKnockedOutByAttack(int turn) {
+        knockedOutByAttackOnTurn = turn;
     }
 
     public boolean retreatedThisTurn() {

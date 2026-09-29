@@ -313,6 +313,9 @@ public final class TurnEngine {
         while (!knockedOut.isEmpty()) {
             for (PokemonInPlay pokemon : knockedOut) {
                 battle.opponentOf(pokemon.owner()).awardPoints(pointsFor(pokemon.definition()));
+                if (by.isPresent()) {
+                    pokemon.owner().markKnockedOutByAttack(battle.turn());
+                }
                 TriggerDispatcher.dispatch(battle, new Knockout(pokemon, by));
                 leavePlay(pokemon);
             }
