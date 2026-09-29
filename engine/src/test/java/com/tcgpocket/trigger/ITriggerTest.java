@@ -32,6 +32,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.tcgpocket.action.AttachEnergyAction;
+import com.tcgpocket.effect.AttachEnergy;
 import java.util.List;
 import java.util.Optional;
 
@@ -335,6 +337,35 @@ class ITriggerTest {
             // EventDamage only reads DamageDealt, so the mirror places nothing;
             // what matters here is that Healed carried 20, not 50.
             assertEquals(0, theirs.damage());
+        }
+
+        /** 10 damage on its wearer per Energy attached to it: counts the events. */
+        private final ToolCard meter = ToolCard.of("meter", "Meter",
+                when(EnergyAttached.class, new EventConcerns(new Self()),
+                        new PlaceDamage(new Literal(10), new Self())));
+
+        @Test
+        @DisplayName("energy from an effect is announced once per Energy")
+        void effectAttachmentAnnouncesEachEnergy() {
+            PokemonInPlay pikachu = board.active(board.you, PIKACHU);
+            pikachu.attachTool(board.loose(board.you, meter));
+
+            new AttachEnergy(Type.PSYCHIC, new Literal(2), new Self()).apply(board.contextFor(pikachu));
+
+            assertEquals(20, pikachu.damage());
+        }
+
+        @Test
+        @DisplayName("the turn's attachment is announced exactly once")
+        void turnAttachmentAnnouncesOnce() {
+            PokemonInPlay pikachu = board.active(board.you, PIKACHU);
+            pikachu.attachTool(board.loose(board.you, meter));
+            board.you.registerTypes(Type.LIGHTNING);
+            board.you.generateEnergy(board.battle.rng());
+
+            assertTrue(new AttachEnergyAction(new Self()).execute(board.contextFor(pikachu)).succeeded());
+
+            assertEquals(10, pikachu.damage());
         }
 
         @Test

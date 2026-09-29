@@ -2,7 +2,10 @@ package com.tcgpocket.effect;
 
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.RandomSource;
+import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.trigger.EnergyAttached;
+import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +18,18 @@ import java.util.Map;
 final class Energies {
 
     private Energies() {
+    }
+
+    /**
+     * The only way energy gets attached, so {@link EnergyAttached} fires for every
+     * source — the turn's attachment, an ability, a Trainer, a move. One event per
+     * unit, because "whenever an Energy is attached" counts Energy, not effects.
+     */
+    static void attach(ResolutionContext context, PokemonInPlay pokemon, Type type, int count) {
+        pokemon.attachEnergy(type, count);
+        for (int i = 0; i < count; i++) {
+            TriggerDispatcher.dispatch(context.battle(), new EnergyAttached(pokemon, type));
+        }
     }
 
     /** Attached energy as one entry per unit, so a unit can be picked at random. */

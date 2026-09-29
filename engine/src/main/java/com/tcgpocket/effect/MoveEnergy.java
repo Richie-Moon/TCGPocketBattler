@@ -6,6 +6,7 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,13 +16,25 @@ import java.util.Optional;
  *
  * <p>Fails if either end does not resolve or the source has too little, and in
  * that case moves nothing.
+ *
+ * @param ofType moves only that type — Vaporeon's "move a Water Energy"; empty
+ *               moves random Energy of any type
  */
-public record MoveEnergy(ITarget from, ITarget to, INumber energyCount) implements IEffect {
+public record MoveEnergy(ITarget from, ITarget to, INumber energyCount, Optional<Type> ofType) implements IEffect {
 
     public MoveEnergy {
         Objects.requireNonNull(from, "from");
         Objects.requireNonNull(to, "to");
         Objects.requireNonNull(energyCount, "energyCount");
+        Objects.requireNonNull(ofType, "ofType");
+    }
+
+    public MoveEnergy(ITarget from, ITarget to, INumber energyCount) {
+        this(from, to, energyCount, Optional.empty());
+    }
+
+    public MoveEnergy(ITarget from, ITarget to, INumber energyCount, Type ofType) {
+        this(from, to, energyCount, Optional.of(ofType));
     }
 
     @Override
@@ -41,12 +54,16 @@ public record MoveEnergy(ITarget from, ITarget to, INumber energyCount) implemen
             return EffectOutcome.NO_OP;
         }
 
-        List<Type> moved = Energies.takeRandom(source.get(), count, context.battle().rng());
+        List<Type> moved = ofType
+                .map(type -> source.get().energyOf(type) < count
+                        ? List.<Type>of()
+                        : Collections.nCopies(source.get().discardEnergy(type, count), type))
+                .orElseGet(() -> Energies.takeRandom(source.get(), count, context.battle().rng()));
         if (moved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
 
-        moved.forEach(type -> destination.get().attachEnergy(type, 1));
+        moved.forEach(type -> Energies.attach(context, destination.get(), type, 1));
         return EffectOutcome.APPLIED;
     }
 }

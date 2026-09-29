@@ -39,7 +39,7 @@ public record MoveTypeEnergy(Type energyType, IMultiTarget from, ITarget to) imp
                 moved += source.discardEnergy(energyType, source.energyOf(energyType));
             }
         }
-        destination.get().attachEnergy(energyType, moved);
+        Energies.attach(context, destination.get(), energyType, moved);
         return moved > 0 ? EffectOutcome.APPLIED : EffectOutcome.NO_OP;
     }
 }

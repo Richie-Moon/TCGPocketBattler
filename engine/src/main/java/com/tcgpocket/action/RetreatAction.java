@@ -54,7 +54,7 @@ public record RetreatAction(ITarget replacement) implements IAction {
             return false;
         }
 
-        return retreatCostOf(context, retreating).isSatisfiedBy(retreating.attachedEnergy())
+        return retreatCostOf(context, retreating).isSatisfiedBy(retreating.providedEnergy())
                 && replacement.resolve(context).filter(side.bench()::contains).isPresent();
     }
 
@@ -104,9 +104,14 @@ public record RetreatAction(ITarget replacement) implements IAction {
         return new EnergyCost(requirements);
     }
 
+    /**
+     * Discards random Energy until the cost is covered. A boosted Energy
+     * ({@code EnergyBoost}) covers more than one, and the last discard may
+     * overpay: a card cannot be half-discarded.
+     */
     private static void payRetreatCost(ResolutionContext context, PokemonInPlay retreating) {
-        int cost = retreatCostOf(context, retreating).total();
-        for (int i = 0; i < cost; i++) {
+        int remaining = retreatCostOf(context, retreating).total();
+        while (remaining > 0) {
             List<Type> units = retreating.attachedEnergy().entrySet().stream()
                     .flatMap(entry -> java.util.stream.IntStream.range(0, entry.getValue())
                             .mapToObj(ignored -> entry.getKey()))
@@ -114,7 +119,9 @@ public record RetreatAction(ITarget replacement) implements IAction {
             if (units.isEmpty()) {
                 return;
             }
-            retreating.discardEnergy(units.get(context.battle().rng().nextInt(units.size())), 1);
+            Type type = units.get(context.battle().rng().nextInt(units.size()));
+            remaining -= retreating.providedEnergy().get(type) / retreating.energyOf(type);
+            retreating.discardEnergy(type, 1);
         }
     }
 }

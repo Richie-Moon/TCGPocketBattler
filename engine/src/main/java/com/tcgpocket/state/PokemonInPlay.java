@@ -1,5 +1,6 @@
 package com.tcgpocket.state;
 
+import com.tcgpocket.card.EnergyBoost;
 import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.energy.Type;
@@ -157,6 +158,24 @@ public final class PokemonInPlay extends CardInstance {
 
     public Map<Type, Integer> attachedEnergy() {
         return Collections.unmodifiableMap(attachedEnergy);
+    }
+
+    /**
+     * What the attached Energy pays for, which is what costs are checked
+     * against: the same as {@link #attachedEnergy()} unless one of this
+     * Pokemon's own side grants an {@link EnergyBoost}. Largest boost per type
+     * wins, since boosts do not stack.
+     */
+    public Map<Type, Integer> providedEnergy() {
+        Map<Type, Integer> provided = new EnumMap<>(Type.class);
+        provided.putAll(attachedEnergy);
+        for (Side.HeldRule held : owner().standingRules()) {
+            if (held.rule() instanceof EnergyBoost boost && boost.appliesTo().evaluate(this)) {
+                provided.computeIfPresent(boost.type(),
+                        (type, count) -> Math.max(count, energyOf(type) * boost.provides()));
+            }
+        }
+        return Collections.unmodifiableMap(provided);
     }
 
     public int energyOf(Type type) {

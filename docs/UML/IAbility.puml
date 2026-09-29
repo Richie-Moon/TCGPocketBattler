@@ -25,10 +25,37 @@ class ActivatedAbility <<record>> implements IAbility {
 '/
 class PassiveAbility <<record>> implements IAbility {
     - triggers: List<ITrigger>
+    - rule: Optional<IRule>
 }
+
+/'
+  Passives that are read, not fired: they must hold at every moment, through
+  benching, evolving and switching mid-turn. Side.standingRules walks the board on
+  each call and pairs each rule with its holder (Side.HeldRule); each rule is
+  read by exactly one place in the engine.
+'/
+interface IRule <<sealed>>
+
+class EnergyBoost <<record>> implements IRule {
+    - type: Type
+    - appliesTo: ICondition<PokemonInPlay>
+    - provides: int
+}
+note bottom of EnergyBoost : read by PokemonInPlay.providedEnergy
+
+class EvolutionLock <<record>> implements IRule {
+    - appliesTo: ICondition<PokemonInPlay>
+}
+note bottom of EvolutionLock : read by EvolveAction.isLegal
+
+class SupporterLock <<record>> implements IRule {
+    - whileHolder: ICondition<PokemonInPlay>
+}
+note bottom of SupporterLock : read by PlayCardAction.isLegal; the condition is on the holder
 
 ActivatedAbility *-- IAction
 PassiveAbility *-- ITrigger
+PassiveAbility *-- IRule
 
 note bottom of PassiveAbility
   Both kinds need to know which Pokemon they belong to

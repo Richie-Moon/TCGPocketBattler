@@ -1,5 +1,6 @@
 package com.tcgpocket.action;
 
+import com.tcgpocket.card.EvolutionLock;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
@@ -49,7 +50,10 @@ public record EvolveAction(CardInstance evolution, ITarget onto) implements IAct
                 .map(species -> species.equals(pokemon.definition().name()))
                 .orElse(false);
 
-        return rightSpecies && pokemon.turnPlayed() < context.battle().turn();
+        boolean locked = context.opponent().standingRules().stream()
+                .anyMatch(held -> held.rule() instanceof EvolutionLock lock && lock.appliesTo().evaluate(pokemon));
+
+        return rightSpecies && !locked && pokemon.turnPlayed() < context.battle().turn();
     }
 
     @Override

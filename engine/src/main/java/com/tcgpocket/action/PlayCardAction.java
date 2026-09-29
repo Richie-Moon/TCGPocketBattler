@@ -2,6 +2,7 @@ package com.tcgpocket.action;
 
 import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.SupporterCard;
+import com.tcgpocket.card.SupporterLock;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.resolve.ResolutionContext;
@@ -72,7 +73,8 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto) im
         }
 
         if (card.definition() instanceof SupporterCard
-                && (side.supporterPlayedThisTurn() || side.supportersLocked(context.battle().turn()))) {
+                && (side.supporterPlayedThisTurn() || side.supportersLocked(context.battle().turn())
+                        || supportersLockedByRule(context))) {
             return false;
         }
 
@@ -120,5 +122,11 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto) im
                 .filter(PlayedOnto.class::isInstance)
                 .map(PlayedOnto.class::cast)
                 .findFirst();
+    }
+
+    /** A {@link SupporterLock} the opponent holds, whose holder currently meets its condition. */
+    private static boolean supportersLockedByRule(ResolutionContext context) {
+        return context.opponent().standingRules().stream()
+                .anyMatch(held -> held.rule() instanceof SupporterLock lock && lock.whileHolder().evaluate(held.holder()));
     }
 }

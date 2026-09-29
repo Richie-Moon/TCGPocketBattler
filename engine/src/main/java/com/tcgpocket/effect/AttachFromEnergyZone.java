@@ -38,7 +38,7 @@ public record AttachFromEnergyZone(ITarget target) implements IEffect {
         }
 
         side.consumeCurrentEnergy();
-        resolved.get().attachEnergy(available.get(), 1);
+        Energies.attach(context, resolved.get(), available.get(), 1);
         return EffectOutcome.APPLIED;
     }
 }
