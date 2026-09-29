@@ -46,6 +46,7 @@ npm run dev    # then open http://localhost:5173 in two tabs
 - Attack index on `OptionView` so the UI can tell attacks apart without the label
 - Instance ids for `DistributeEnergy` placements (currently text only)
 - Matchmaking beyond first-come pairing (rooms / invite links)
+- Add assets to DB
 
 ### Web client
 - Card images on the board, keyed by `card` id

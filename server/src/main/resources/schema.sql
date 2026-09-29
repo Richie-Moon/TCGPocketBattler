@@ -47,3 +47,25 @@ CREATE TABLE IF NOT EXISTS decks (
 
 CREATE INDEX IF NOT EXISTS decks_user ON decks (user_id)
 /
+
+-- Cosmetics are object-storage names, like users.profile_icon: "Coin_<name>.png", and so on.
+DECLARE
+    PROCEDURE add_column(definition VARCHAR2) IS
+    BEGIN
+        EXECUTE IMMEDIATE 'ALTER TABLE decks ADD (' || definition || ')';
+    EXCEPTION
+        WHEN OTHERS THEN
+            IF SQLCODE != -1430 THEN RAISE; END IF;
+    END;
+BEGIN
+    add_column('coin VARCHAR2(100) DEFAULT ''Coin_Pokeball.png'' NOT NULL'
+        || ' CHECK (coin LIKE ''Coin!_%.png'' ESCAPE ''!'')');
+    add_column('sleeve VARCHAR2(100) DEFAULT ''Sleeve_Default.png'' NOT NULL'
+        || ' CHECK (sleeve LIKE ''Sleeve!_%.png'' ESCAPE ''!'')');
+    add_column('playmat VARCHAR2(100) DEFAULT ''Playmat_None.png'' NOT NULL'
+        || ' CHECK (playmat LIKE ''Playmat!_%.png'' ESCAPE ''!'')');
+    -- Printed ids ("A1-094"), like the entries in cards. Nullable: a draft may have none.
+    add_column('focus_card_1 VARCHAR2(20)');
+    add_column('focus_card_2 VARCHAR2(20)');
+END;
+/
