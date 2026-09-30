@@ -437,6 +437,8 @@ p {
   height: 28px;
   border-radius: 4px;
   object-fit: cover;
+  /* The art has transparent padding: draw it bigger without taking more room, so neighbours may overlap. */
+  transform: scale(1.5);
 }
 
 .home .player-name {
@@ -909,8 +911,9 @@ p {
   font-weight: 500;
 }
 
+/* The two-line title makes this row taller than Home's; pin the pill to the top so it doesn't move between pages. */
 .home .decks-head .player {
-  padding-right: 20px;
+  align-self: flex-start;
 }
 
 .home .new-deck {
