@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Columns added after the table, so databases created before them get them too. Oracle has no
 -- ADD IF NOT EXISTS for columns, so ORA-01430 (column already exists) is swallowed instead.
 -- profile_icon is the object-storage name "Icon_<name>.png", where <name> is a Pokemon or Trainer.
+-- emblem_1..3 are the displayed emblems, "Emblem_<name>.png"; nullable, since most players pick none.
 DECLARE
     PROCEDURE add_column(definition VARCHAR2) IS
     BEGIN
@@ -30,6 +31,9 @@ BEGIN
     add_column('losses NUMBER(10) DEFAULT 0 NOT NULL');
     add_column('profile_icon VARCHAR2(100) DEFAULT ''Icon_Default.png'' NOT NULL'
         || ' CHECK (profile_icon LIKE ''Icon!_%.png'' ESCAPE ''!'')');
+    add_column('emblem_1 VARCHAR2(100) CHECK (emblem_1 LIKE ''Emblem!_%.png'' ESCAPE ''!'')');
+    add_column('emblem_2 VARCHAR2(100) CHECK (emblem_2 LIKE ''Emblem!_%.png'' ESCAPE ''!'')');
+    add_column('emblem_3 VARCHAR2(100) CHECK (emblem_3 LIKE ''Emblem!_%.png'' ESCAPE ''!'')');
 END;
 /
 
@@ -62,10 +66,9 @@ BEGIN
         || ' CHECK (coin LIKE ''Coin!_%.png'' ESCAPE ''!'')');
     add_column('sleeve VARCHAR2(100) DEFAULT ''Sleeve_Default.png'' NOT NULL'
         || ' CHECK (sleeve LIKE ''Sleeve!_%.png'' ESCAPE ''!'')');
-    add_column('playmat VARCHAR2(100) DEFAULT ''Playmat_None.png'' NOT NULL'
+    add_column('playmat VARCHAR2(100) DEFAULT ''Playmat_Default.png'' NOT NULL'
         || ' CHECK (playmat LIKE ''Playmat!_%.png'' ESCAPE ''!'')');
     -- Printed ids ("A1-094"), like the entries in cards. Nullable: a draft may have none.
     add_column('focus_card_1 VARCHAR2(20)');
     add_column('focus_card_2 VARCHAR2(20)');
 END;
-/

@@ -1,5 +1,9 @@
 package com.tcgpocket.server;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -78,7 +82,8 @@ class Accounts {
             this.db = db;
         }
 
-        record Account(String name, int elo, String profileIcon) {
+        /** {@code emblems} holds only the chosen ones, in slot order: zero to three. */
+        record Account(String name, int elo, String profileIcon, List<String> emblems) {
         }
 
         /** 401 when signed out, which is how the web client knows to offer "Sign in with Google". */
@@ -87,9 +92,10 @@ class Accounts {
             if (user == null) {
                 return ResponseEntity.status(401).build();
             }
-            return ResponseEntity.ok(db.sql("SELECT display_name, elo, profile_icon FROM users WHERE provider = 'google' AND subject = ?")
+            return ResponseEntity.ok(db.sql("SELECT display_name, elo, profile_icon, emblem_1, emblem_2, emblem_3 FROM users WHERE provider = 'google' AND subject = ?")
                     .param(user.getSubject())
-                    .query((row, n) -> new Account(row.getString(1), row.getInt(2), row.getString(3)))
+                    .query((row, n) -> new Account(row.getString(1), row.getInt(2), row.getString(3),
+                            Stream.of(row.getString(4), row.getString(5), row.getString(6)).filter(Objects::nonNull).toList()))
                     .single());
         }
     }
