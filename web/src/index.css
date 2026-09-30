@@ -427,6 +427,18 @@ p {
   object-fit: cover;
 }
 
+.home .emblems {
+  display: flex;
+  gap: 4px;
+}
+
+.home .emblems img {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
 .home .player-name {
   font-size: 15px;
   font-weight: 600;
@@ -757,8 +769,19 @@ p {
   }
 
   .home .avatar {
+    order: -2;
     width: 36px;
     height: 36px;
+  }
+
+  /* row-reverse: avatar at the far right, emblems beside it, then the greeting. */
+  .home .emblems {
+    order: -1;
+  }
+
+  .home .emblems img {
+    width: 24px;
+    height: 24px;
   }
 
   .home .welcome {

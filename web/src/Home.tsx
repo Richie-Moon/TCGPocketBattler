@@ -10,7 +10,7 @@ import profile from './assets/home/profile.svg'
 import replays from './assets/home/replays.svg'
 import tournaments from './assets/home/tournaments.svg'
 import users from './assets/home/users.svg'
-import { ICON_BASE } from './art'
+import { EMBLEM_BASE, ICON_BASE } from './art'
 
 export type Page = 'Home' | 'Decks'
 
@@ -79,11 +79,13 @@ export function Shell({ page, onNavigate, children }: { page: Page; onNavigate: 
 export function Home({
   name,
   profileIcon,
+  emblems,
   onQueue,
   onNavigate,
 }: {
   name: string
   profileIcon: string
+  emblems: string[]
   onQueue: () => void
   onNavigate: (page: Page) => void
 }) {
@@ -106,6 +108,13 @@ export function Home({
             </div>
             <div className="level">Unranked</div>
           </div>
+          {emblems.length > 0 && (
+            <div className="emblems">
+              {emblems.slice(0, 3).map((emblem, i) => (
+                <img key={i} src={`${EMBLEM_BASE}/${emblem}`} alt="" />
+              ))}
+            </div>
+          )}
         </div>
       </header>
 

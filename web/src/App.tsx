@@ -11,7 +11,7 @@ import { useGame } from './useGame'
  * server has no sign-in (no db profile).
  */
 function App() {
-  const [me, setMe] = useState<{ name: string; elo: number; profileIcon: string } | 'signed-out' | null>(null)
+  const [me, setMe] = useState<{ name: string; elo: number; profileIcon: string; emblems: string[] } | 'signed-out' | null>(null)
   const [playing, setPlaying] = useState(false)
   const [page, setPage] = useState<Page>('Home')
   useEffect(() => {
@@ -23,9 +23,9 @@ function App() {
   if (me === 'signed-out') return <Landing />
   if (playing) return <Game />
   return page === 'Decks' ? (
-    <Decks name={me.name} profileIcon={me.profileIcon} onNavigate={setPage} />
+    <Decks name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onNavigate={setPage} />
   ) : (
-    <Home name={me.name} profileIcon={me.profileIcon} onQueue={() => setPlaying(true)} onNavigate={setPage} />
+    <Home name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onQueue={() => setPlaying(true)} onNavigate={setPage} />
   )
 }
 
@@ -81,7 +81,7 @@ function Game() {
 
 /** Who is signed in. Renders nothing when the server runs without the db profile (no /api/me). */
 function Account() {
-  const [account, setAccount] = useState<{ name: string; elo: number; profileIcon: string } | 'signed-out' | null>(null)
+  const [account, setAccount] = useState<{ name: string; elo: number; profileIcon: string; emblems: string[] } | 'signed-out' | null>(null)
   useEffect(() => {
     fetch('/api/me').then(
       (response) => {
