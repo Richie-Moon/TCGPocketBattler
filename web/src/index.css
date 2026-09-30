@@ -953,28 +953,13 @@ p {
   background: var(--color-mat);
 }
 
-/* The playmat fills the cover: the halfway line and each side's Active spot, under the cards. */
+/* The playmat fills the cover, under the cards. */
 .home .playmat {
   position: absolute;
   inset: 0;
-  background: linear-gradient(var(--color-mat-zone), var(--color-mat-zone)) 0 99px / 100% 2px no-repeat;
-}
-
-.home .playmat::before,
-.home .playmat::after {
-  content: '';
-  position: absolute;
-  top: 22px;
-  left: 158px;
-  box-sizing: border-box;
-  width: 53px;
-  height: 56px;
-  border: 2px dashed var(--color-mat-zone);
-  border-radius: 4px;
-}
-
-.home .playmat::after {
-  top: 111px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* The coin rests on the mat, over the cards. */
@@ -995,10 +980,6 @@ p {
   height: 146px;
   border-radius: 6px;
   object-fit: cover;
-}
-
-.home .cover-card.placeholder {
-  background: var(--color-placeholder);
 }
 
 .home .cover .left {
@@ -1165,25 +1146,6 @@ p {
     width: 80px;
     height: 68px;
     border-radius: 4px;
-  }
-
-  .home .playmat {
-    background-position: 0 34px;
-    background-size: 100% 1px;
-  }
-
-  .home .playmat::before,
-  .home .playmat::after {
-    top: 8px;
-    left: 35px;
-    width: 11px;
-    height: 19px;
-    border-width: 1px;
-    border-radius: 1px;
-  }
-
-  .home .playmat::after {
-    top: 38px;
   }
 
   .home .coin {

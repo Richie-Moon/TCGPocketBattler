@@ -13,3 +13,9 @@ export const ENERGY_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/
 
 /** Deck coins, "Coin_<name>.png", in the same public bucket. */
 export const COIN_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/coins'
+
+/** Card sleeves, "Sleeve_<name>.png", in the same public bucket. */
+export const SLEEVE_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/sleeves'
+
+/** Playmats, "Playmat_<name>.png", in the same public bucket. */
+export const PLAYMAT_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/playmats'
