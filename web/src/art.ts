@@ -19,3 +19,11 @@ export const SLEEVE_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/
 
 /** Playmats, "Playmat_<name>.png", in the same public bucket. */
 export const PLAYMAT_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/playmats'
+
+/** The file names under one of the bases above ("Coin_Acerola.png", …): the bucket lists its objects publicly. */
+export function listArt(base: string): Promise<string[]> {
+  const cut = base.lastIndexOf('/')
+  return fetch(`${base.slice(0, cut)}?prefix=${base.slice(cut + 1)}/`)
+    .then((response) => response.json())
+    .then((body: { objects: { name: string }[] }) => body.objects.map((object) => object.name.slice(base.length - cut)))
+}

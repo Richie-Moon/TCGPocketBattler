@@ -18,21 +18,21 @@ type DeckSummary = {
   playmat: string
 }
 
-const DECK_SIZE = 20
+export const DECK_SIZE = 20
 
-/**
- * The signed-in player's saved decks, from /api/decks. New, Edit and the menu do nothing until there is a deck editor.
- */
+/** The signed-in player's saved decks, from /api/decks. New and Edit open the deck editor; the menu does nothing yet. */
 export function Decks({
   name,
   profileIcon,
   emblems,
   onNavigate,
+  onEdit,
 }: {
   name: string
   profileIcon: string
   emblems: string[]
   onNavigate: (page: Page) => void
+  onEdit: (deck: number | 'new') => void
 }) {
   const [decks, setDecks] = useState<DeckSummary[] | null>(null)
   useEffect(() => {
@@ -48,7 +48,7 @@ export function Decks({
           <h1>Decks</h1>
           <div className="muted">{decks && `${decks.length} ${decks.length === 1 ? 'deck' : 'decks'}`}</div>
         </div>
-        <button type="button" className="new-deck" aria-label="New deck">
+        <button type="button" className="new-deck" aria-label="New deck" onClick={() => onEdit('new')}>
           <Icon src={plus} size={20} />
           <span>New deck</span>
         </button>
@@ -71,9 +71,9 @@ export function Decks({
       {decks && (
         <div className="deck-grid">
           {decks.map((deck) => (
-            <DeckTile key={deck.id} deck={deck} />
+            <DeckTile key={deck.id} deck={deck} onEdit={() => onEdit(deck.id)} />
           ))}
-          <button type="button" className="deck-tile new-tile">
+          <button type="button" className="deck-tile new-tile" onClick={() => onEdit('new')}>
             <span className="plus-box">
               <Icon src={plus} size={32} />
             </span>
@@ -85,7 +85,7 @@ export function Decks({
   )
 }
 
-function DeckTile({ deck }: { deck: DeckSummary }) {
+function DeckTile({ deck, onEdit }: { deck: DeckSummary; onEdit: () => void }) {
   const incomplete = deck.cardCount < DECK_SIZE && <span className="badge">Incomplete</span>
   return (
     <div className="deck-tile">
@@ -108,12 +108,12 @@ function DeckTile({ deck }: { deck: DeckSummary }) {
           </div>
           {incomplete}
         </div>
-        <button type="button" className="edit-square" aria-label="Edit deck">
+        <button type="button" className="edit-square" aria-label="Edit deck" onClick={onEdit}>
           <Icon src={edit} size={20} />
         </button>
       </div>
       <div className="deck-actions">
-        <button type="button" className="secondary">
+        <button type="button" className="secondary" onClick={onEdit}>
           <Icon src={edit} size={20} />
           Edit deck
         </button>

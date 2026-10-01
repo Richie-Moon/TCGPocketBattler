@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import bot from './assets/home/bot.svg'
 import chevronDown from './assets/home/chevron-down.svg'
 import chevronRight from './assets/home/chevron-right.svg'
@@ -33,10 +33,29 @@ export function Icon({ src, size }: { src: string; size: number }) {
 }
 
 /** The sidebar (the tab bar on a phone) around a page. Only Home and Decks go anywhere yet. */
-export function Shell({ page, onNavigate, children }: { page: Page; onNavigate: (page: Page) => void; children: ReactNode }) {
+export function Shell({
+  page,
+  onNavigate,
+  className = page === 'Decks' ? 'content decks' : 'content',
+  children,
+}: {
+  page: Page
+  onNavigate: (page: Page) => void
+  className?: string
+  children: ReactNode
+}) {
   const go = (label: string) => (label === 'Home' || label === 'Decks') && onNavigate(label)
+  // A removed <img> keeps downloading and holds up the next page's art, so leaving a page drops what it was loading.
+  // isConnected skips StrictMode's rehearsal unmount, which would blank a page that is still on screen.
+  const root = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const page = root.current!
+    return () => {
+      if (!page.isConnected) for (const img of page.querySelectorAll('img')) img.src = ''
+    }
+  }, [])
   return (
-    <div className="home">
+    <div className="home" ref={root}>
       <nav className="sidebar">
         <div className="logo">PB</div>
         {nav.map((item) => (
@@ -54,7 +73,7 @@ export function Shell({ page, onNavigate, children }: { page: Page; onNavigate: 
         ))}
       </nav>
 
-      <div className={page === 'Decks' ? 'content decks' : 'content'}>{children}</div>
+      <div className={className}>{children}</div>
 
       <nav className="tab-bar">
         {nav.map((item) => (

@@ -28,6 +28,10 @@
          in this model; see docs/UML/README.md. -->
     <maven.compiler.release>25</maven.compiler.release>
 
+    <!-- Spring MVC reads @PathVariable names from the bytecode. spring-boot-starter-parent
+         would set this, but Boot is imported as a BOM here. -->
+    <maven.compiler.parameters>true</maven.compiler.parameters>
+
     <!-- So -Dtest=SomeTest works from the root: the modules without that test just skip it. -->
     <surefire.failIfNoSpecifiedTests>false</surefire.failIfNoSpecifiedTests>
 

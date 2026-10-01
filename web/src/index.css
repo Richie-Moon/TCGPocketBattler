@@ -1235,3 +1235,946 @@ p {
     height: 20px !important;
   }
 }
+
+/* Deck editor — inside the Home shell, sized from the 1920x900 and 390x844 Figma frames. */
+.home .content.editor {
+  flex-direction: row;
+  gap: 0;
+  height: 100vh;
+  padding: 0;
+}
+
+.home .primary {
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+  text-align: center;
+}
+
+.home .card-browser {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  padding: 32px 56px;
+  overflow-y: auto;
+}
+
+.home .editor-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home .editor-head .back {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.home .editor-head .title {
+  flex: 1;
+  min-width: 0;
+}
+
+.home .crumb {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* The phone's pieces: its Save, the deck name under the title, the bottom sheet's handle and card strip, Done. */
+.home .editor-head .subtitle,
+.home .editor-head .save,
+.home .sheet-toggle,
+.home .deck-strip,
+.home .picker-popup .done {
+  display: none;
+}
+
+.home .filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home .search,
+.home .dropdown {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.home .search:focus-within,
+.home .dropdown:focus-within {
+  border-color: var(--color-accent);
+}
+
+.home .search {
+  flex: 1;
+  gap: 10px;
+  padding: 0 18px;
+  color: var(--color-text-muted);
+}
+
+.home .search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+
+.home .search input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.home .dropdown {
+  position: relative;
+  gap: 8px;
+  padding: 0 14px 0 18px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.home .dropdown .icon {
+  color: var(--color-text-muted);
+}
+
+.home .dropdown select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.home .showing {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Cards stretch from the design's 150px so each row ends where the filters do, whatever the width or scrollbar. */
+.home .card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.home .browser-card {
+  position: relative;
+  aspect-ratio: 150 / 210;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--color-placeholder);
+}
+
+.home .browser-card img,
+.home .slot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home .browser-card:enabled:is(:hover, :focus-visible) {
+  outline: 3px solid var(--color-accent);
+  outline-offset: -3px;
+}
+
+.home .count,
+.home .add {
+  position: absolute;
+  border-radius: 4px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.home .count {
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+}
+
+.home .add {
+  display: none;
+  bottom: 15px;
+  left: 50%;
+  translate: -50%;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+}
+
+.home .browser-card:enabled:is(:hover, :focus-visible) .add {
+  display: flex;
+}
+
+.home .deck-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 558px;
+  padding: 24px 32px;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow-y: auto;
+}
+
+.home .deck-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-muted);
+  cursor: text;
+}
+
+.home .deck-title:focus-within {
+  box-shadow: 0 2px 0 var(--color-accent);
+}
+
+.home .deck-title input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.home .deck-energy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home .deck-energy .energy {
+  width: 28px;
+  height: 28px;
+}
+
+.home .add-energy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 2px dashed var(--color-mat-zone);
+  border-radius: 50%;
+  color: var(--color-text-muted);
+}
+
+.home .deck-count {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home .deck-count b {
+  color: var(--color-text);
+}
+
+/* 8px under the count, not the panel's 12px gap. */
+.home .progress {
+  flex-shrink: 0;
+  height: 8px;
+  margin-top: -4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-surface-2);
+}
+
+.home .progress div {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+.home .deck-slots {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 81px);
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.home .slot {
+  position: relative;
+  box-sizing: border-box;
+  aspect-ratio: 81 / 108;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--color-placeholder);
+}
+
+.home .slot.empty {
+  border: 2px dashed var(--color-mat-zone);
+  border-radius: 6px;
+  background: none;
+}
+
+.home .slot .remove {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Not in the design: marks the two cards the decks page shows on the cover. */
+.home .star {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 22px;
+  text-align: center;
+}
+
+.home .star[aria-pressed='true'] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.home .cosmetics {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.home .cosmetics-label {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home .pickers {
+  display: flex;
+  gap: 12px;
+}
+
+.home .picker {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.home .preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 72px;
+  border-radius: 4px;
+  background: var(--color-surface-2);
+}
+
+.home .preview img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.home .picker.of-coin .preview img {
+  width: 66px;
+  height: 66px;
+}
+
+.home .picker.of-sleeve .preview img {
+  width: 40px;
+  height: 56px;
+}
+
+.home .picker.of-playmat .preview img {
+  width: 101px;
+  height: 62px;
+  border-radius: 3px;
+}
+
+.home .picker-label {
+  padding-left: 2px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* 2px under its label, not the picker's 8px gap. */
+.home .picker-value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: -6px;
+  padding-left: 2px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.home .picker-value span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.home .picker-value .icon {
+  color: var(--color-text-muted);
+}
+
+.home .editor-error {
+  color: var(--color-danger);
+  font-size: 14px;
+}
+
+.home .editor-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.home .editor-actions button {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+/*
+ * The coin popup, and the sleeve, playmat and energy ones built like it. A modal <dialog>, so it is placed against
+ * the viewport: where the design has it, its bottom edge just above the cosmetic pickers of a deck panel that is
+ * not scrolled.
+ */
+.home .picker-popup {
+  position: fixed;
+  inset: auto 132px max(24px, calc(100vh - 673px)) auto;
+  box-sizing: border-box;
+  width: 376px;
+  max-height: min(605px, calc(100vh - 48px));
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 12px 32px rgba(5, 13, 26, 0.28);
+}
+
+.home .picker-popup[open] {
+  display: flex;
+}
+
+.home .picker-popup::backdrop {
+  background: none;
+}
+
+/* Above the energy row it was opened from, which sits over the cosmetics. */
+.home .picker-popup.of-energy {
+  bottom: max(24px, calc(100vh - 571px));
+}
+
+.home .popup-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.home .popup-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.home .popup-head > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home .popup-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.home .picker-popup .close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+/* Four to a row. The scrollbar of a long list sits in the body's right padding, so it doesn't cost a column. */
+.home .popup-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 12px 8px;
+  min-height: 0;
+  margin-right: -16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.home .popup-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 78px;
+  padding: 8px 0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.home .popup-grid [aria-pressed='true'] {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+.home .option-art {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.home .picker-popup.of-coin .option-art {
+  width: 78px;
+  height: 78px;
+}
+
+/* Card-shaped, not square, so a sleeve fills most of its button's width and the four to a row sit close. */
+.home .picker-popup.of-sleeve .option-art {
+  width: 60px;
+  height: 84px;
+}
+
+/* Mat-shaped, and as wide as its button: three to a row, not the other popups' four. */
+.home .picker-popup.of-playmat .option-art,
+.home .picker-popup.of-playmat .popup-grid button {
+  width: 112px;
+}
+
+.home .picker-popup.of-playmat .option-art {
+  height: 75px;
+}
+
+.home .picker-popup.of-playmat .popup-grid {
+  column-gap: 2px;
+}
+
+.home .picker-popup:is(.of-sleeve, .of-playmat) .popup-grid {
+  row-gap: 2px;
+}
+
+.home .option-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.home .check {
+  display: none;
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* The enlarged coin fills its button, so the badge moves in onto the coin's rim. */
+.home .picker-popup.of-coin .check {
+  right: 4px;
+  bottom: 6px;
+}
+
+.home .picker-popup.of-playmat .check {
+  right: 6px;
+  bottom: -10px;
+}
+
+.home [aria-pressed='true'] .check {
+  display: flex;
+}
+
+@media (max-width: 600px) {
+  .home .content.editor {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  /* The editor's deck bar takes the tab bar's place. */
+  .home .content.editor ~ .tab-bar,
+  .home .crumb,
+  .home .showing,
+  .home .deck-title,
+  .home .deck-energy,
+  .home .deck-count,
+  .home .deck-slots,
+  .home .cosmetics-label,
+  .home .editor-actions {
+    display: none;
+  }
+
+  .home .card-browser {
+    gap: 12px;
+    padding: 4px 20px 12px;
+  }
+
+  .home .editor-head .back {
+    width: 40px;
+    height: 40px;
+  }
+
+  .home .editor-head h1 {
+    display: block;
+    font-size: 20px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .home .editor-head .subtitle {
+    display: block;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .home .editor-head .save {
+    display: block;
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+
+  .home .filters {
+    flex-wrap: wrap;
+    gap: 12px 8px;
+  }
+
+  .home .search {
+    flex-basis: 100%;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  .home .search input {
+    font-size: 14px;
+  }
+
+  .home .dropdown {
+    flex: 1;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 8px 0 12px;
+    font-size: 12px;
+  }
+
+  .home .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 13px;
+  }
+
+  .home .browser-card {
+    width: auto;
+    height: auto;
+    aspect-ratio: 108 / 151;
+    border-radius: 6px;
+  }
+
+  .home .count {
+    top: 6px;
+    right: 6px;
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  .home .deck-panel {
+    gap: 10px;
+    width: auto;
+    max-height: 80vh;
+    padding: 10px 20px 28px;
+    border-left: 0;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .home .sheet-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .home .handle {
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--color-border);
+  }
+
+  .home .sheet-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .home .sheet-summary .energy {
+    width: 18px;
+    height: 18px;
+  }
+
+  .home .sheet-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .home .sheet-summary .icon {
+    color: var(--color-text-muted);
+  }
+
+  .home .deck-panel.open .sheet-summary .icon {
+    rotate: 180deg;
+  }
+
+  .home .progress {
+    height: 6px;
+    margin-top: 0;
+  }
+
+  .home .cosmetics {
+    padding: 0;
+    border: 0;
+  }
+
+  .home .pickers {
+    gap: 8px;
+  }
+
+  .home .picker {
+    gap: 6px;
+    padding: 6px 6px 8px;
+  }
+
+  .home .preview {
+    height: 40px;
+  }
+
+  .home .preview img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* 1.5x would be 42px; the preview is 40px tall. */
+  .home .picker.of-coin .preview img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .home .picker.of-sleeve .preview img {
+    width: 22px;
+    height: 30px;
+  }
+
+  .home .picker.of-playmat .preview img {
+    width: 62px;
+    height: 38px;
+    border-radius: 2px;
+  }
+
+  .home .picker-label {
+    font-size: 11px;
+  }
+
+  .home .picker-value {
+    gap: 2px;
+    margin-top: -5px;
+    font-size: 12px;
+  }
+
+  /* Icon sizes are inline; the phone's are smaller. */
+  .home .editor-head .back .icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .home .dropdown .icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .home .picker-value .icon {
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  /* The deck's cards come last on a phone: a strip of the first few, or every slot once the sheet is pulled open. */
+  .home .deck-strip,
+  .home .deck-slots {
+    order: 1;
+  }
+
+  .home .deck-strip {
+    flex-shrink: 0;
+    display: flex;
+    gap: 6px;
+    min-height: 53px;
+  }
+
+  .home .deck-strip > * {
+    flex-shrink: 0;
+    width: 38px;
+    height: 53px;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+
+  .home .deck-strip span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-2);
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .home .deck-panel.open .deck-strip {
+    display: none;
+  }
+
+  .home .deck-panel.open .deck-title,
+  .home .deck-panel.open .deck-energy {
+    display: flex;
+  }
+
+  .home .deck-panel.open .deck-slots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .home .deck-title input {
+    font-size: 20px;
+  }
+
+  .home .picker-popup,
+  .home .picker-popup.of-energy {
+    inset: 0;
+    width: min(350px, calc(100vw - 40px));
+    max-height: calc(100vh - 48px);
+    margin: auto;
+  }
+
+  .home .picker-popup::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .home .picker-popup .done {
+    display: block;
+    flex-shrink: 0;
+    padding: 13px 0;
+    font-size: 15px;
+  }
+
+  .home .popup-grid button {
+    width: 73px;
+  }
+
+  .home .option-art {
+    width: 48px;
+    height: 48px;
+  }
+
+  .home .picker-popup.of-coin .option-art {
+    width: 72px;
+    height: 72px;
+  }
+
+  .home .picker-popup.of-sleeve .option-art {
+    width: 56px;
+    height: 78px;
+  }
+
+  .home .picker-popup.of-playmat .option-art,
+  .home .picker-popup.of-playmat .popup-grid button {
+    width: 104px;
+  }
+
+  .home .picker-popup.of-playmat .option-art {
+    height: 69px;
+  }
+}
