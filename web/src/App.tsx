@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CardView, DecisionMessage, PokemonView, SideView } from './protocol'
 import { CARD_BASE } from './art'
+import { DeckEditor } from './DeckEditor'
 import { Decks } from './Decks'
 import { Home, type Page } from './Home'
 import { Landing } from './Landing'
@@ -14,6 +15,7 @@ function App() {
   const [me, setMe] = useState<{ name: string; elo: number; profileIcon: string; emblems: string[] } | 'signed-out' | null>(null)
   const [playing, setPlaying] = useState(false)
   const [page, setPage] = useState<Page>('Home')
+  const [editing, setEditing] = useState<number | 'new' | null>(null)
   useEffect(() => {
     fetch('/api/me')
       .then((response) => (response.ok ? response.json() : 'signed-out'))
@@ -22,10 +24,17 @@ function App() {
   if (me === null) return null
   if (me === 'signed-out') return <Landing />
   if (playing) return <Game />
+  // The sidebar leaves the editor too, dropping its unsaved changes, as Cancel does.
+  const navigate = (to: Page) => {
+    setEditing(null)
+    setPage(to)
+  }
+  if (page === 'Decks' && editing !== null)
+    return <DeckEditor id={editing} onNavigate={navigate} onClose={() => setEditing(null)} />
   return page === 'Decks' ? (
-    <Decks name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onNavigate={setPage} />
+    <Decks name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onNavigate={navigate} onEdit={setEditing} />
   ) : (
-    <Home name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onQueue={() => setPlaying(true)} onNavigate={setPage} />
+    <Home name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onQueue={() => setPlaying(true)} onNavigate={navigate} />
   )
 }
 

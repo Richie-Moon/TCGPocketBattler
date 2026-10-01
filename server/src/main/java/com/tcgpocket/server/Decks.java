@@ -25,10 +25,12 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A signed-in player's saved decks. Every statement is scoped to the owner's Google {@code subject},
@@ -68,10 +70,13 @@ class Decks {
         this.json = json;
     }
 
-    /** Most recently edited first. The card lists stay in the database; only their sizes come back. */
+    /**
+     * In the order they were created, oldest first, so editing a deck never moves it: the identity
+     * {@code id} only grows. The card lists stay in the database; only their sizes come back.
+     */
     List<Summary> all(String subject) {
         return db.sql("SELECT " + COLUMNS + ", JSON_VALUE(cards, '$.size()' RETURNING NUMBER) FROM decks"
-                        + " WHERE user_id = " + OWNER + " ORDER BY updated_at DESC")
+                        + " WHERE user_id = " + OWNER + " ORDER BY id")
                 .param(subject)
                 .query((row, n) -> summary(row))
                 .list();
@@ -86,20 +91,29 @@ class Decks {
     }
 
     /** The new deck's id. */
-    long create(String subject, String name, List<String> cards, Set<Type> energy) {
+    long create(String subject, Api.Draft draft) {
         KeyHolder key = new GeneratedKeyHolder();
-        db.sql("INSERT INTO decks (user_id, name, cards, energy) VALUES (" + OWNER + ", ?, JSON(?), JSON(?))")
-                .params(subject, name, json.writeValueAsString(cards), json.writeValueAsString(energy))
+        db.sql("INSERT INTO decks (user_id, name, cards, energy, focus_card_1, focus_card_2, coin, sleeve, playmat)"
+                        + " VALUES (" + OWNER + ", ?, JSON(?), JSON(?), ?, ?, ?, ?, ?)")
+                .param(subject).params(values(draft))
                 .update(key, "id");
         return key.getKeyAs(Number.class).longValue();
     }
 
     /** False when there is no such deck, or it is someone else's. */
-    boolean update(String subject, long id, String name, List<String> cards, Set<Type> energy) {
-        return db.sql("UPDATE decks SET name = ?, cards = JSON(?), energy = JSON(?), updated_at = SYSTIMESTAMP"
+    boolean update(String subject, long id, Api.Draft draft) {
+        return db.sql("UPDATE decks SET name = ?, cards = JSON(?), energy = JSON(?), focus_card_1 = ?, focus_card_2 = ?,"
+                        + " coin = ?, sleeve = ?, playmat = ?, updated_at = SYSTIMESTAMP"
                         + " WHERE id = ? AND user_id = " + OWNER)
-                .params(name, json.writeValueAsString(cards), json.writeValueAsString(energy), id, subject)
+                .params(values(draft)).params(id, subject)
                 .update() == 1;
+    }
+
+    /** A draft's columns, in the order both writes bind them. */
+    private List<Object> values(Api.Draft draft) {
+        return Arrays.asList(draft.name().strip(), json.writeValueAsString(draft.cards()),
+                json.writeValueAsString(draft.energy()), draft.focusCard1(), draft.focusCard2(),
+                draft.coin(), draft.sleeve(), draft.playmat());
     }
 
     /** False when there is no such deck, or it is someone else's. */
@@ -127,15 +141,17 @@ class Decks {
      * {@code /api/decks}, for the signed-in player only: 401 when signed out, 404 for a deck that is
      * missing or someone else's. The list returns {@link Summary summaries}; only {@code /{id}} carries the cards.
      * Drafts are allowed, so a deck is only checked for being well-formed
-     * (known card ids, no more than a full deck), never for legality.
+     * (known card ids, no more than a full deck, focus cards that are in it, cosmetics named like the
+     * object-storage files), never for legality.
      */
     @RestController
     @RequestMapping("/api/decks")
     @Profile("db")
     static class Api {
 
-        /** What the browser sends to create or replace a deck. */
-        record Draft(String name, List<String> cards, Set<Type> energy) {
+        /** What the browser sends to create or replace a deck: a {@link Deck} without its id. */
+        record Draft(String name, List<String> cards, Set<Type> energy,
+                     String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
         }
 
         private final Decks decks;
@@ -158,7 +174,7 @@ class Decks {
         ResponseEntity<Deck> create(@AuthenticationPrincipal OidcUser user, @RequestBody Draft draft) {
             String subject = subject(user);
             check(draft);
-            long id = decks.create(subject, draft.name().strip(), draft.cards(), draft.energy());
+            long id = decks.create(subject, draft);
             return ResponseEntity.status(HttpStatus.CREATED).body(decks.find(subject, id).orElseThrow());
         }
 
@@ -166,7 +182,7 @@ class Decks {
         Deck update(@AuthenticationPrincipal OidcUser user, @PathVariable long id, @RequestBody Draft draft) {
             String subject = subject(user);
             check(draft);
-            if (!decks.update(subject, id, draft.name().strip(), draft.cards(), draft.energy())) {
+            if (!decks.update(subject, id, draft)) {
                 throw notFound();
             }
             return decks.find(subject, id).orElseThrow();
@@ -203,6 +219,21 @@ class Decks {
                     || draft.energy().size() > DeckValidator.MAX_ENERGY_TYPES) {
                 throw badRequest("Choose at most " + DeckValidator.MAX_ENERGY_TYPES + " energy types");
             }
+            if (Stream.of(draft.focusCard1(), draft.focusCard2())
+                    .anyMatch(id -> id != null && !draft.cards().contains(id))) {
+                throw badRequest("A focus card must be one of the deck's cards");
+            }
+            // Coin_Tails.png is the back of every coin, not one to choose.
+            if (!cosmetic("Coin", draft.coin()) || draft.coin().equals("Coin_Tails.png")
+                    || !cosmetic("Sleeve", draft.sleeve())
+                    || !cosmetic("Playmat", draft.playmat())) {
+                throw badRequest("Choose a coin, a sleeve and a playmat");
+            }
+        }
+
+        /** The name ends up in an image URL, so it may only be a file name: letters, digits, {@code _ . -}. */
+        private static boolean cosmetic(String kind, String name) {
+            return name != null && name.length() <= 100 && name.matches(kind + "_[\\p{L}\\p{N}_.-]+\\.png");
         }
 
         private static ResponseStatusException notFound() {
