@@ -7,14 +7,15 @@ import { CARD_BASE, COIN_BASE, EMBLEM_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE
 import { Icon, Shell, type Page } from './Home'
 
 /**
- * Mirrors the server's {@code Decks.Summary}: no card list, so the page stays light. {@code legal} is
- * {@code DeckValidator}'s verdict, which the page could not reach without the cards. Energy is {@code Type} names.
+ * Mirrors the server's {@code Decks.Summary}: no card list, so the page stays light. {@code problems} is
+ * {@code DeckValidator}'s verdict, which the page could not reach without the cards: the rules the deck breaks,
+ * none when it is legal. Energy is {@code Type} names.
  */
 type DeckSummary = {
   id: number
   name: string
   cardCount: number
-  legal: boolean
+  problems: string[]
   energy: string[]
   focusCard1: string | null
   focusCard2: string | null
@@ -131,7 +132,14 @@ export function Decks({
 }
 
 function DeckTile({ deck, onEdit, onChanged }: { deck: DeckSummary; onEdit: () => void; onChanged: () => void }) {
-  const incomplete = deck.cardCount < DECK_SIZE && <span className="badge">Incomplete</span>
+  const legal = deck.problems.length === 0
+  // One problem a line; the badge shows it in a CSS tooltip, which unlike a native title appears at once.
+  const why = deck.problems.map((problem) => `• ${problem}`).join('\n')
+  const incomplete = !legal && (
+    <span className="badge" data-tip={why}>
+      Incomplete
+    </span>
+  )
   const menu = `deck-menu-${deck.id}`
   const [sharing, setSharing] = useState(false)
   const done = (response: Response) => (response.ok ? onChanged() : Promise.reject())
@@ -196,8 +204,8 @@ function DeckTile({ deck, onEdit, onChanged }: { deck: DeckSummary; onEdit: () =
             type="button"
             popoverTarget={menu}
             popoverTargetAction="hide"
-            disabled={!deck.legal}
-            title={deck.legal ? undefined : `Needs ${DECK_SIZE} cards, a Basic Pokémon and 1 to 3 energy types`}
+            disabled={!legal}
+            title={why || undefined}
             onClick={() => setSharing(true)}
           >
             Share

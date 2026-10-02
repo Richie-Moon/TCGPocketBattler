@@ -1008,10 +1008,31 @@ p {
 }
 
 .home .badge {
+  position: relative;
   border-radius: 4px;
   background: var(--color-danger);
   color: var(--color-surface);
   font-weight: 700;
+  cursor: help;
+}
+
+/* Why the deck is incomplete, under the badge. pre-line keeps one problem a line. */
+.home .badge:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: pre-line;
 }
 
 .home .cover .badge {
@@ -1578,6 +1599,15 @@ p {
   background: var(--color-accent);
 }
 
+/* Why the deck is not yet legal, one rule a line. */
+.home .deck-problems {
+  flex-shrink: 0;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--color-danger);
+  font-size: 13px;
+}
+
 .home .deck-slots {
   flex-shrink: 0;
   display: grid;
@@ -1927,6 +1957,7 @@ p {
   .home .deck-title,
   .home .deck-energy,
   .home .deck-count,
+  .home .deck-problems,
   .home .deck-slots,
   .home .cosmetics-label,
   .home .editor-actions {
@@ -2172,6 +2203,10 @@ p {
   .home .deck-panel.open .deck-title,
   .home .deck-panel.open .deck-energy {
     display: flex;
+  }
+
+  .home .deck-panel.open .deck-problems {
+    display: block;
   }
 
   .home .deck-panel.open .deck-slots {

@@ -85,6 +85,25 @@ export function DeckEditor({
   const [picking, setPicking] = useState<Cosmetic | 'energy' | null>(null)
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
+  const [problems, setProblems] = useState<string[]>([])
+
+  // The rules live in DeckValidator, so the server judges the draft. A reply for an older draft is dropped.
+  const cards = deck?.cards
+  const energy = deck?.energy
+  useEffect(() => {
+    if (!cards) return
+    let stale = false
+    fetch('/api/decks/problems', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cards, energy }),
+    })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((found) => stale || setProblems(found), () => {})
+    return () => {
+      stale = true
+    }
+  }, [cards, energy])
 
   useEffect(() => {
     fetch('/api/cards')
@@ -244,6 +263,13 @@ export function DeckEditor({
         <div className="progress">
           <div style={{ width: `${(deck.cards.length / DECK_SIZE) * 100}%` }} />
         </div>
+        {problems.length > 0 && (
+          <ul className="deck-problems">
+            {problems.map((problem) => (
+              <li key={problem}>{problem}</li>
+            ))}
+          </ul>
+        )}
 
         <div className="deck-slots">
           {Array.from({ length: DECK_SIZE }, (_, i) => {
