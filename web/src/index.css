@@ -928,10 +928,11 @@ p {
   font-weight: 600;
 }
 
+/* Tiles stretch from the design's 400px so each row ends where the profile pill does, whatever the width. */
 .home .deck-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  align-items: start;
   gap: 32px;
 }
 
@@ -940,7 +941,6 @@ p {
   flex-direction: column;
   gap: 14px;
   box-sizing: border-box;
-  width: 400px;
   padding: 16px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -985,19 +985,20 @@ p {
   object-fit: cover;
 }
 
+/* Offsets from the middle of the design's 366px cover, so the fan stays centred as the tile stretches. */
 .home .cover .left {
-  left: 62px;
+  left: calc(50% - 121px);
   rotate: 10deg;
 }
 
 .home .sleeve {
-  left: 202px;
+  left: calc(50% + 19px);
   rotate: -10deg;
 }
 
 .home .cover .front {
   top: 31px;
-  left: 132px;
+  left: calc(50% - 51px);
 }
 
 .home .cover .back,
@@ -1073,6 +1074,60 @@ p {
   color: var(--color-text-muted);
 }
 
+/* The More menu. A popover, so it is in the top layer: anchored above the button that opened it, or below if it won't fit. */
+.home .deck-menu {
+  position-area: top span-left;
+  position-try-fallbacks: flip-block;
+  inset: auto;
+  min-width: 160px;
+  margin: 6px 0;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 12px 32px rgba(5, 13, 26, 0.28);
+}
+
+.home .deck-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home .deck-menu button:hover {
+  background: var(--color-surface-2);
+}
+
+.home .deck-menu .danger {
+  color: var(--color-danger);
+}
+
+/* The editor's popup, centred over a dimmed page instead of docked beside the deck panel. */
+.home .picker-popup.share-popup {
+  inset: 0;
+  width: min(350px, calc(100vw - 40px));
+  margin: auto;
+}
+
+.home .share-popup::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.home .share-popup .qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  text-align: center;
+}
+
 .home .new-tile {
   align-items: center;
   justify-content: center;
@@ -1126,16 +1181,13 @@ p {
   }
 
   .home .deck-grid {
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: stretch;
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
   .home .deck-tile {
     flex-direction: row;
     align-items: center;
-    width: auto;
     padding: 10px 14px 10px 10px;
   }
 
