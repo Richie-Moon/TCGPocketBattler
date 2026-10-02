@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("Decks")
@@ -39,6 +41,15 @@ class DecksTest {
         rejects(draft("Sparks", Collections.nCopies(21, "A1-094"), Set.of()));
         rejects(draft("Sparks", List.of(), Set.of(Type.FIRE, Type.WATER, Type.GRASS, Type.METAL)));
         rejects(draft("Sparks", null, Set.of()));
+    }
+
+    @Test
+    @DisplayName("a deck is legal when DeckValidator finds no problem and every card is still in the pool")
+    void legal() {
+        assertTrue(Decks.legal(Game.LIGHTNING_DECK, Set.of(Type.LIGHTNING)));
+        assertFalse(Decks.legal(Game.LIGHTNING_DECK, Set.of()));
+        assertFalse(Decks.legal(Game.LIGHTNING_DECK.subList(0, 19), Set.of(Type.LIGHTNING)));
+        assertFalse(Decks.legal(Collections.nCopies(20, "A9-999"), Set.of(Type.LIGHTNING)));
     }
 
     @Test

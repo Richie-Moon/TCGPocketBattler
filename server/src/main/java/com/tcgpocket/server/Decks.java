@@ -51,14 +51,17 @@ class Decks {
                 String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
     }
 
-    /** What the decks page needs: a {@link Deck} with its card list reduced to a count. */
-    record Summary(long id, String name, int cardCount, Set<Type> energy,
+    /**
+     * What the decks page needs: a {@link Deck} with its card list reduced to a count and to whether
+     * it is {@link #legal}, which is what lets the deck be shared.
+     */
+    record Summary(long id, String name, int cardCount, boolean legal, Set<Type> energy,
                    String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
     }
 
-    /** Shared by both reads so {@link #deck} and {@link #summary} agree on column positions; the 9th differs. */
+    /** Shared by both reads so {@link #deck} and {@link #summary} agree on column positions. */
     private static final String COLUMNS =
-            "id, name, JSON_SERIALIZE(energy), focus_card_1, focus_card_2, coin, sleeve, playmat";
+            "id, name, JSON_SERIALIZE(energy), focus_card_1, focus_card_2, coin, sleeve, playmat, JSON_SERIALIZE(cards)";
 
     private static final String OWNER = "(SELECT id FROM users WHERE provider = 'google' AND subject = ?)";
 
@@ -72,19 +75,17 @@ class Decks {
 
     /**
      * In the order they were created, oldest first, so editing a deck never moves it: the identity
-     * {@code id} only grows. The card lists stay in the database; only their sizes come back.
+     * {@code id} only grows.
      */
     List<Summary> all(String subject) {
-        return db.sql("SELECT " + COLUMNS + ", JSON_VALUE(cards, '$.size()' RETURNING NUMBER) FROM decks"
-                        + " WHERE user_id = " + OWNER + " ORDER BY id")
+        return db.sql("SELECT " + COLUMNS + " FROM decks WHERE user_id = " + OWNER + " ORDER BY id")
                 .param(subject)
                 .query((row, n) -> summary(row))
                 .list();
     }
 
     Optional<Deck> find(String subject, long id) {
-        return db.sql("SELECT " + COLUMNS + ", JSON_SERIALIZE(cards) FROM decks"
-                        + " WHERE id = ? AND user_id = " + OWNER)
+        return db.sql("SELECT " + COLUMNS + " FROM decks WHERE id = ? AND user_id = " + OWNER)
                 .params(id, subject)
                 .query((row, n) -> deck(row))
                 .optional();
@@ -129,8 +130,15 @@ class Decks {
     }
 
     private Summary summary(ResultSet row) throws SQLException {
-        return new Summary(row.getLong(1), row.getString(2), row.getInt(9),
-                energy(row), row.getString(4), row.getString(5), row.getString(6), row.getString(7), row.getString(8));
+        Deck deck = deck(row);
+        return new Summary(deck.id(), deck.name(), deck.cards().size(), legal(deck.cards(), deck.energy()),
+                deck.energy(), deck.focusCard1(), deck.focusCard2(), deck.coin(), deck.sleeve(), deck.playmat());
+    }
+
+    /** Whether {@code DeckValidator} would let the deck into a game. A card that has left the pool makes it illegal. */
+    static boolean legal(List<String> cards, Set<Type> energy) {
+        return cards.stream().allMatch(id -> CardPool.find(id).isPresent())
+                && DeckValidator.problems(cards.stream().map(CardPool::get).toList(), energy).isEmpty();
     }
 
     private Set<Type> energy(ResultSet row) throws SQLException {

@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "tcgp-deck-qr": "github:KevinGutowski/tcgp-deck-qr#102d75e45ad244099d22ea5beba7bba57ad51be2"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
