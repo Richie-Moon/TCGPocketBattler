@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,12 +45,13 @@ class DecksTest {
     }
 
     @Test
-    @DisplayName("a deck is legal when DeckValidator finds no problem and every card is still in the pool")
-    void legal() {
-        assertTrue(Decks.legal(Game.LIGHTNING_DECK, Set.of(Type.LIGHTNING)));
-        assertFalse(Decks.legal(Game.LIGHTNING_DECK, Set.of()));
-        assertFalse(Decks.legal(Game.LIGHTNING_DECK.subList(0, 19), Set.of(Type.LIGHTNING)));
-        assertFalse(Decks.legal(Collections.nCopies(20, "A9-999"), Set.of(Type.LIGHTNING)));
+    @DisplayName("a deck has no problems when DeckValidator finds none and every card is still in the pool")
+    void problems() {
+        assertTrue(Decks.problems(Game.LIGHTNING_DECK, Set.of(Type.LIGHTNING)).isEmpty());
+        assertFalse(Decks.problems(Game.LIGHTNING_DECK, Set.of()).isEmpty());
+        assertFalse(Decks.problems(Game.LIGHTNING_DECK.subList(0, 19), Set.of(Type.LIGHTNING)).isEmpty());
+        assertEquals(List.of("A9-999 is no longer a card"),
+                Decks.problems(Collections.nCopies(20, "A9-999"), Set.of(Type.LIGHTNING)));
     }
 
     @Test

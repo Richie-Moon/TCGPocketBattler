@@ -52,10 +52,10 @@ class Decks {
     }
 
     /**
-     * What the decks page needs: a {@link Deck} with its card list reduced to a count and to whether
-     * it is {@link #legal}, which is what lets the deck be shared.
+     * What the decks page needs: a {@link Deck} with its card list reduced to a count and to its
+     * {@link #problems}; a deck with none is legal, which is what lets it be shared.
      */
-    record Summary(long id, String name, int cardCount, boolean legal, Set<Type> energy,
+    record Summary(long id, String name, int cardCount, List<String> problems, Set<Type> energy,
                    String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
     }
 
@@ -131,14 +131,19 @@ class Decks {
 
     private Summary summary(ResultSet row) throws SQLException {
         Deck deck = deck(row);
-        return new Summary(deck.id(), deck.name(), deck.cards().size(), legal(deck.cards(), deck.energy()),
+        return new Summary(deck.id(), deck.name(), deck.cards().size(), problems(deck.cards(), deck.energy()),
                 deck.energy(), deck.focusCard1(), deck.focusCard2(), deck.coin(), deck.sleeve(), deck.playmat());
     }
 
-    /** Whether {@code DeckValidator} would let the deck into a game. A card that has left the pool makes it illegal. */
-    static boolean legal(List<String> cards, Set<Type> energy) {
-        return cards.stream().allMatch(id -> CardPool.find(id).isPresent())
-                && DeckValidator.problems(cards.stream().map(CardPool::get).toList(), energy).isEmpty();
+    /**
+     * Why {@code DeckValidator} would keep the deck out of a game, as sentences for the player; empty when it
+     * is legal. A card that has left the pool is a problem too, and the only one reported: the rest cannot be
+     * checked without it.
+     */
+    static List<String> problems(List<String> cards, Set<Type> energy) {
+        List<String> gone = cards.stream().filter(id -> CardPool.find(id).isEmpty()).distinct()
+                .map(id -> id + " is no longer a card").toList();
+        return gone.isEmpty() ? DeckValidator.problems(cards.stream().map(CardPool::get).toList(), energy) : gone;
     }
 
     private Set<Type> energy(ResultSet row) throws SQLException {
@@ -194,6 +199,15 @@ class Decks {
                 throw notFound();
             }
             return decks.find(subject, id).orElseThrow();
+        }
+
+        /** {@link Decks#problems} for a draft the editor has not saved, so it needs no deck id and stores nothing. */
+        @PostMapping("/problems")
+        List<String> problems(@RequestBody Draft draft) {
+            if (draft.cards() == null || draft.cards().contains(null) || draft.energy() == null) {
+                throw badRequest("A deck needs cards and energy");
+            }
+            return Decks.problems(draft.cards(), draft.energy());
         }
 
         @DeleteMapping("/{id}")
