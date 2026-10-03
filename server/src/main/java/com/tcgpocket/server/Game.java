@@ -56,17 +56,17 @@ final class Game {
         }
     }
 
-    private record Seat(IPlayer player, Side side, Consumer<Object> send) {
+    private record Seat(IPlayer player, Side side, Consumer<Object> send, BoardView.Cosmetics cosmetics) {
     }
 
     private final List<Seat> seats;
     private final Battle battle;
     private int nextInstanceId;
 
-    /** A deck to deal: printed card ids, and the energy types its Energy Zone generates. */
-    record Deal(List<String> cards, Set<Type> energy) {
-        static final Deal LIGHTNING = new Deal(LIGHTNING_DECK, Set.of(Type.LIGHTNING));
-        static final Deal FIRE = new Deal(FIRE_DECK, Set.of(Type.FIRE));
+    /** A deck to deal: printed card ids, the energy types its Energy Zone generates, and how it looks. */
+    record Deal(List<String> cards, Set<Type> energy, BoardView.Cosmetics cosmetics) {
+        static final Deal LIGHTNING = new Deal(LIGHTNING_DECK, Set.of(Type.LIGHTNING), BoardView.Cosmetics.DEFAULT);
+        static final Deal FIRE = new Deal(FIRE_DECK, Set.of(Type.FIRE), BoardView.Cosmetics.DEFAULT);
     }
 
     /** Decks are not checked here; {@code TurnEngine.dealOpeningHands} rejects an illegal one. */
@@ -86,7 +86,8 @@ final class Game {
         Side firstSide = deal(new Side(first.name(), first), firstDeck);
         Side secondSide = deal(new Side(second.name(), second), secondDeck);
 
-        this.seats = List.of(new Seat(first, firstSide, sendFirst), new Seat(second, secondSide, sendSecond));
+        this.seats = List.of(new Seat(first, firstSide, sendFirst, firstDeck.cosmetics()),
+                new Seat(second, secondSide, sendSecond, secondDeck.cosmetics()));
         this.battle = Battle.flipForFirst(firstSide, secondSide, rng);
     }
 
@@ -118,7 +119,7 @@ final class Game {
             result = "The game crashed";
         }
         for (Seat seat : seats) {
-            seat.send().accept(new OverMessage(BoardView.of(battle, seat.side()), result));
+            seat.send().accept(new OverMessage(view(seat), result));
         }
         return score;
     }
@@ -169,8 +170,13 @@ final class Game {
 
     private void broadcast() {
         for (Seat seat : seats) {
-            seat.send().accept(new StateMessage(BoardView.of(battle, seat.side())));
+            seat.send().accept(new StateMessage(view(seat)));
         }
+    }
+
+    private BoardView view(Seat viewer) {
+        return BoardView.of(battle, viewer.side(), side -> seats.stream()
+                .filter(seat -> seat.side() == side).findFirst().orElseThrow().cosmetics());
     }
 
     private Side deal(Side side, Deal deck) {

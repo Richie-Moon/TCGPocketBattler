@@ -20,6 +20,13 @@ export interface PokemonView {
   tool: CardView | null
 }
 
+/** Object-storage names from the side's deck ("Coin_Pokéball.png"), under COIN_BASE, SLEEVE_BASE and PLAYMAT_BASE. */
+export interface Cosmetics {
+  coin: string
+  sleeve: string
+  playmat: string
+}
+
 export interface SideView {
   name: string
   points: number
@@ -34,6 +41,7 @@ export interface SideView {
   bench: PokemonView[]
   energy: string | null
   nextEnergy: string | null
+  cosmetics: Cosmetics
 }
 
 export interface BoardView {

@@ -125,7 +125,7 @@ final class GameSocket extends TextWebSocketHandler {
         // Re-checked because a card can leave the pool after the deck was selected.
         return decks.filter(d -> subject != null).flatMap(d -> d.selected(subject))
                 .filter(d -> Decks.problems(d.cards(), d.energy()).isEmpty())
-                .map(d -> new Game.Deal(d.cards(), d.energy()))
+                .map(d -> new Game.Deal(d.cards(), d.energy(), new BoardView.Cosmetics(d.coin(), d.sleeve(), d.playmat())))
                 .orElse(fallback);
     }
 

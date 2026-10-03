@@ -1,13 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
-import cardBackDark from './assets/battle/card-back-dark.svg'
-import cardBack from './assets/battle/card-back.svg'
 import chat from './assets/battle/chat.svg'
-import deckBackDark from './assets/battle/deck-back-dark.svg'
-import deckBack from './assets/battle/deck-back.svg'
 import glowDark from './assets/battle/energy-glow-dark.png'
 import glow from './assets/battle/energy-glow.png'
 import send from './assets/battle/send.svg'
-import { CARD_BASE, ENERGY_BASE, ICON_BASE } from './art'
+import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
 import { Icon } from './Home'
 import type { CardView, OptionView, PokemonView, SideView } from './protocol'
 import { useGame, type LogEntry } from './useGame'
@@ -27,6 +23,7 @@ const NO_SIDE: SideView = {
   bench: [],
   energy: null,
   nextEnergy: null,
+  cosmetics: { coin: '', sleeve: '', playmat: '' },
 }
 
 function sourceOf(option: OptionView, activeId: number | undefined): Source | null {
@@ -151,6 +148,8 @@ export function Battle({
   }
 
   const over = result !== null || connection === 'closed'
+  // The mat and coin are those of whoever's turn it is; each side's cards keep their own sleeve.
+  const current = board?.yourTurn ? you : opponent
   const yourName = `${me?.name ?? (you.name || 'You')} (you)`
   const theirName = opponent.name || 'Opponent'
   const unread = logOpen ? 0 : log.length - seen
@@ -164,7 +163,11 @@ export function Battle({
 
   return (
     <div className={logOpen ? 'battle log-open' : 'battle'}>
-      <div className="mat" ref={mat}>
+      <div
+        className="mat"
+        ref={mat}
+        style={board ? { backgroundImage: `url("${PLAYMAT_BASE}/${current.cosmetics.playmat}")` } : undefined}
+      >
         <div className="stage" style={{ zoom: fit.zoom, height: fit.height }}>
           <div className="field">
             <Bench className="opp-bench" pokemon={opponent.bench} state={pokemonState} onClick={clickPokemon} />
@@ -182,6 +185,7 @@ export function Battle({
                 {unread > 0 && <span className="badge">{unread}</span>}
               </button>
               <div className="turn">
+                {board && <img className="coin" src={`${COIN_BASE}/${current.cosmetics.coin}`} alt="" />}
                 <span className={board?.yourTurn && !over ? 'dot yours' : 'dot'} />
                 {status}
               </div>
@@ -313,14 +317,9 @@ function Card({ card, className = 'art' }: { card: Pick<CardView, 'card' | 'name
   return <img className={className} src={`${CARD_BASE}/${card.card}.webp`} alt={card.name} title={card.name} />
 }
 
-/** The design's card back, in its dark variant on a dark theme. */
-function Back({ deck, className }: { deck?: boolean; className?: string }) {
-  return (
-    <picture className={className}>
-      <source srcSet={deck ? deckBackDark : cardBackDark} media="(prefers-color-scheme: dark)" />
-      <img src={deck ? deckBack : cardBack} alt="" />
-    </picture>
-  )
+/** A face-down card, in its side's sleeve. */
+function Back({ sleeve }: { sleeve: string }) {
+  return <img className="art" src={`${SLEEVE_BASE}/${sleeve}`} alt="" />
 }
 
 function Slot({ className, title, children }: { className: string; title?: string; children?: ReactNode }) {
@@ -395,7 +394,7 @@ function Zones({ className, side, deckFirst }: { className: string; side: SideVi
   )
   const deck = (
     <Slot key="deck" className="pile deck" title={`${side.deckSize} cards in deck`}>
-      {side.deckSize > 0 && <Back deck className="art" />}
+      {side.deckSize > 0 && <Back sleeve={side.cosmetics.sleeve} />}
     </Slot>
   )
   return <div className={`zones ${className}`}>{deckFirst ? [deck, discard] : [discard, deck]}</div>
@@ -435,7 +434,7 @@ function OpponentHand({ side }: { side: SideView }) {
     <div className="opp-hand" aria-label={`Opponent's hand: ${side.handSize} cards`}>
       {Array.from({ length: side.handSize }, (_, i) => (
         <span key={i} className="opp-card" style={fan(i, side.handSize, 5)}>
-          {i < side.hand.length ? <Card card={side.hand[i]} /> : <Back />}
+          {i < side.hand.length ? <Card card={side.hand[i]} /> : <Back sleeve={side.cosmetics.sleeve} />}
         </span>
       ))}
     </div>

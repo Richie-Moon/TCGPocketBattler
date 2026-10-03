@@ -2402,7 +2402,7 @@ p {
   display: flex;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-mat);
+  background: var(--color-mat) center / cover no-repeat;
 }
 
 .battle .stage {
@@ -2435,11 +2435,11 @@ p {
 .battle .your-energy { grid-area: 8 / 6; margin: 31.67px 0 0 15.33px; }
 .battle .menu { grid-area: 2 / 6 / 5 / 8; align-self: end; margin-bottom: 16px; z-index: 3; }
 
-/* A dashed place for a card; the card, when there is one, covers it. */
+/* An outlined place for a card; the card, when there is one, covers it. */
 .battle .slot {
   position: relative;
   box-sizing: border-box;
-  border: 1.833px dashed var(--color-mat-zone);
+  border: 1.833px solid var(--color-mat-zone);
   border-radius: 9.167px;
 }
 
@@ -2597,6 +2597,12 @@ p {
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.battle .turn .coin {
+  width: 24px;
+  height: 24px;
+  margin: -4px 0;
 }
 
 .battle .turn .dot {
