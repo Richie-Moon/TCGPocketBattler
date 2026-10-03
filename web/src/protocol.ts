@@ -92,6 +92,8 @@ export type ServerMessage =
   | DecisionMessage
   | { type: 'over'; board: BoardView; result: string }
   | { type: 'error'; message: string }
+  /** What the opponent chose, worded for you; `turn` and `yourTurn` place it in the log. */
+  | { type: 'log'; turn: number; yourTurn: boolean; text: string }
 
 /** The only thing the browser ever sends. */
 export interface Answer {

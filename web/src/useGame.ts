@@ -3,7 +3,7 @@ import type { Answer, BoardView, DecisionMessage, ServerMessage } from './protoc
 
 /** One line of the battle log. `turn` lines are the dividers; `point` lines are knockouts. */
 export interface LogEntry {
-  kind: 'turn' | 'you' | 'point' | 'info'
+  kind: 'turn' | 'you' | 'them' | 'point' | 'info'
   text: string
 }
 
@@ -25,22 +25,27 @@ export function useGame(bot = false) {
     // socket; the server would pair that socket with a real one, then abandon the game when it closed.
     let ws: WebSocket | undefined
     let last: BoardView | null = null
+    let shown = 0 // the last turn given a divider
     const timer = setTimeout(connect, 0)
     return () => {
       clearTimeout(timer)
       ws?.close()
     }
 
-    // ponytail: the server sends no game log, so this only sees turns, points and your own moves; log engine
-    // events server-side to show what the opponent did.
-    function track(next: BoardView) {
+    // Dividers up to `turn`. A whole turn can pass between two boards, so skipped turns are filled in; turns alternate.
+    function divide(turn: number, yourTurn: boolean) {
       const entries: LogEntry[] = []
-      // A bot's whole turn can pass between two boards, so fill in the turns skipped; turns alternate.
-      if (next.you.active)
-        for (let turn = last?.you.active ? last.turn + 1 : next.turn; turn <= next.turn; turn++) {
-          const yours = next.yourTurn === ((next.turn - turn) % 2 === 0)
-          entries.push({ kind: 'turn', text: `Turn ${turn} · ${yours ? 'You' : 'Opponent'}` })
-        }
+      for (let t = shown ? shown + 1 : turn; t <= turn; t++) {
+        const yours = yourTurn === ((turn - t) % 2 === 0)
+        entries.push({ kind: 'turn', text: `Turn ${t} · ${yours ? 'You' : 'Opponent'}` })
+      }
+      shown = Math.max(shown, turn)
+      return entries
+    }
+
+    // ponytail: the log is only moves, points and the result; log engine events (damage, flips) server-side to show more.
+    function track(next: BoardView) {
+      const entries = next.you.active ? divide(next.turn, next.yourTurn) : []
       if (last && next.you.points > last.you.points) entries.push({ kind: 'point', text: 'You took a point.' })
       if (last && next.opponent.points > last.opponent.points)
         entries.push({ kind: 'point', text: 'Opponent took a point.' })
@@ -78,6 +83,11 @@ export function useGame(bot = false) {
           case 'error':
             setError(message.message)
             break
+          case 'log': {
+            const entries = [...divide(message.turn, message.yourTurn), { kind: 'them', text: `Opponent: ${message.text}` } as const]
+            setLog((log) => [...log, ...entries])
+            break
+          }
         }
       }
       ws.onclose = () => setConnection('closed')

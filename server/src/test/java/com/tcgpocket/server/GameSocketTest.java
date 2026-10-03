@@ -35,7 +35,7 @@ class GameSocketTest {
     JsonMapper json;
 
     @Test
-    @DisplayName("two browsers play a game to the end; bad answers are rejected and the opponent's hand is never sent")
+    @DisplayName("two browsers play a game to the end; bad answers are rejected, the opponent's hand is never sent, and each sees the other's moves")
     void twoClientsPlayAGame() throws Exception {
         Client cheater = connect(new Client(new Random(1), true));
         Client honest = connect(new Client(new Random(2), false));
@@ -49,6 +49,8 @@ class GameSocketTest {
         assertEquals(List.of(), cheater.badIds);
         assertEquals(List.of(), honest.badIds);
         for (Client client : List.of(cheater, honest)) {
+            assertTrue(client.logs.contains("End turn"), "the opponent's moves are logged");
+            assertTrue(client.logs.stream().noneMatch(text -> text.startsWith("Active ")), "the opponent's setup was logged");
             assertEquals("setup", client.firstDecisionKind, "setup is the first question");
             assertFalse(client.opponentPlacedBeforeSetup, "the opponent's opening was shown before this player chose");
             assertFalse(client.boards.isEmpty());
@@ -69,6 +71,7 @@ class GameSocketTest {
         assertEquals(List.of(), client.errors);
         assertEquals(List.of(), client.badIds);
         assertEquals("setup", client.firstDecisionKind);
+        assertTrue(client.logs.contains("End turn"), "the bot's moves are logged");
     }
 
     private Client connect(Client client) throws Exception {
@@ -85,6 +88,7 @@ class GameSocketTest {
         final CompletableFuture<String> over = new CompletableFuture<>();
         final List<JsonNode> boards = new CopyOnWriteArrayList<>();
         final List<String> errors = new CopyOnWriteArrayList<>();
+        final List<String> logs = new CopyOnWriteArrayList<>();
         /** Options whose ids point at nothing on the board sent just before them. */
         final List<String> badIds = new CopyOnWriteArrayList<>();
         volatile String firstDecisionKind;
@@ -117,6 +121,7 @@ class GameSocketTest {
                     }
                     answer(session, id, random.nextInt(size));
                 }
+                case "log" -> logs.add(node.get("text").asString());
                 case "over" -> over.complete(node.get("result").asString());
                 case "error" -> errors.add(node.get("message").asString().replaceAll("^\\w+ -?\\d+ ", ""));
                 default -> { }

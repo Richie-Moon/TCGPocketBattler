@@ -18,8 +18,9 @@ served, or against the engine's `RandomPlayer` at once for `/play?bot` (unrated;
   signed out, without the `db` profile, or with none selected they get `Game.Deal.LIGHTNING` (first
   seat) or `FIRE` (second seat, and always the bot). The deck's coin, sleeve and playmat go out
   in each `SideView.cosmetics` (`Cosmetics.DEFAULT` for the fixed decks). `engine.DeckValidator` (run by `TurnEngine.dealOpeningHands` for both sides) is what a deck
-  builder should call too. There is no turn timer, no reconnect, and no game log yet (seed + deck
-  lists + chosen indices would replay a game exactly). Saved decks live behind `/api/decks`
+  builder should call too. There is no turn timer, no reconnect, and no stored game log (seed + deck
+  lists + chosen indices would replay a game exactly). `Game` sends each choice to the other player as a
+  `log` message, worded for them; setup is left out and a chosen card is not named. Saved decks live behind `/api/decks`
   (`Decks`, `db` profile): drafts are allowed, so saving checks only that a deck is well-formed,
   and only the selected deck is played. The deck editor browses `/api/cards` (`Cards`): printed
   text only, straight from `CardPool`, so it needs no sign-in or database.

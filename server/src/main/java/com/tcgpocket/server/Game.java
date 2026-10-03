@@ -56,6 +56,16 @@ final class Game {
         }
     }
 
+    /**
+     * What a player chose, sent to everyone else so their log shows the other side's moves. Worded for the
+     * receiver ("your Pikachu"); {@code yourTurn} is too, so the log knows whose turn it falls in.
+     */
+    record LogMessage(String type, int turn, boolean yourTurn, String text) {
+        LogMessage(int turn, boolean yourTurn, String text) {
+            this("log", turn, yourTurn, text);
+        }
+    }
+
     private record Seat(IPlayer player, Side side, Consumer<Object> send, BoardView.Cosmetics cosmetics) {
     }
 
@@ -83,8 +93,8 @@ final class Game {
                  IPlayer bot, RandomSource rng) {
         RemotePlayer first = new RemotePlayer("Player 1", sendFirst, this::broadcast);
         IPlayer second = bot != null ? bot : new RemotePlayer("Player 2", sendSecond, this::broadcast);
-        Side firstSide = deal(new Side(first.name(), first), firstDeck);
-        Side secondSide = deal(new Side(second.name(), second), secondDeck);
+        Side firstSide = deal(new Side(first.name(), new Logged(first)), firstDeck);
+        Side secondSide = deal(new Side(second.name(), new Logged(second)), secondDeck);
 
         this.seats = List.of(new Seat(first, firstSide, sendFirst, firstDeck.cosmetics()),
                 new Seat(second, secondSide, sendSecond, secondDeck.cosmetics()));
@@ -171,6 +181,50 @@ final class Game {
     private void broadcast() {
         for (Seat seat : seats) {
             seat.send().accept(new StateMessage(view(seat)));
+        }
+    }
+
+    /** Passes every choice through to {@link #tellOthers}, so the engine never needs to know about the log. */
+    private final class Logged implements IPlayer {
+        private final IPlayer player;
+
+        Logged(IPlayer player) {
+            this.player = player;
+        }
+
+        @Override
+        public String name() {
+            return player.name();
+        }
+
+        @Override
+        public <T> T choose(Decision<T> decision) {
+            T choice = player.choose(decision);
+            tellOthers(decision, choice);
+            return choice;
+        }
+    }
+
+    /**
+     * Setup is left out, since both boards are revealed together, and a chosen card is not named: it may have
+     * come from a hand or deck. Called on the game thread, or on a setup thread, where it sends nothing.
+     */
+    private void tellOthers(Decision<?> decision, Object choice) {
+        for (Seat seat : seats) {
+            if (seat.side() == decision.chooser()) {
+                continue;
+            }
+            // Labelled as if the receiver were choosing, so "your" and "opponent's" are theirs.
+            OptionView view = OptionView.of(choice,
+                    new Decision<>(decision.prompt(), decision.options(), seat.side(), decision.context()));
+            String text = switch (view.kind()) {
+                case "setup" -> null;
+                case "card" -> "Chose a card";
+                default -> view.label();
+            };
+            if (text != null) {
+                seat.send().accept(new LogMessage(battle.turn(), battle.attacker() == seat.side(), text));
+            }
         }
     }
 
