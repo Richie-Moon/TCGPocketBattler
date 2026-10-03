@@ -1528,6 +1528,15 @@ p {
   box-shadow: 0 2px 0 var(--color-accent);
 }
 
+.home .deck-title .name-count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.home .deck-title:not(:focus-within) .name-count {
+  display: none;
+}
+
 .home .deck-title input {
   flex: 1;
   min-width: 0;

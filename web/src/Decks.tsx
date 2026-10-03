@@ -144,14 +144,14 @@ function DeckTile({ deck, onEdit, onChanged }: { deck: DeckSummary; onEdit: () =
   const [sharing, setSharing] = useState(false)
   const done = (response: Response) => (response.ok ? onChanged() : Promise.reject())
 
-  /** The summary has no card list, so the copy is made from the full deck. The name is cut to stay within the server's 100. */
+  /** The summary has no card list, so the copy is made from the full deck. The name is cut to stay within the server's 22. */
   function duplicate() {
     getJson(`/api/decks/${deck.id}`)
       .then(({ id: _id, ...draft }) =>
         fetch('/api/decks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...draft, name: `${draft.name.slice(0, 95)} copy` }),
+          body: JSON.stringify({ ...draft, name: `${draft.name.slice(0, 17)} copy` }),
         }),
       )
       .then(done)

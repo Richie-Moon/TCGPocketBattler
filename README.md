@@ -53,9 +53,7 @@ npm run dev    # then open http://localhost:5173 in two tabs
 - Drag and drop: hand → bench/active (play, evolve), energy → Pokémon (attach)
 - Tap the Active Pokémon for an attack/ability popover, drawn by the client rather than hotspots on the art
 - Clear turn, prompt and coin-flip feedback; game-over screen
-- Deck builder, once the server accepts deck lists
 - Allow importing from Pocket/Limitless
-- Add "share" to decks menu somewhere (3 dots popup)
 
 ### Later
 - AI opponent (start from `RandomPlayer`, then something that searches `legalActions`)
