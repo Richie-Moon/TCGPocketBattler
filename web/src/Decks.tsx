@@ -12,7 +12,7 @@ import { Icon, Shell, type Page } from './Home'
  * {@code DeckValidator}'s verdict, which the page could not reach without the cards: the rules the deck breaks,
  * none when it is legal. Energy is {@code Type} names. {@code selected} is the one deck the player plays with.
  */
-type DeckSummary = {
+export type DeckSummary = {
   id: number
   name: string
   cardCount: number

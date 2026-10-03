@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import bot from './assets/home/bot.svg'
 import chevronDown from './assets/home/chevron-down.svg'
 import chevronRight from './assets/home/chevron-right.svg'
+import edit from './assets/decks/edit.svg'
+import plus from './assets/decks/plus.svg'
 import decksIcon from './assets/home/decks.svg'
 import friends from './assets/home/friends.svg'
 import homeIcon from './assets/home/home.svg'
@@ -10,7 +12,8 @@ import profile from './assets/home/profile.svg'
 import replays from './assets/home/replays.svg'
 import tournaments from './assets/home/tournaments.svg'
 import users from './assets/home/users.svg'
-import { EMBLEM_BASE, ICON_BASE } from './art'
+import { CARD_BASE, EMBLEM_BASE, ENERGY_BASE, ICON_BASE } from './art'
+import { DECK_SIZE, type DeckSummary } from './Decks'
 
 export type Page = 'Home' | 'Decks'
 
@@ -101,15 +104,33 @@ export function Home({
   emblems,
   onQueue,
   onNavigate,
+  onEdit,
 }: {
   name: string
   profileIcon: string
   emblems: string[]
   onQueue: () => void
   onNavigate: (page: Page) => void
+  onEdit: (id: number | 'new') => void
 }) {
-  // ponytail: always null until there is deck building to choose from, so every way to start a game stays disabled.
-  const [deck] = useState<{ name: string; cards: number; type: string } | null>(null)
+  // The server only lets a legal deck be selected, so having one is enough to queue.
+  const [decks, setDecks] = useState<DeckSummary[]>([])
+  const load = () =>
+    fetch('/api/decks')
+      .then((response) => (response.ok ? response.json() : []))
+      .then(setDecks)
+      .catch(() => {})
+  useEffect(() => {
+    load()
+  }, [])
+
+  function select(d: DeckSummary) {
+    if (d.selected) return
+    fetch(`/api/decks/${d.id}/selected`, { method: 'PUT' })
+      .then((response) => (response.ok ? load() : Promise.reject()))
+      .catch(() => alert("Couldn't select the deck"))
+  }
+  const deck = decks.find((d) => d.selected) ?? null
   const [format, setFormat] = useState<'Standard' | 'Ranked'>('Standard')
 
   return (
@@ -142,12 +163,8 @@ export function Home({
           <div className="panel play">
             <h2>Play</h2>
             <div className="label">Deck</div>
-            <button type="button" className="deck-select">
-              <span className="deck-art" />
-              <span className="deck-text">
-                <span className="deck-name">{deck ? deck.name : 'No deck selected'}</span>
-                <span className="muted">{deck ? `${deck.cards} cards · ${deck.type}` : 'Choose a deck to queue'}</span>
-              </span>
+            <button type="button" className="deck-select" onClick={() => onNavigate('Decks')}>
+              {deck ? <DeckLine deck={deck} /> : <DeckLine name="No deck selected" detail="Choose a deck to queue" />}
               <Icon src={chevronDown} size={20} />
             </button>
             <div className="label">Format</div>
@@ -189,11 +206,45 @@ export function Home({
           <div className="panel your-decks">
             <div className="panel-head">
               <h2>Your decks</h2>
-              <button type="button" className="link">
+              <button type="button" className="link" onClick={() => onNavigate('Decks')}>
                 Manage
               </button>
             </div>
-            <p className="empty-state">No decks yet</p>
+            {/* ponytail: the first three only; Manage shows the rest. */}
+            <div className="deck-tiles">
+              {decks.slice(0, 3).map((d) => (
+                <div key={d.id} className={d.selected ? 'mini-deck selected' : 'mini-deck'}>
+                  {/* Only a legal deck can be selected; an incomplete one says why on hover. */}
+                  <button
+                    type="button"
+                    className="pick"
+                    disabled={d.problems.length > 0}
+                    title={d.problems.map((problem) => `• ${problem}`).join('\n') || undefined}
+                    onClick={() => select(d)}
+                  >
+                    {d.focusCard1 && <img className="art" src={`${CARD_BASE}/${d.focusCard1}.webp`} alt="" />}
+                    <span className="caption">
+                      <span className="deck-name">{d.name}</span>
+                      <span className="meta">
+                        {d.energy.map((type) => (
+                          <img key={type} className="energy" src={`${ENERGY_BASE}/${type.toLowerCase()}.png`} alt={type} title={type} />
+                        ))}
+                        {d.cardCount}/{DECK_SIZE}
+                      </span>
+                    </span>
+                  </button>
+                  <button type="button" className="edit-deck" aria-label="Edit deck" onClick={() => onEdit(d.id)}>
+                    <Icon src={edit} size={16} />
+                  </button>
+                </div>
+              ))}
+              {decks.length < 3 && (
+                <button type="button" className="add-deck" onClick={() => onEdit('new')}>
+                  <Icon src={plus} size={20} />
+                  New deck
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -235,5 +286,31 @@ export function Home({
         </div>
       </div>
     </Shell>
+  )
+}
+
+/** A deck's cover card, name, energy and size, or a placeholder name and detail when there is no deck. */
+function DeckLine({ deck, name, detail }: { deck?: DeckSummary; name?: string; detail?: string }) {
+  return (
+    <>
+      {deck?.focusCard1 ? (
+        <img className="deck-art" src={`${CARD_BASE}/${deck.focusCard1}.webp`} alt="" />
+      ) : (
+        <span className="deck-art" />
+      )}
+      <span className="deck-text">
+        <span className="deck-name">{deck ? deck.name : name}</span>
+        {deck ? (
+          <span className="deck-meta">
+            {deck.energy.map((type) => (
+              <img key={type} className="energy" src={`${ENERGY_BASE}/${type.toLowerCase()}.png`} alt={type} title={type} />
+            ))}
+            {deck.cardCount}/{DECK_SIZE} cards
+          </span>
+        ) : (
+          <span className="muted">{detail}</span>
+        )}
+      </span>
+    </>
   )
 }
