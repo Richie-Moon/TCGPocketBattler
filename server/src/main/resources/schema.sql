@@ -72,3 +72,18 @@ BEGIN
     add_column('focus_card_1 VARCHAR2(20)');
     add_column('focus_card_2 VARCHAR2(20)');
 END;
+/
+
+-- The deck the player has chosen to play with, so at most one per player; deleting it unselects it.
+-- Added here, not with the other users columns, because it needs decks to exist.
+DECLARE
+    PROCEDURE add_column(definition VARCHAR2) IS
+    BEGIN
+        EXECUTE IMMEDIATE 'ALTER TABLE users ADD (' || definition || ')';
+    EXCEPTION
+        WHEN OTHERS THEN
+            IF SQLCODE != -1430 THEN RAISE; END IF;
+    END;
+BEGIN
+    add_column('selected_deck NUMBER REFERENCES decks (id) ON DELETE SET NULL');
+END;

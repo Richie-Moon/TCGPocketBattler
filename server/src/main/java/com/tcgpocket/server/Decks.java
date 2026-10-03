@@ -53,10 +53,12 @@ class Decks {
 
     /**
      * What the decks page needs: a {@link Deck} with its card list reduced to a count and to its
-     * {@link #problems}; a deck with none is legal, which is what lets it be shared.
+     * {@link #problems}; a deck with none is legal, which is what lets it be shared. {@code selected} marks the
+     * one deck the player has chosen to play with.
      */
     record Summary(long id, String name, int cardCount, List<String> problems, Set<Type> energy,
-                   String focusCard1, String focusCard2, String coin, String sleeve, String playmat) {
+                   String focusCard1, String focusCard2, String coin, String sleeve, String playmat,
+                   boolean selected) {
     }
 
     /** Shared by both reads so {@link #deck} and {@link #summary} agree on column positions. */
@@ -78,8 +80,10 @@ class Decks {
      * {@code id} only grows.
      */
     List<Summary> all(String subject) {
-        return db.sql("SELECT " + COLUMNS + " FROM decks WHERE user_id = " + OWNER + " ORDER BY id")
-                .param(subject)
+        return db.sql("SELECT " + COLUMNS + ", CASE WHEN id = (SELECT selected_deck FROM users"
+                        + " WHERE provider = 'google' AND subject = ?) THEN 1 ELSE 0 END"
+                        + " FROM decks WHERE user_id = " + OWNER + " ORDER BY id")
+                .params(subject, subject)
                 .query((row, n) -> summary(row))
                 .list();
     }
@@ -117,6 +121,19 @@ class Decks {
                 draft.coin(), draft.sleeve(), draft.playmat());
     }
 
+    /** Unselects the deck, if it was anyone's selection. */
+    void unselect(long id) {
+        db.sql("UPDATE users SET selected_deck = NULL WHERE selected_deck = ?").param(id).update();
+    }
+
+    /** False when there is no such deck, or it is someone else's. */
+    boolean select(String subject, long id) {
+        return db.sql("UPDATE users SET selected_deck = ? WHERE provider = 'google' AND subject = ?"
+                        + " AND EXISTS (SELECT 1 FROM decks WHERE id = ? AND user_id = users.id)")
+                .params(id, subject, id)
+                .update() == 1;
+    }
+
     /** False when there is no such deck, or it is someone else's. */
     boolean delete(String subject, long id) {
         return db.sql("DELETE FROM decks WHERE id = ? AND user_id = " + OWNER)
@@ -132,7 +149,8 @@ class Decks {
     private Summary summary(ResultSet row) throws SQLException {
         Deck deck = deck(row);
         return new Summary(deck.id(), deck.name(), deck.cards().size(), problems(deck.cards(), deck.energy()),
-                deck.energy(), deck.focusCard1(), deck.focusCard2(), deck.coin(), deck.sleeve(), deck.playmat());
+                deck.energy(), deck.focusCard1(), deck.focusCard2(), deck.coin(), deck.sleeve(), deck.playmat(),
+                row.getBoolean(10));
     }
 
     /**
@@ -198,6 +216,10 @@ class Decks {
             if (!decks.update(subject, id, draft)) {
                 throw notFound();
             }
+            // Only a legal deck may stay selected.
+            if (!Decks.problems(draft.cards(), draft.energy()).isEmpty()) {
+                decks.unselect(id);
+            }
             return decks.find(subject, id).orElseThrow();
         }
 
@@ -208,6 +230,20 @@ class Decks {
                 throw badRequest("A deck needs cards and energy");
             }
             return Decks.problems(draft.cards(), draft.energy());
+        }
+
+        /** Makes this the deck the player plays with, replacing any other. Only a legal deck may be selected. */
+        @PutMapping("/{id}/selected")
+        ResponseEntity<Void> select(@AuthenticationPrincipal OidcUser user, @PathVariable long id) {
+            String subject = subject(user);
+            Deck deck = decks.find(subject, id).orElseThrow(Api::notFound);
+            if (!Decks.problems(deck.cards(), deck.energy()).isEmpty()) {
+                throw badRequest("Only a complete deck can be selected");
+            }
+            if (!decks.select(subject, id)) {
+                throw notFound();
+            }
+            return ResponseEntity.noContent().build();
         }
 
         @DeleteMapping("/{id}")
