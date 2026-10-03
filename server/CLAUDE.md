@@ -3,7 +3,8 @@
 The never-rules for the server live in the root `CLAUDE.md` and apply here too.
 
 `server.GameSocket` is one WebSocket endpoint (`/play`) that pairs connections first come, first
-served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `RemotePlayer` is the
+served, or against the engine's `RandomPlayer` at once for `/play?bot` (unrated; the web client's
+`?demo` and Practice vs bot). Each game runs `TurnEngine.playGame()` on its own virtual thread; `RemotePlayer` is the
 `IPlayer` that blocks in `choose` until the browser answers. The engine was not rewritten for this.
 
 - Options go out as `OptionView` (a label plus the instance ids it acts on), and only to the player

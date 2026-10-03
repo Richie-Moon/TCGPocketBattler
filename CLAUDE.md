@@ -24,6 +24,7 @@ mvn -Dtest=IEffectTest$Flips test         # one @Nested class (quote the $ in Po
 mvn -Dtest=IEffectTest#unresolvedTargetFails test   # one method
 java -jar server/target/server-0.1.0-SNAPSHOT.jar   # after mvn package; serves /play on 8080
 cd web && npm install && npm run dev      # play at localhost:5173 in two tabs (needs the server)
+# localhost:5173/?demo plays a bot in one tab, signed in or not (server's /play?bot)
 cd web && npm run build && npm run lint   # type-check + bundle, oxlint
 ```
 

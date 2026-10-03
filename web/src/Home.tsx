@@ -97,12 +97,16 @@ export function Shell({
   )
 }
 
-/** The signed-in home screen. Only Queue does anything yet: it starts a game, once a deck is chosen. */
+/**
+ * The signed-in home screen. Queue starts a game once a deck is chosen; Practice vs bot starts one at once, since
+ * games still use fixed decks.
+ */
 export function Home({
   name,
   profileIcon,
   emblems,
   onQueue,
+  onPractice,
   onNavigate,
   onEdit,
 }: {
@@ -110,6 +114,7 @@ export function Home({
   profileIcon: string
   emblems: string[]
   onQueue: () => void
+  onPractice: () => void
   onNavigate: (page: Page) => void
   onEdit: (id: number | 'new') => void
 }) {
@@ -189,7 +194,7 @@ export function Home({
                 <Icon src={users} size={18} />
                 Play a friend
               </button>
-              <button type="button" className="secondary" disabled={!deck}>
+              <button type="button" className="secondary" onClick={onPractice}>
                 <Icon src={bot} size={18} />
                 <span className="desktop-only">Practice vs bot</span>
                 <span className="mobile-only">Vs bot</span>

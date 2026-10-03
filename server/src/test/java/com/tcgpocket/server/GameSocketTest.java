@@ -59,8 +59,24 @@ class GameSocketTest {
         }
     }
 
+    @Test
+    @DisplayName("/play?bot starts a game at once against a bot that is never sent anything")
+    void oneClientPlaysTheBot() throws Exception {
+        Client client = connect(new Client(new Random(3), false), "/play?bot");
+
+        String result = client.over.get(60, TimeUnit.SECONDS);
+        assertTrue(result.matches("Player 1 wins|Bot wins|Tie"), result);
+        assertEquals(List.of(), client.errors);
+        assertEquals(List.of(), client.badIds);
+        assertEquals("setup", client.firstDecisionKind);
+    }
+
     private Client connect(Client client) throws Exception {
-        new StandardWebSocketClient().execute(client, "ws://localhost:" + port + "/play").get(10, TimeUnit.SECONDS);
+        return connect(client, "/play");
+    }
+
+    private Client connect(Client client, String path) throws Exception {
+        new StandardWebSocketClient().execute(client, "ws://localhost:" + port + path).get(10, TimeUnit.SECONDS);
         return client;
     }
 

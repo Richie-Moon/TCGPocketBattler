@@ -1,5 +1,6 @@
 package com.tcgpocket.server;
 
+import com.tcgpocket.player.RandomPlayer;
 import com.tcgpocket.resolve.SeededRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Pairs connections into games and passes answers from the browser to the game.
  *
  * <p>Matchmaking is first come, first served: a connection waits until the
- * next one arrives, and the two play each other.
+ * next one arrives, and the two play each other. {@code /play?bot} skips the
+ * queue and plays the engine's {@link RandomPlayer} instead, unrated.
  *
  * <p>Each game runs on its own virtual thread and blocks inside
  * {@link RemotePlayer#choose} while it waits for a browser. The engine is left
@@ -68,6 +70,10 @@ final class GameSocket extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
+        if (session.getUri() != null && "bot".equals(session.getUri().getQuery())) {
+            startAgainstBot(session);
+            return;
+        }
         WebSocketSession opponent;
         synchronized (this) {
             if (waiting == null) {
@@ -95,6 +101,18 @@ final class GameSocket extends TextWebSocketHandler {
             game.run().ifPresent(score -> ratings.ifPresent(r -> r.record(subject(first), subject(second), score)));
             close(first);
             close(second);
+        });
+    }
+
+    private void startAgainstBot(WebSocketSession session) {
+        Game game = new Game(
+                message -> send(session, message),
+                new RandomPlayer("Bot", new SeededRandom(seeds.nextLong())),
+                new SeededRandom(seeds.nextLong()));
+        seats.put(session.getId(), new Seat(game, game.players().getFirst()));
+        Thread.ofVirtual().name("game-" + session.getId()).start(() -> {
+            game.run();
+            close(session);
         });
     }
 

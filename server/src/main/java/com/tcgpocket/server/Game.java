@@ -4,6 +4,7 @@ import com.tcgpocket.energy.Type;
 import com.tcgpocket.engine.OpeningPlacement;
 import com.tcgpocket.engine.TurnEngine;
 import com.tcgpocket.player.Decision;
+import com.tcgpocket.player.IPlayer;
 import com.tcgpocket.pool.CardPool;
 import com.tcgpocket.resolve.RandomSource;
 import com.tcgpocket.state.Battle;
@@ -24,7 +25,7 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 /**
- * One game between two browsers.
+ * One game between two browsers, or one browser and a bot.
  *
  * <p>Before every question it sends each player their own
  * {@link BoardView}, so the player who is waiting still sees the board change.
@@ -54,7 +55,7 @@ final class Game {
         }
     }
 
-    private record Seat(RemotePlayer player, Side side, Consumer<Object> send) {
+    private record Seat(IPlayer player, Side side, Consumer<Object> send) {
     }
 
     private final List<Seat> seats;
@@ -62,8 +63,17 @@ final class Game {
     private int nextInstanceId;
 
     Game(Consumer<Object> sendFirst, Consumer<Object> sendSecond, RandomSource rng) {
+        this(sendFirst, sendSecond, null, rng);
+    }
+
+    /** One browser against {@code bot}, which is sent nothing: it decides on the game thread. */
+    Game(Consumer<Object> send, IPlayer bot, RandomSource rng) {
+        this(send, message -> { }, bot, rng);
+    }
+
+    private Game(Consumer<Object> sendFirst, Consumer<Object> sendSecond, IPlayer bot, RandomSource rng) {
         RemotePlayer first = new RemotePlayer("Player 1", sendFirst, this::broadcast);
-        RemotePlayer second = new RemotePlayer("Player 2", sendSecond, this::broadcast);
+        IPlayer second = bot != null ? bot : new RemotePlayer("Player 2", sendSecond, this::broadcast);
         Side firstSide = deal(new Side(first.name(), first), LIGHTNING_DECK, Type.LIGHTNING);
         Side secondSide = deal(new Side(second.name(), second), FIRE_DECK, Type.FIRE);
 
@@ -71,8 +81,10 @@ final class Game {
         this.battle = Battle.flipForFirst(firstSide, secondSide, rng);
     }
 
+    /** The browsers, first player first; a bot is not one. */
     List<RemotePlayer> players() {
-        return seats.stream().map(Seat::player).toList();
+        return seats.stream().map(Seat::player)
+                .filter(RemotePlayer.class::isInstance).map(RemotePlayer.class::cast).toList();
     }
 
     /**
@@ -116,7 +128,7 @@ final class Game {
         try (ExecutorService asking = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<OpeningPlacement>> answers = new ArrayList<>();
             for (int i = 0; i < seats.size(); i++) {
-                RemotePlayer player = seats.get(i).player();
+                IPlayer player = seats.get(i).player();
                 Decision<OpeningPlacement> decision = decisions.get(i);
                 answers.add(asking.submit(() -> player.choose(decision)));
             }
@@ -143,7 +155,7 @@ final class Game {
 
     /** Ends the game at the next question, whoever it is for. */
     void abandon() {
-        seats.forEach(seat -> seat.player().leave());
+        players().forEach(RemotePlayer::leave);
     }
 
     private void broadcast() {
