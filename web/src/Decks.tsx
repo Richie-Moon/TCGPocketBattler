@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import edit from './assets/decks/edit.svg'
 import more from './assets/decks/more.svg'
 import plus from './assets/decks/plus.svg'
+import check from './assets/editor/check.svg'
 import close from './assets/editor/close.svg'
 import { CARD_BASE, COIN_BASE, EMBLEM_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
 import { Icon, Shell, type Page } from './Home'
@@ -9,7 +10,7 @@ import { Icon, Shell, type Page } from './Home'
 /**
  * Mirrors the server's {@code Decks.Summary}: no card list, so the page stays light. {@code problems} is
  * {@code DeckValidator}'s verdict, which the page could not reach without the cards: the rules the deck breaks,
- * none when it is legal. Energy is {@code Type} names.
+ * none when it is legal. Energy is {@code Type} names. {@code selected} is the one deck the player plays with.
  */
 type DeckSummary = {
   id: number
@@ -22,6 +23,7 @@ type DeckSummary = {
   coin: string
   sleeve: string
   playmat: string
+  selected: boolean
 }
 
 export const DECK_SIZE = 20
@@ -63,7 +65,10 @@ async function deckQr(id: number): Promise<string> {
   return `data:image/svg+xml,${encodeURIComponent(createQrSvg(encodePayload(resolved)))}`
 }
 
-/** The signed-in player's saved decks, from /api/decks. New and Edit open the deck editor; More shares, duplicates or deletes. */
+/**
+ * The signed-in player's saved decks, from /api/decks. Clicking a tile selects it; New and Edit open the deck editor;
+ * More selects, shares, duplicates or deletes.
+ */
 export function Decks({
   name,
   profileIcon,
@@ -158,6 +163,13 @@ function DeckTile({ deck, onEdit, onChanged }: { deck: DeckSummary; onEdit: () =
       .catch(() => alert("Couldn't duplicate the deck"))
   }
 
+  function select() {
+    if (deck.selected || !legal) return
+    fetch(`/api/decks/${deck.id}/selected`, { method: 'PUT' })
+      .then(done)
+      .catch(() => alert("Couldn't select the deck"))
+  }
+
   function remove() {
     if (!confirm(`Delete "${deck.name}"? This can't be undone.`)) return
     fetch(`/api/decks/${deck.id}`, { method: 'DELETE' })
@@ -166,8 +178,17 @@ function DeckTile({ deck, onEdit, onChanged }: { deck: DeckSummary; onEdit: () =
   }
 
   return (
-    <div className="deck-tile">
+    // A click on the tile selects it, unless it lands on one of its buttons, the menu or the share dialog.
+    <div
+      className={deck.selected ? 'deck-tile selected' : legal ? 'deck-tile selectable' : 'deck-tile'}
+      onClick={(event) => (event.target as Element).closest('button, [popover], dialog') || select()}
+    >
       <div className="cover">
+        {deck.selected && (
+          <span className="check" title="Selected">
+            <Icon src={check} size={18} />
+          </span>
+        )}
         <img className="playmat" src={`${PLAYMAT_BASE}/${deck.playmat}`} alt="" />
         <img className="sleeve" src={`${SLEEVE_BASE}/${deck.sleeve}`} alt="" />
         <CoverCard id={deck.focusCard2} className="left" />
@@ -200,6 +221,16 @@ function DeckTile({ deck, onEdit, onChanged }: { deck: DeckSummary; onEdit: () =
         </button>
         {/* A native popover: Escape and a click outside close it, and each item closes it as it acts. */}
         <div id={menu} popover="auto" className="deck-menu">
+          <button
+            type="button"
+            popoverTarget={menu}
+            popoverTargetAction="hide"
+            disabled={deck.selected || !legal}
+            title={why || undefined}
+            onClick={select}
+          >
+            {deck.selected ? 'Selected' : 'Select'}
+          </button>
           <button
             type="button"
             popoverTarget={menu}

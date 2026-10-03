@@ -18,7 +18,7 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
   builder should call too. There is no turn timer, no reconnect, and no game log yet (seed + deck
   lists + chosen indices would replay a game exactly). Saved decks live behind `/api/decks`
   (`Decks`, `db` profile): drafts are allowed, so saving checks only that a deck is well-formed,
-  and games do not use saved decks yet. The deck editor browses `/api/cards` (`Cards`): printed
+  and games do not use saved decks yet, not even the one selected (`users.selected_deck`). The deck editor browses `/api/cards` (`Cards`): printed
   text only, straight from `CardPool`, so it needs no sign-in or database.
 - Persistence is an OCI Always Free Autonomous Database (23ai), off by default.
   `--spring.profiles.active=db` turns on the datasource (`application-db.properties`, wallet folder

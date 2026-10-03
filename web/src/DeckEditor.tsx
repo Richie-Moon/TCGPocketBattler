@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import edit from './assets/decks/edit.svg'
 import plus from './assets/decks/plus.svg'
 import back from './assets/editor/back.svg'
+import bin from './assets/editor/bin.svg'
 import check from './assets/editor/check.svg'
 import close from './assets/editor/close.svg'
 import down from './assets/editor/down.svg'
@@ -209,21 +210,33 @@ export function DeckEditor({
         <div className="card-grid">
           {shown.map((card) => {
             const count = deck.cards.filter((id) => id === card.id).length
+            // The bin is a sibling of the card, not inside it: a button can't hold a button.
             return (
-              <button
-                key={card.id}
-                type="button"
-                className="browser-card"
-                disabled={full || copies(card.name) >= MAX_COPIES}
-                onClick={() => change({ cards: [...deck.cards, card.id] })}
-              >
-                <img src={`${CARD_BASE}/${card.id}.webp`} alt={card.name} loading="lazy" />
-                {count > 0 && <span className="count">×{count}</span>}
-                <span className="add">
-                  <Icon src={plus} size={16} />
-                  Add
-                </span>
-              </button>
+              <div key={card.id} className="browser-item">
+                <button
+                  type="button"
+                  className="browser-card"
+                  disabled={full || copies(card.name) >= MAX_COPIES}
+                  onClick={() => change({ cards: [...deck.cards, card.id] })}
+                >
+                  <img src={`${CARD_BASE}/${card.id}.webp`} alt={card.name} loading="lazy" />
+                  {count > 0 && <span className="count">×{count}</span>}
+                  <span className="add">
+                    <Icon src={plus} size={16} />
+                    Add
+                  </span>
+                </button>
+                {count > 0 && (
+                  <button
+                    type="button"
+                    className="bin"
+                    aria-label={`Remove ${card.name}`}
+                    onClick={() => remove(deck.cards.lastIndexOf(card.id))}
+                  >
+                    <Icon src={bin} size={16} />
+                  </button>
+                )}
+              </div>
             )
           })}
         </div>
@@ -306,7 +319,13 @@ export function DeckEditor({
           {deck.energy.map((type) => (
             <img key={type} className="energy" src={energyIcon(type)} alt={capitalise(type)} title={capitalise(type)} />
           ))}
-          <button type="button" className="add-energy" aria-label="Choose deck energy" onClick={() => setPicking('energy')}>
+          <button
+            type="button"
+            className="add-energy"
+            aria-label="Choose deck energy"
+            data-opens="energy"
+            onClick={() => setPicking('energy')}
+          >
             <Icon src={plus} size={14} />
           </button>
         </div>
@@ -315,7 +334,13 @@ export function DeckEditor({
           <div className="cosmetics-label">Cosmetics</div>
           <div className="pickers">
             {(Object.keys(COSMETICS) as Cosmetic[]).map((cosmetic) => (
-              <button key={cosmetic} type="button" className={`picker of-${cosmetic}`} onClick={() => setPicking(cosmetic)}>
+              <button
+                key={cosmetic}
+                type="button"
+                className={`picker of-${cosmetic}`}
+                data-opens={cosmetic}
+                onClick={() => setPicking(cosmetic)}
+              >
                 <span className="preview">
                   <img src={`${COSMETICS[cosmetic].base}/${deck[cosmetic]}`} alt="" />
                 </span>
@@ -353,6 +378,7 @@ export function DeckEditor({
       ) : (
         picking && (
           <CosmeticPicker
+            key={picking}
             cosmetic={picking}
             value={deck[picking]}
             onPick={(file) => change({ [picking]: file })}
@@ -426,7 +452,8 @@ function CosmeticPicker({
 
 /**
  * The design's coin popup, shared by every choice in the deck panel. A pick applies at once; the close button,
- * Escape, a click outside and (on a phone) Done all just close it.
+ * Escape, a click outside and (on a phone) Done all just close it. A click outside on another picker's button
+ * ({@code data-opens}) also opens that picker, so the player can go straight from one to the next.
  */
 function Picker({
   kind,
@@ -449,13 +476,31 @@ function Picker({
   useEffect(() => {
     if (!dialog.current?.open) dialog.current?.showModal()
   }, [])
+  /** Another picker's button under the pointer. The modal page is inert to hit-testing, so it is found by its box. */
+  const openerAt = (x: number, y: number) =>
+    [...document.querySelectorAll<HTMLElement>('[data-opens]')].find((button) => {
+      const box = button.getBoundingClientRect()
+      return button.dataset.opens !== kind && x >= box.left && x <= box.right && y >= box.top && y <= box.bottom
+    })
   return (
     // The body fills the dialog, so a click that lands on the dialog itself is a click on its backdrop.
+    // Escape is caught by onCancel, not onClose: the close event comes late enough to undo the next picker.
     <dialog
       ref={dialog}
       className={`picker-popup of-${kind}`}
-      onClose={onClose}
-      onClick={(event) => event.target === event.currentTarget && onClose()}
+      onCancel={onClose}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return
+        onClose()
+        openerAt(event.clientX, event.clientY)?.click()
+      }}
+      // The backdrop shows a pointer over another picker's button, as the page would.
+      onMouseMove={(event) =>
+        event.currentTarget.toggleAttribute(
+          'data-over-opener',
+          event.target === event.currentTarget && !!openerAt(event.clientX, event.clientY),
+        )
+      }
     >
       <div className="popup-body">
         <div className="popup-head">

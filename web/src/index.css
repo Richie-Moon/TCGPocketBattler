@@ -947,6 +947,27 @@ p {
   background: var(--color-surface);
 }
 
+.home .deck-tile.selectable {
+  cursor: pointer;
+}
+
+.home .deck-tile.selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+/* The selected deck's tick, in the cover's free corner; .check's own rule hides it outside .selected. */
+.home .deck-tile.selected .check {
+  display: flex;
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  border-width: 3px;
+}
+
 .home .cover {
   position: relative;
   flex-shrink: 0;
@@ -1452,8 +1473,24 @@ p {
   gap: 20px;
 }
 
+.home .browser-item {
+  position: relative;
+}
+
+.home .bin {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  padding: 5px;
+  border-radius: 4px;
+  background: var(--color-danger);
+  color: #fff;
+}
+
 .home .browser-card {
   position: relative;
+  width: 100%;
   aspect-ratio: 150 / 210;
   overflow: hidden;
   border-radius: 9px;
@@ -1778,12 +1815,13 @@ p {
 
 /*
  * The coin popup, and the sleeve, playmat and energy ones built like it. A modal <dialog>, so it is placed against
- * the viewport: where the design has it, its bottom edge just above the cosmetic pickers of a deck panel that is
+ * the viewport: centred over the deck panel, its bottom edge just above the cosmetic pickers of a deck panel that is
  * not scrolled.
  */
 .home .picker-popup {
   position: fixed;
-  inset: auto 132px max(24px, calc(100vh - 673px)) auto;
+  /* Centred across the 558px deck panel, which sits against the right edge. */
+  inset: auto calc((558px - 376px) / 2) max(24px, calc(100vh - 673px)) auto;
   box-sizing: border-box;
   width: 376px;
   max-height: min(605px, calc(100vh - 48px));
@@ -1803,6 +1841,10 @@ p {
 
 .home .picker-popup::backdrop {
   background: none;
+}
+
+.home .picker-popup[data-over-opener]::backdrop {
+  cursor: pointer;
 }
 
 /* Above the energy row it was opened from, which sits over the cosmetics. */
@@ -2036,7 +2078,7 @@ p {
   }
 
   .home .browser-card {
-    width: auto;
+    width: 100%;
     height: auto;
     aspect-ratio: 108 / 151;
     border-radius: 6px;
