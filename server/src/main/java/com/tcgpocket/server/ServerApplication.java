@@ -19,10 +19,12 @@ public class ServerApplication implements WebSocketConfigurer {
 
     private final JsonMapper json;
     private final Optional<Ratings> ratings;
+    private final Optional<Decks> decks;
 
-    public ServerApplication(JsonMapper json, Optional<Ratings> ratings) {
+    public ServerApplication(JsonMapper json, Optional<Ratings> ratings, Optional<Decks> decks) {
         this.json = json;
         this.ratings = ratings;
+        this.decks = decks;
     }
 
     public static void main(String[] args) {
@@ -31,6 +33,6 @@ public class ServerApplication implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new GameSocket(json, ratings), "/play");
+        registry.addHandler(new GameSocket(json, ratings, decks), "/play");
     }
 }

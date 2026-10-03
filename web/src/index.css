@@ -7,25 +7,9 @@ body {
   margin: 0;
 }
 
-/* Sized for 1920x1080: the board and the decision panel sit side by side so nothing scrolls. */
-main {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 16px;
-  height: 100vh;
-  box-sizing: border-box;
-  padding: 8px 16px;
-}
-
+/* Left from the first game page; the deck editor's panel, and h2/p/.empty/.pick elsewhere, still lean on these. */
 aside {
   overflow-y: auto;
-}
-
-section {
-  border: 1px solid #8884;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin: 8px 0;
 }
 
 h2 {
@@ -35,61 +19,6 @@ h2 {
 
 p {
   margin: 2px 0;
-}
-
-.account {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.status {
-  font-weight: 600;
-}
-
-.option {
-  display: block;
-  width: 100%;
-  text-align: left;
-  margin: 4px 0;
-  padding: 6px 8px;
-}
-
-.error {
-  color: #d33;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 6px 0;
-}
-
-.card {
-  display: block;
-  width: 90px;
-  aspect-ratio: 670 / 936;
-  border-radius: 5px;
-}
-
-.pokemon {
-  margin: 0;
-  width: 100px;
-  font-size: 12px;
-  text-align: center;
-}
-
-.pokemon .card {
-  width: 100px;
-}
-
-.pokemon.active,
-.pokemon.active .card {
-  width: 140px;
-}
-
-.pokemon.active {
-  margin-right: 16px;
 }
 
 .empty {
@@ -128,6 +57,7 @@ p {
   --color-danger: #e5484d;
   --color-mat: #dce8f2;
   --color-mat-zone: #b9ccdd;
+  --color-mat-shade: rgb(0 0 0 / 0.18);
   --color-card-line: rgba(31, 36, 43, 0.06);
   --color-card-fill: rgba(31, 36, 43, 0.05);
 }
@@ -150,6 +80,7 @@ p {
     --color-danger: #f0676b;
     --color-mat: #111a21;
     --color-mat-zone: #2a3540;
+    --color-mat-shade: rgb(0 0 0 / 0.4);
     --color-card-line: rgba(255, 255, 255, 0.07);
     --color-card-fill: rgba(255, 255, 255, 0.06);
   }
@@ -2418,4 +2349,801 @@ p {
   .home .picker-popup.of-playmat .option-art {
     height: 69px;
   }
+}
+
+/* Battle — from the Figma "Battle" page. The mat is drawn at the design's 1200x900 (390x844 on a phone) and
+   zoomed to fit by Battle's useFit; the field grid's tracks are the design's measurements. */
+.battle {
+  --point: #f2b632;
+  --card-shadow: 0 5.5px 14.667px rgba(13, 26, 51, 0.15);
+  --hand-shadow: 0 4.4px 10.267px rgba(13, 26, 51, 0.18);
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: 'Cabin', system-ui, sans-serif;
+  line-height: normal;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.battle button,
+.battle input {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
+.battle button:enabled {
+  cursor: pointer;
+}
+
+.battle h2,
+.battle h3,
+.battle p {
+  margin: 0;
+}
+
+.battle .muted {
+  color: var(--color-text-muted);
+}
+
+.battle picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.battle .mat {
+  position: relative;
+  flex: 1 1 1200px;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-mat) center / cover no-repeat;
+}
+
+.battle .stage {
+  position: relative;
+  flex: none;
+  width: 1200px;
+}
+
+.battle .field {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 191.67px 104.17px 308.33px 104.17px 191.67px 1fr;
+  /* Mirrored around the divider's line, which sits in the middle of the 60.16px row and so of the stage. */
+  grid-template-rows: 1fr 128.33px 10.71px 158.58px 60.16px 158.58px 10.71px 128.33px 1fr;
+}
+
+.battle .field > * {
+  align-self: start;
+  justify-self: start;
+}
+
+.battle .opp-bench { grid-area: 2 / 4; }
+.battle .opp-energy { grid-area: 2 / 2; margin: 28.03px 0 0 122px; }
+.battle .opp-active { grid-area: 4 / 4; justify-self: center; }
+.battle .opp-zones { grid-area: 4 / 2 / 6 / 3; margin-top: 12.61px; z-index: 1; }
+/* Taller than its row, so its line (65.5px down) lands on the row's middle. */
+.battle .divider { grid-area: 5 / 1 / 6 / -1; justify-self: stretch; height: 95.58px; margin-top: -35.42px; }
+.battle .your-active { grid-area: 6 / 4; justify-self: center; }
+.battle .your-zones { grid-area: 6 / 6; margin-top: 29.3px; }
+.battle .your-bench { grid-area: 8 / 4; }
+.battle .your-energy { grid-area: 8 / 6; margin: 36.17px 0 0 14px; }
+.battle .menu { grid-area: 2 / 6 / 5 / 8; align-self: end; margin-bottom: 16px; z-index: 3; }
+
+/* An outlined place for a card; the card, when there is one, covers it. */
+.battle .slot {
+  position: relative;
+  box-sizing: border-box;
+  border: 1.833px solid var(--color-mat-zone);
+  border-radius: 9.167px;
+  background: var(--color-mat-shade);
+}
+
+.battle .slot.active { width: 113.67px; height: 158.58px; }
+.battle .slot.benched { width: 91.67px; height: 128.33px; }
+.battle .slot.pile { width: 83.33px; height: 116.67px; border-width: 1.667px; border-radius: 8.333px; }
+
+.battle .bench,
+.battle .zones {
+  display: flex;
+  gap: 16.67px;
+}
+
+.battle .zones { gap: 25px; }
+
+.battle .art {
+  position: absolute;
+  inset: -1.833px;
+  width: calc(100% + 3.667px);
+  height: calc(100% + 3.667px);
+  border-radius: 5.5px;
+  object-fit: cover;
+}
+
+.battle .pile .art { inset: -1.667px; width: calc(100% + 3.333px); height: calc(100% + 3.333px); border-radius: 5px; }
+
+.battle .pokemon {
+  position: absolute;
+  inset: -1.833px;
+  border-radius: 5.5px;
+}
+
+.battle .active .pokemon,
+.battle .active .art {
+  border-radius: 6.417px;
+}
+
+.battle .active .pokemon {
+  box-shadow: var(--card-shadow);
+}
+
+.battle .pokemon .art {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.battle .pokemon.can:hover,
+.battle .pokemon.selected,
+.battle .pokemon.target {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.battle .pokemon.target {
+  outline-style: dashed;
+}
+
+.battle .hp {
+  position: absolute;
+  top: 4.58px;
+  right: 4.58px;
+  padding: 1.833px 6.417px;
+  border-radius: 2.75px;
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.battle .active .hp {
+  top: 5.5px;
+  right: 5.5px;
+  padding: 2.75px 8.25px;
+  border-radius: 3.667px;
+  font-size: 12.833px;
+}
+
+.battle .attached {
+  position: absolute;
+  left: 4.58px;
+  bottom: 4.58px;
+  display: flex;
+  gap: 3px;
+}
+
+.battle .attached img { width: 13.2px; height: 13.2px; }
+.battle .active .attached { left: 5.5px; bottom: 5.5px; gap: 3.667px; }
+.battle .active .attached img { width: 16.5px; height: 16.5px; }
+
+.battle .tags {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  translate: -50% 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The current Energy in the ring, the next one small over its corner. */
+.battle .energy-zone {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-mat-shade);
+}
+
+.battle .energy-zone > * { position: absolute; }
+.battle .energy-zone .glow { box-sizing: border-box; inset: 0; border: 1.833px solid var(--color-mat-zone); border-radius: 50%; }
+.battle .energy-zone .current { left: 9px; top: 9px; width: 38px; height: 38px; }
+.battle .energy-zone .next { width: 20px; height: 20px; }
+.battle .opp-energy .next { left: 0; top: 36px; }
+.battle .your-energy .next { left: 36px; top: 0; }
+
+.battle .energy-zone.can:hover .glow,
+.battle .energy-zone.selected .glow {
+  outline: 3px solid var(--color-accent);
+}
+
+/* The line between the two halves, with whose turn it is on it. */
+.battle .divider {
+  position: relative;
+}
+
+.battle .divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 65.5px;
+  height: 2px;
+  background: var(--color-mat-zone);
+}
+
+.battle .turn {
+  position: absolute;
+  left: 50%;
+  top: 46.7px;
+  translate: -50%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.battle .turn .coin {
+  width: 24px;
+  height: 24px;
+  margin: -4px 0;
+}
+
+.battle .turn .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.battle .turn .dot.yours {
+  background: var(--color-accent);
+}
+
+.battle .end-turn {
+  position: absolute;
+  /* Centred over your discard pile: column 6 starts 258.33px right of centre, then deck (83.33) + gap (25) + half a pile. */
+  left: calc(50% + 408.33px);
+  translate: -50%;
+  top: 43.8px;
+  padding: 12px 24px;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.battle .end-turn:disabled {
+  opacity: 0.45;
+}
+
+.battle .stadium {
+  position: absolute;
+  right: calc(50% + 423px);
+  top: 20px;
+  width: 60px;
+  border-radius: 4px;
+}
+
+.battle .log-button {
+  display: none;
+}
+
+/* What to do with the card picked, or the question being asked. */
+.battle .menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 280px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: var(--card-shadow);
+}
+
+.battle .menu h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.battle .menu p {
+  font-size: 13px;
+}
+
+.battle .menu .menu-option {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.battle .menu-option:hover {
+  background: var(--color-accent-soft);
+}
+
+.battle .menu-cancel {
+  align-self: flex-end;
+  color: var(--color-accent-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.battle .error {
+  color: var(--color-danger);
+  font-size: 13px;
+}
+
+/* Hands are fans: each card is placed by its offset --d from the middle (and |d|, --ad), squeezed by --f. */
+.battle .hand,
+.battle .opp-hand {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
+}
+
+.battle .hand {
+  --step: 79.5px;
+  --arc: 5.15px;
+  --tilt: 5deg;
+  top: calc(100% - 109.4px);
+}
+
+.battle .opp-hand {
+  --step: 41.67px;
+  --drop: 4.17px;
+  --tilt: 7deg;
+  top: 26.07px;
+}
+
+.battle .hand-card,
+.battle .opp-card {
+  position: absolute;
+  transition: translate 0.1s;
+}
+
+.battle .hand-card {
+  left: -48.4px;
+  width: 96.8px;
+  height: 134.93px;
+  transform: translate(calc(var(--d) * var(--f) * var(--step)), calc(var(--d) * var(--d) * var(--f) * var(--f) * var(--arc)))
+    rotate(calc(var(--d) * var(--f) * var(--tilt)));
+}
+
+.battle .opp-card {
+  left: -30px;
+  width: 60px;
+  height: 83.33px;
+  transform: translate(calc(var(--d) * var(--f) * var(--step)), calc(var(--ad) * var(--f) * var(--drop) * -1))
+    rotate(calc(var(--d) * var(--f) * var(--tilt) * -1));
+}
+
+.battle .hand-card .art,
+.battle .opp-card .art {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 5.867px;
+}
+
+.battle .hand-card .art {
+  box-shadow: var(--hand-shadow);
+}
+
+.battle .opp-card .art {
+  border-radius: 2.5px;
+}
+
+.battle .hand-card.can:hover,
+.battle .hand-card.selected {
+  translate: 0 -20px;
+}
+
+.battle .hand-card.selected .art {
+  border: 2.933px solid var(--color-accent);
+}
+
+.battle .player-info {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px 10px 10px;
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.battle .opp-info { top: 30px; right: 30px; }
+.battle .your-info { left: 30px; bottom: 30px; }
+
+.battle .avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-placeholder);
+  object-fit: cover;
+}
+
+.battle .who {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.battle .player-info .name {
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.battle .points {
+  display: flex;
+  gap: 6px;
+}
+
+.battle .point {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-placeholder);
+}
+
+.battle .point.won {
+  background: var(--point);
+}
+
+/* The battle log: a side panel, or a bottom sheet behind the chat button on a phone. */
+.battle .log {
+  flex: 0 1 720px;
+  min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.battle .grabber,
+.battle .scrim {
+  display: none;
+}
+
+.battle .log-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.battle .log-title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.battle .log-title h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.battle .log-title p {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.battle .log .concede {
+  padding: 10px 22px;
+  border: 2px solid var(--color-danger);
+  border-radius: 6px;
+  color: var(--color-danger);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.battle .log-filter {
+  display: flex;
+  padding: 16px 32px 0;
+}
+
+.battle .segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--color-surface-2);
+}
+
+.battle .segmented button {
+  padding: 8px 20px;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.battle .segmented button[aria-pressed='true'] {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.battle .feed {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 20px 32px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.battle .log-turn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.72px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.battle .log-turn::before,
+.battle .log-turn::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.battle .log-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-muted);
+}
+
+.battle .log-line .dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.battle .log-line.you .dot { background: var(--color-accent); }
+.battle .log-line.point .dot { background: var(--point); }
+
+.battle .log-line.point,
+.battle .log-line.info {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.battle .say {
+  display: flex;
+  gap: 12px;
+  padding: 16px 32px 28px;
+  border-top: 1px solid var(--color-border);
+}
+
+.battle .say input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 20px;
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.battle .say input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.battle .say button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+@media (max-width: 600px) {
+  .battle .stage {
+    width: 390px;
+  }
+
+  .battle .field {
+    grid-template-columns: 1fr 52px 15.8px 230.4px 15.8px 52px 1fr;
+    grid-template-rows: 1fr 99px 21.6px 129.8px 86.2px 129.8px 21.6px 99px 1fr;
+  }
+
+  .battle .opp-energy { margin: 0.5px 0 0 16px; }
+  .battle .opp-zones { grid-area: 2 / 2 / 5 / 3; margin-top: 74.5px; flex-direction: column; gap: 18px; }
+  .battle .your-zones { grid-area: 6 / 6 / 9 / 7; margin-top: -4.1px; flex-direction: column; gap: 22px; }
+  .battle .your-energy { margin: 37.5px 0 0 -4px; }
+  .battle .menu {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-height: 50%;
+    margin: 0;
+  }
+
+  .battle .slot { border-width: 1.65px; border-radius: 6.6px; }
+  .battle .slot.active { width: 92.4px; height: 129.8px; }
+  .battle .slot.benched { width: 70.4px; height: 99px; }
+  .battle .slot.pile { width: 52px; height: 73px; border-width: 1.5px; border-radius: 6px; }
+  .battle .bench { gap: 9.6px; }
+  .battle .art,
+  .battle .pokemon { inset: -1.65px; width: calc(100% + 3.3px); height: calc(100% + 3.3px); border-radius: 4.4px; }
+  .battle .pile .art { inset: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); border-radius: 4px; }
+  .battle .active .pokemon,
+  .battle .active .art { border-radius: 5.5px; }
+  .battle .active .pokemon { box-shadow: 0 4.4px 11px rgba(13, 26, 51, 0.15); }
+  .battle .hp { top: 4.4px; right: 4.4px; padding: 1.1px 5.5px; border-radius: 3.3px; }
+  .battle .active .hp { top: 6.6px; right: 6.6px; padding: 2.2px 7.7px; border-radius: 4.4px; font-size: 13.2px; }
+  .battle .attached img { width: 10px; height: 10px; }
+  .battle .active .attached { left: 6.6px; bottom: 6.6px; gap: 3.3px; }
+  .battle .active .attached img { width: 13.2px; height: 13.2px; }
+
+  .battle .energy-zone { width: 44px; height: 44px; }
+  .battle .energy-zone .glow { display: none; }
+  .battle .energy-zone .current { left: 4px; top: 4px; width: 36px; height: 36px; }
+  .battle .energy-zone .next { width: 16px; height: 16px; }
+  .battle .opp-energy .next { left: 0; top: 28px; }
+  .battle .your-energy .next { left: 28px; top: 0; }
+  .battle .energy-zone.can:hover .current,
+  .battle .energy-zone.selected .current { outline: 3px solid var(--color-accent); border-radius: 50%; }
+
+  .battle .divider { height: 86.2px; margin-top: 0; }
+  .battle .divider::before { top: 43.1px; }
+  .battle .turn { top: 29.1px; gap: 6px; padding: 7px 12px; border-radius: 4px; font-size: 12px; }
+  .battle .turn .dot { width: 8px; height: 8px; }
+  .battle .end-turn { left: auto; right: 20.5px; translate: none; top: 27.1px; padding: 9px 14px; font-size: 12px; font-weight: 700; }
+  .battle .stadium { display: none; }
+
+  .battle .log-button {
+    position: absolute;
+    left: 14px;
+    top: 24.1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    background: var(--color-surface);
+  }
+
+  .battle .badge {
+    position: absolute;
+    left: 26px;
+    top: -5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--color-danger);
+    color: var(--color-on-accent);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .battle .hand {
+    --step: 51px;
+    --arc: 4.4px;
+    --tilt: 6deg;
+    top: calc(100% - 85.55px);
+  }
+
+  .battle .opp-hand {
+    --step: 26px;
+    --drop: 3px;
+    top: 23.55px;
+  }
+
+  .battle .hand-card { left: -36.96px; width: 73.92px; height: 103.84px; }
+  .battle .hand-card .art { border-radius: 4.4px; box-shadow: 0 3.52px 8.8px rgba(13, 26, 51, 0.18); }
+  .battle .hand-card.selected .art { border-width: 2.64px; }
+  .battle .opp-card { left: -22px; width: 44px; height: 62px; }
+
+  .battle .player-info { gap: 8px; padding: 7px 10px; }
+  .battle .opp-info { top: 10px; right: 10px; }
+  .battle .your-info { left: 10px; bottom: 10px; }
+  .battle .avatar { display: none; }
+  .battle .player-info .who { flex-direction: row; align-items: center; gap: 8px; }
+  .battle .player-info .name { font-size: 11px; }
+  .battle .points { gap: 4px; }
+  .battle .point { width: 10px; height: 10px; }
+
+  .battle .log {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 11;
+    height: 600px;
+    max-height: 90%;
+    min-width: 0;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 10px 20px 28px;
+    border: 0;
+    border-radius: 12px 12px 0 0;
+    translate: 0 100%;
+    transition: translate 0.2s;
+  }
+
+  .battle.log-open .log { translate: 0; }
+
+  .battle.log-open .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: block;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .battle .grabber {
+    display: block;
+    flex-shrink: 0;
+    align-self: center;
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--color-border);
+  }
+
+  .battle .log-head { padding: 0; border: 0; }
+  .battle .log-title { gap: 0; }
+  .battle .log-title h2 { font-size: 20px; }
+  .battle .log-title p { font-size: 12px; }
+  .battle .log .concede { padding: 5.5px 12.5px; border-width: 1.5px; font-size: 12px; }
+  .battle .log-filter { padding: 0; }
+  .battle .segmented { flex: 1; gap: 2px; padding: 3px; }
+  .battle .segmented button { flex: 1; padding: 7px 0; border-radius: 9px; font-size: 13px; }
+  .battle .feed { gap: 9px; padding: 0; font-size: 13px; }
+  .battle .log-turn { gap: 10px; padding-top: 4px; font-size: 10px; letter-spacing: 0; }
+  .battle .log-line { gap: 10px; }
+  .battle .log-line .dot { width: 7px; height: 7px; }
+  .battle .say { gap: 10px; padding: 0; border: 0; }
+  .battle .say input { padding: 12px 16px; font-size: 14px; }
+  .battle .say button { width: 44px; height: 44px; }
 }

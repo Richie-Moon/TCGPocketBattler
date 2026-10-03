@@ -3,7 +3,8 @@
 The never-rules for the server live in the root `CLAUDE.md` and apply here too.
 
 `server.GameSocket` is one WebSocket endpoint (`/play`) that pairs connections first come, first
-served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `RemotePlayer` is the
+served, or against the engine's `RandomPlayer` at once for `/play?bot` (unrated; the web client's
+`?demo` and Practice vs bot). Each game runs `TurnEngine.playGame()` on its own virtual thread; `RemotePlayer` is the
 `IPlayer` that blocks in `choose` until the browser answers. The engine was not rewritten for this.
 
 - Options go out as `OptionView` (a label plus the instance ids it acts on), and only to the player
@@ -13,12 +14,15 @@ served. Each game runs `TurnEngine.playGame()` on its own virtual thread; `Remot
 - Setup is the one simultaneous step: `Game` deals both hands, asks both players for their
   `TurnEngine.openingDecision` at once (each on its own virtual thread), and places neither board
   until both have confirmed. Only the game thread changes the board.
-- Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is deck building;
-  `engine.DeckValidator` (run by `TurnEngine.dealOpeningHands` for both sides) is what a deck
-  builder should call too. There is no turn timer, no reconnect, and no game log yet (seed + deck
-  lists + chosen indices would replay a game exactly). Saved decks live behind `/api/decks`
+- Each player plays their selected deck (`users.selected_deck`, re-checked with `Decks.problems`);
+  signed out, without the `db` profile, or with none selected they get `Game.Deal.LIGHTNING` (first
+  seat) or `FIRE` (second seat, and always the bot). The deck's coin, sleeve and playmat go out
+  in each `SideView.cosmetics` (`Cosmetics.DEFAULT` for the fixed decks). `engine.DeckValidator` (run by `TurnEngine.dealOpeningHands` for both sides) is what a deck
+  builder should call too. There is no turn timer, no reconnect, and no stored game log (seed + deck
+  lists + chosen indices would replay a game exactly). `Game` sends each choice to the other player as a
+  `log` message, worded for them; setup is left out and a chosen card is not named. Saved decks live behind `/api/decks`
   (`Decks`, `db` profile): drafts are allowed, so saving checks only that a deck is well-formed,
-  and games do not use saved decks yet, not even the one selected (`users.selected_deck`). The deck editor browses `/api/cards` (`Cards`): printed
+  and only the selected deck is played. The deck editor browses `/api/cards` (`Cards`): printed
   text only, straight from `CardPool`, so it needs no sign-in or database.
 - Persistence is an OCI Always Free Autonomous Database (23ai), off by default.
   `--spring.profiles.active=db` turns on the datasource (`application-db.properties`, wallet folder

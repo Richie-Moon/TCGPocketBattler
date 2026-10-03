@@ -95,6 +95,15 @@ class Decks {
                 .optional();
     }
 
+    /** The deck the player chose to play with, if any. */
+    Optional<Deck> selected(String subject) {
+        return db.sql("SELECT " + COLUMNS + " FROM decks WHERE id = (SELECT selected_deck FROM users"
+                        + " WHERE provider = 'google' AND subject = ?)")
+                .param(subject)
+                .query((row, n) -> deck(row))
+                .optional();
+    }
+
     /** The new deck's id. */
     long create(String subject, Api.Draft draft) {
         KeyHolder key = new GeneratedKeyHolder();

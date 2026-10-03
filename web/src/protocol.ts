@@ -20,6 +20,13 @@ export interface PokemonView {
   tool: CardView | null
 }
 
+/** Object-storage names from the side's deck ("Coin_Pokéball.png"), under COIN_BASE, SLEEVE_BASE and PLAYMAT_BASE. */
+export interface Cosmetics {
+  coin: string
+  sleeve: string
+  playmat: string
+}
+
 export interface SideView {
   name: string
   points: number
@@ -34,6 +41,7 @@ export interface SideView {
   bench: PokemonView[]
   energy: string | null
   nextEnergy: string | null
+  cosmetics: Cosmetics
 }
 
 export interface BoardView {
@@ -84,6 +92,8 @@ export type ServerMessage =
   | DecisionMessage
   | { type: 'over'; board: BoardView; result: string }
   | { type: 'error'; message: string }
+  /** What the opponent chose, worded for you; `turn` and `yourTurn` place it in the log. */
+  | { type: 'log'; turn: number; yourTurn: boolean; text: string }
 
 /** The only thing the browser ever sends. */
 export interface Answer {
