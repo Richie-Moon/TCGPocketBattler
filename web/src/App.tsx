@@ -34,7 +34,17 @@ function App() {
   return page === 'Decks' ? (
     <Decks name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onNavigate={navigate} onEdit={setEditing} />
   ) : (
-    <Home name={me.name} profileIcon={me.profileIcon} emblems={me.emblems} onQueue={() => setPlaying(true)} onNavigate={navigate} />
+    <Home
+      name={me.name}
+      profileIcon={me.profileIcon}
+      emblems={me.emblems}
+      onQueue={() => setPlaying(true)}
+      onNavigate={navigate}
+      onEdit={(id) => {
+        setPage('Decks')
+        setEditing(id)
+      }}
+    />
   )
 }
 
