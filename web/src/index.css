@@ -57,6 +57,7 @@ p {
   --color-danger: #e5484d;
   --color-mat: #dce8f2;
   --color-mat-zone: #b9ccdd;
+  --color-mat-shade: rgb(0 0 0 / 0.18);
   --color-card-line: rgba(31, 36, 43, 0.06);
   --color-card-fill: rgba(31, 36, 43, 0.05);
 }
@@ -79,6 +80,7 @@ p {
     --color-danger: #f0676b;
     --color-mat: #111a21;
     --color-mat-zone: #2a3540;
+    --color-mat-shade: rgb(0 0 0 / 0.4);
     --color-card-line: rgba(255, 255, 255, 0.07);
     --color-card-fill: rgba(255, 255, 255, 0.06);
   }
@@ -2416,7 +2418,8 @@ p {
   inset: 0;
   display: grid;
   grid-template-columns: 1fr 191.67px 104.17px 308.33px 104.17px 191.67px 1fr;
-  grid-template-rows: 69.17fr 128.33px 10.71px 158.58px 95.58px 158.58px 10.71px 128.33px 140fr;
+  /* Mirrored around the divider's line, which sits in the middle of the 60.16px row and so of the stage. */
+  grid-template-rows: 1fr 128.33px 10.71px 158.58px 60.16px 158.58px 10.71px 128.33px 1fr;
 }
 
 .battle .field > * {
@@ -2425,10 +2428,11 @@ p {
 }
 
 .battle .opp-bench { grid-area: 2 / 4; }
-.battle .opp-energy { grid-area: 2 / 2; margin: 37.5px 0 0 100.83px; }
+.battle .opp-energy { grid-area: 2 / 2; margin: 29.36px 0 0 100.83px; }
 .battle .opp-active { grid-area: 4 / 4; justify-self: center; }
-.battle .opp-zones { grid-area: 4 / 2 / 6 / 3; margin-top: 83.46px; z-index: 1; }
-.battle .divider { grid-area: 5 / 1 / 6 / -1; justify-self: stretch; align-self: stretch; }
+.battle .opp-zones { grid-area: 4 / 2 / 6 / 3; margin-top: 12.61px; z-index: 1; }
+/* Taller than its row, so its line (65.5px down) lands on the row's middle. */
+.battle .divider { grid-area: 5 / 1 / 6 / -1; justify-self: stretch; height: 95.58px; margin-top: -35.42px; }
 .battle .your-active { grid-area: 6 / 4; justify-self: center; }
 .battle .your-zones { grid-area: 6 / 6; margin-top: 29.3px; }
 .battle .your-bench { grid-area: 8 / 4; }
@@ -2441,6 +2445,7 @@ p {
   box-sizing: border-box;
   border: 1.833px solid var(--color-mat-zone);
   border-radius: 9.167px;
+  background: var(--color-mat-shade);
 }
 
 .battle .slot.active { width: 113.67px; height: 158.58px; }
@@ -2547,10 +2552,12 @@ p {
   position: relative;
   width: 75.84px;
   height: 67.3px;
+  border-radius: 9.167px;
+  background: var(--color-mat-shade);
 }
 
 .battle .energy-zone > * { position: absolute; }
-.battle .energy-zone .glow { width: 53.33px; height: 53.33px; border-radius: 50%; }
+.battle .energy-zone .glow { box-sizing: border-box; width: 53.33px; height: 53.33px; border: 1.833px solid var(--color-mat-zone); border-radius: 50%; }
 .battle .energy-zone .current { width: 36.67px; height: 36.67px; }
 .battle .energy-zone .next { width: 18.33px; height: 18.33px; }
 .battle .energy-zone .label { color: var(--color-text-muted); font-size: 10.833px; font-weight: 600; }
@@ -2715,7 +2722,7 @@ p {
   --step: 41.67px;
   --drop: 4.17px;
   --tilt: 7deg;
-  top: -30px;
+  top: 26.07px;
 }
 
 .battle .hand-card,
@@ -2991,7 +2998,7 @@ p {
 
   .battle .field {
     grid-template-columns: 1fr 52px 15.8px 230.4px 15.8px 52px 1fr;
-    grid-template-rows: 110.5fr 99px 21.6px 129.8px 88.2px 129.8px 31.6px 99px 134.5fr;
+    grid-template-rows: 1fr 99px 21.6px 129.8px 86.2px 129.8px 21.6px 99px 1fr;
   }
 
   .battle .opp-energy { margin: 7.5px 0 0 7px; }
@@ -3037,6 +3044,7 @@ p {
   .battle .energy-zone.can:hover .current,
   .battle .energy-zone.selected .current { outline: 3px solid var(--color-accent); border-radius: 50%; }
 
+  .battle .divider { height: 86.2px; margin-top: 0; }
   .battle .divider::before { top: 43.1px; }
   .battle .turn { top: 29.1px; gap: 6px; padding: 7px 12px; border-radius: 4px; font-size: 12px; }
   .battle .turn .dot { width: 8px; height: 8px; }
@@ -3078,7 +3086,7 @@ p {
   .battle .opp-hand {
     --step: 26px;
     --drop: 3px;
-    top: 29px;
+    top: 23.55px;
   }
 
   .battle .hand-card { left: -36.96px; width: 73.92px; height: 103.84px; }

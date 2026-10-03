@@ -1,7 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
 import chat from './assets/battle/chat.svg'
-import glowDark from './assets/battle/energy-glow-dark.png'
-import glow from './assets/battle/energy-glow.png'
 import send from './assets/battle/send.svg'
 import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
 import { Icon } from './Home'
@@ -150,7 +148,7 @@ export function Battle({
   const over = result !== null || connection === 'closed'
   // The mat and coin are those of whoever's turn it is; each side's cards keep their own sleeve.
   const current = board?.yourTurn ? you : opponent
-  const yourName = `${me?.name ?? (you.name || 'You')} (you)`
+  const yourName = `${me?.name ?? (you.name || 'You')}`
   const theirName = opponent.name || 'Opponent'
   const unread = logOpen ? 0 : log.length - seen
   function toggleLog() {
@@ -413,10 +411,7 @@ function EnergyZone({
 }) {
   return (
     <button type="button" className={`energy-zone ${className} ${state ?? ''}`} disabled={!state} onClick={onClick}>
-      <picture className="glow">
-        <source srcSet={glowDark} media="(prefers-color-scheme: dark)" />
-        <img src={glow} alt="" />
-      </picture>
+      <span className="glow" />
       {side.energy && (
         <img className="current" src={`${ENERGY_BASE}/${side.energy.toLowerCase()}.png`} alt={side.energy} title={`Energy: ${side.energy}`} />
       )}
