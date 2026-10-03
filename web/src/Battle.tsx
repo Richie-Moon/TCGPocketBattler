@@ -418,7 +418,6 @@ function EnergyZone({
       {side.nextEnergy && (
         <img className="next" src={`${ENERGY_BASE}/${side.nextEnergy.toLowerCase()}.png`} alt={side.nextEnergy} title={`Next: ${side.nextEnergy}`} />
       )}
-      <span className="label">Energy</span>
     </button>
   )
 }
