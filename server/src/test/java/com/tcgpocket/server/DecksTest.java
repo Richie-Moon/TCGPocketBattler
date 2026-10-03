@@ -37,7 +37,7 @@ class DecksTest {
     @DisplayName("a blank name, an unknown card or too many cards or energy types is rejected")
     void malformed() {
         rejects(draft(" ", List.of(), Set.of()));
-        rejects(draft("x".repeat(101), List.of(), Set.of()));
+        rejects(draft("x".repeat(23), List.of(), Set.of()));
         rejects(draft("Sparks", List.of("A9-999"), Set.of()));
         rejects(draft("Sparks", Collections.nCopies(21, "A1-094"), Set.of()));
         rejects(draft("Sparks", List.of(), Set.of(Type.FIRE, Type.WATER, Type.GRASS, Type.METAL)));

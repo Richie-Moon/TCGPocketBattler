@@ -227,8 +227,8 @@ class Decks {
 
         /** Well-formed, not legal: a half-built deck is fine, a made-up card id is not. */
         static void check(Draft draft) {
-            if (draft.name() == null || draft.name().isBlank() || draft.name().strip().length() > 100) {
-                throw badRequest("A deck needs a name of 1 to 100 characters");
+            if (draft.name() == null || draft.name().isBlank() || draft.name().strip().length() > 22) {
+                throw badRequest("A deck needs a name of 1 to 22 characters");
             }
             if (draft.cards() == null || draft.cards().size() > DeckValidator.DECK_SIZE) {
                 throw badRequest("A deck holds at most " + DeckValidator.DECK_SIZE + " cards");

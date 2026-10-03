@@ -247,10 +247,11 @@ export function DeckEditor({
         <label className="deck-title">
           <input
             aria-label="Deck name"
-            maxLength={100}
+            maxLength={22}
             value={deck.name}
             onChange={(event) => change({ name: event.target.value })}
           />
+          <span className="name-count">{deck.name.length} / 22</span>
           <Icon src={edit} size={22} />
         </label>
 
