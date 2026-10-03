@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,7 +36,7 @@ final class Game {
 
     private static final Logger LOG = LoggerFactory.getLogger(Game.class);
 
-    // ponytail: fixed decks until there is deck building; TurnEngine.setup runs DeckValidator on whatever is dealt.
+    // The decks dealt to a player who is signed out or has none selected (and always to the bot).
     static final List<String> LIGHTNING_DECK = List.of(
             "A1-094", "A1-094", "A1-095", "A1-095", "A1-096", "A1-096", "A1-097", "A1-097", "A1-098", "A1-098",
             "A1-103", "A1-103", "A1-226", "A1-226", "P-A-001", "P-A-001", "P-A-005", "P-A-005", "P-A-007", "P-A-007");
@@ -62,20 +63,28 @@ final class Game {
     private final Battle battle;
     private int nextInstanceId;
 
-    Game(Consumer<Object> sendFirst, Consumer<Object> sendSecond, RandomSource rng) {
-        this(sendFirst, sendSecond, null, rng);
+    /** A deck to deal: printed card ids, and the energy types its Energy Zone generates. */
+    record Deal(List<String> cards, Set<Type> energy) {
+        static final Deal LIGHTNING = new Deal(LIGHTNING_DECK, Set.of(Type.LIGHTNING));
+        static final Deal FIRE = new Deal(FIRE_DECK, Set.of(Type.FIRE));
     }
 
-    /** One browser against {@code bot}, which is sent nothing: it decides on the game thread. */
-    Game(Consumer<Object> send, IPlayer bot, RandomSource rng) {
-        this(send, message -> { }, bot, rng);
+    /** Decks are not checked here; {@code TurnEngine.dealOpeningHands} rejects an illegal one. */
+    Game(Consumer<Object> sendFirst, Deal firstDeck, Consumer<Object> sendSecond, Deal secondDeck, RandomSource rng) {
+        this(sendFirst, firstDeck, sendSecond, secondDeck, null, rng);
     }
 
-    private Game(Consumer<Object> sendFirst, Consumer<Object> sendSecond, IPlayer bot, RandomSource rng) {
+    /** One browser, playing {@code deck}, against {@code bot} with {@link Deal#FIRE}; the bot is sent nothing. */
+    Game(Consumer<Object> send, Deal deck, IPlayer bot, RandomSource rng) {
+        this(send, deck, message -> { }, Deal.FIRE, bot, rng);
+    }
+
+    private Game(Consumer<Object> sendFirst, Deal firstDeck, Consumer<Object> sendSecond, Deal secondDeck,
+                 IPlayer bot, RandomSource rng) {
         RemotePlayer first = new RemotePlayer("Player 1", sendFirst, this::broadcast);
         IPlayer second = bot != null ? bot : new RemotePlayer("Player 2", sendSecond, this::broadcast);
-        Side firstSide = deal(new Side(first.name(), first), LIGHTNING_DECK, Type.LIGHTNING);
-        Side secondSide = deal(new Side(second.name(), second), FIRE_DECK, Type.FIRE);
+        Side firstSide = deal(new Side(first.name(), first), firstDeck);
+        Side secondSide = deal(new Side(second.name(), second), secondDeck);
 
         this.seats = List.of(new Seat(first, firstSide, sendFirst), new Seat(second, secondSide, sendSecond));
         this.battle = Battle.flipForFirst(firstSide, secondSide, rng);
@@ -164,11 +173,11 @@ final class Game {
         }
     }
 
-    private Side deal(Side side, List<String> deck, Type energy) {
-        for (String id : deck) {
+    private Side deal(Side side, Deal deck) {
+        for (String id : deck.cards()) {
             side.addToDeck(new CardInstance(nextInstanceId++, CardPool.get(id), side, Zone.DECK));
         }
-        side.registerTypes(energy);
+        side.registerTypes(deck.energy().toArray(Type[]::new));
         return side;
     }
 }

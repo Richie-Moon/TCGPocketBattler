@@ -14,12 +14,13 @@ served, or against the engine's `RandomPlayer` at once for `/play?bot` (unrated;
 - Setup is the one simultaneous step: `Game` deals both hands, asks both players for their
   `TurnEngine.openingDecision` at once (each on its own virtual thread), and places neither board
   until both have confirmed. Only the game thread changes the board.
-- Decks are fixed (`Game.LIGHTNING_DECK` / `FIRE_DECK`) until there is deck building;
-  `engine.DeckValidator` (run by `TurnEngine.dealOpeningHands` for both sides) is what a deck
+- Each player plays their selected deck (`users.selected_deck`, re-checked with `Decks.problems`);
+  signed out, without the `db` profile, or with none selected they get `Game.Deal.LIGHTNING` (first
+  seat) or `FIRE` (second seat, and always the bot). `engine.DeckValidator` (run by `TurnEngine.dealOpeningHands` for both sides) is what a deck
   builder should call too. There is no turn timer, no reconnect, and no game log yet (seed + deck
   lists + chosen indices would replay a game exactly). Saved decks live behind `/api/decks`
   (`Decks`, `db` profile): drafts are allowed, so saving checks only that a deck is well-formed,
-  and games do not use saved decks yet, not even the one selected (`users.selected_deck`). The deck editor browses `/api/cards` (`Cards`): printed
+  and only the selected deck is played. The deck editor browses `/api/cards` (`Cards`): printed
   text only, straight from `CardPool`, so it needs no sign-in or database.
 - Persistence is an OCI Always Free Autonomous Database (23ai), off by default.
   `--spring.profiles.active=db` turns on the datasource (`application-db.properties`, wallet folder

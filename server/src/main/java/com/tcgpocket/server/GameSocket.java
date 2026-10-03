@@ -23,7 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Matchmaking is first come, first served: a connection waits until the
  * next one arrives, and the two play each other. {@code /play?bot} skips the
- * queue and plays the engine's {@link RandomPlayer} instead, unrated.
+ * queue and plays the engine's {@link RandomPlayer} instead, unrated. Each
+ * player plays their selected deck, or a fixed one when signed out or none is selected.
  *
  * <p>Each game runs on its own virtual thread and blocks inside
  * {@link RemotePlayer#choose} while it waits for a browser. The engine is left
@@ -58,14 +59,16 @@ final class GameSocket extends TextWebSocketHandler {
 
     private final JsonMapper json;
     private final Optional<Ratings> ratings;
+    private final Optional<Decks> decks;
     private final SecureRandom seeds = new SecureRandom();
     private final Map<String, Seat> seats = new ConcurrentHashMap<>();
     private WebSocketSession waiting; // guarded by this
 
-    /** {@code ratings} is empty without the db profile, and then no game is rated. */
-    GameSocket(JsonMapper json, Optional<Ratings> ratings) {
+    /** {@code ratings} and {@code decks} are empty without the db profile: no game is rated, and decks are fixed. */
+    GameSocket(JsonMapper json, Optional<Ratings> ratings, Optional<Decks> decks) {
         this.json = json;
         this.ratings = ratings;
+        this.decks = decks;
     }
 
     @Override
@@ -90,8 +93,8 @@ final class GameSocket extends TextWebSocketHandler {
     private void start(WebSocketSession first, WebSocketSession second) {
         // The seed stays on the server: whoever knows it can predict every flip and shuffle.
         Game game = new Game(
-                message -> send(first, message),
-                message -> send(second, message),
+                message -> send(first, message), deckOf(first, Game.Deal.LIGHTNING),
+                message -> send(second, message), deckOf(second, Game.Deal.FIRE),
                 new SeededRandom(seeds.nextLong()));
         seats.put(first.getId(), new Seat(game, game.players().get(0)));
         seats.put(second.getId(), new Seat(game, game.players().get(1)));
@@ -106,7 +109,7 @@ final class GameSocket extends TextWebSocketHandler {
 
     private void startAgainstBot(WebSocketSession session) {
         Game game = new Game(
-                message -> send(session, message),
+                message -> send(session, message), deckOf(session, Game.Deal.LIGHTNING),
                 new RandomPlayer("Bot", new SeededRandom(seeds.nextLong())),
                 new SeededRandom(seeds.nextLong()));
         seats.put(session.getId(), new Seat(game, game.players().getFirst()));
@@ -114,6 +117,16 @@ final class GameSocket extends TextWebSocketHandler {
             game.run();
             close(session);
         });
+    }
+
+    /** The player's selected deck, or {@code fallback} when signed out, without the db profile, or none is selected. */
+    private Game.Deal deckOf(WebSocketSession session, Game.Deal fallback) {
+        String subject = subject(session);
+        // Re-checked because a card can leave the pool after the deck was selected.
+        return decks.filter(d -> subject != null).flatMap(d -> d.selected(subject))
+                .filter(d -> Decks.problems(d.cards(), d.energy()).isEmpty())
+                .map(d -> new Game.Deal(d.cards(), d.energy()))
+                .orElse(fallback);
     }
 
     @Override

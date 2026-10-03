@@ -98,8 +98,8 @@ export function Shell({
 }
 
 /**
- * The signed-in home screen. Queue starts a game once a deck is chosen; Practice vs bot starts one at once, since
- * games still use fixed decks.
+ * The signed-in home screen. Queue starts a game once a deck is chosen; Practice vs bot starts one at once, with the
+ * selected deck or, without one, the server's fixed deck.
  */
 export function Home({
   name,
