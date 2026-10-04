@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Answer, BoardView, DecisionMessage, ServerMessage } from './protocol'
+import type { Answer, BoardView, DecisionMessage, LogMessage, ServerMessage } from './protocol'
 
 /** One line of the battle log. `turn` lines are the dividers; `point` lines are knockouts. */
 export interface LogEntry {
@@ -21,6 +21,15 @@ export function useGame(bot = false) {
   const [log, setLog] = useState<LogEntry[]>([])
   // The latest board's coin flips; `id` tells two boards with the same flips apart.
   const [flips, setFlips] = useState<{ id: number; heads: boolean[] } | null>(null)
+  // The opponent's move, shown on the board it was made from for MOVE_MS before the board it led to arrives.
+  const [move, setMove] = useState<LogMessage | null>(null)
+  // A played Item, Supporter or Stadium, either side's, shown large for FLASH_MS before its effect; `id` tells two
+  // plays of the same card apart, and `card` is the instance played from your hand (null for the opponent's).
+  const [flash, setFlash] = useState<{ id: number; shown: string; card: number | null } | null>(null)
+  const flashes = useRef(0)
+  // Messages are handled in order; one bringing coin flips holds itself, and everything after it, until they land.
+  // Your own flash joins the queue too, so the board your play led to waits for it.
+  const queue = useRef(Promise.resolve())
 
   useEffect(() => {
     // Deferred so StrictMode's mount-unmount-mount in dev cancels the timer instead of opening a throwaway
@@ -29,8 +38,6 @@ export function useGame(bot = false) {
     let last: BoardView | null = null
     let shown = 0 // the last turn given a divider
     let flipped = 0
-    // Messages are handled in order; one bringing coin flips holds itself, and everything after it, until they land.
-    let ready = Promise.resolve()
     const timer = setTimeout(connect, 0)
     return () => {
       clearTimeout(timer)
@@ -71,14 +78,14 @@ export function useGame(bot = false) {
 
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data) as ServerMessage
-        ready = ready.then(() => land(message)).then(() => handle(message))
+        queue.current = queue.current.then(() => land(message)).then(() => handle(message))
       }
       ws.onclose = () => {
-        ready = ready.then(() => setConnection('closed'))
+        queue.current = queue.current.then(() => setConnection('closed'))
       }
     }
 
-    function handle(message: ServerMessage) {
+    function handle(message: ServerMessage): Promise<void> | void {
       switch (message.type) {
         case 'waiting':
           setConnection('waiting')
@@ -106,7 +113,8 @@ export function useGame(bot = false) {
         case 'log': {
           const entries = [...divide(message.turn, message.yourTurn), { kind: 'them', text: `Opponent: ${message.text}` } as const]
           setLog((log) => [...log, ...entries])
-          break
+          setMove(message)
+          return (message.shown ? show(message.shown, null) : wait(MOVE_MS)).then(() => setMove(null))
         }
       }
     }
@@ -115,10 +123,24 @@ export function useGame(bot = false) {
   function choose(option: number) {
     if (!decision) return
     const answer: Answer = { decision: decision.id, option }
+    const { shown, card } = decision.options[option]
+    if (shown) queue.current = queue.current.then(() => show(shown, card))
     socket.current?.send(JSON.stringify(answer))
     setLog((log) => [...log, { kind: 'you', text: decision.options[option].label }])
     setDecision(null)
   }
 
-  return { connection, board, flips, decision, result, error, log, choose }
+  function show(shown: string, card: number | null) {
+    setFlash({ id: ++flashes.current, shown, card })
+    return wait(FLASH_MS).then(() => setFlash(null))
+  }
+
+  return { connection, board, flips, move, flash, decision, result, error, log, choose }
 }
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+/** How long each of the opponent's moves holds the board, so a bot's turn plays out one move at a time. */
+const MOVE_MS = 1300
+/** How long a played Item, Supporter or Stadium is flashed on the board before its effect. */
+const FLASH_MS = 750

@@ -59,11 +59,14 @@ final class Game {
 
     /**
      * What a player chose, sent to everyone else so their log shows the other side's moves. Worded for the
-     * receiver ("your Pikachu"); {@code yourTurn} is too, so the log knows whose turn it falls in.
+     * receiver ("your Pikachu"); {@code yourTurn} is too, so the log knows whose turn it falls in. {@code kind},
+     * {@code card} and {@code target} are the choice's {@link OptionView} fields, so the browser can show the move
+     * on the board; a chosen card's id is left out with its name. {@code shown} is the {@link OptionView}'s too.
      */
-    record LogMessage(String type, int turn, boolean yourTurn, String text) {
-        LogMessage(int turn, boolean yourTurn, String text) {
-            this("log", turn, yourTurn, text);
+    record LogMessage(String type, int turn, boolean yourTurn, String text, String kind, Integer card, Integer target,
+                      String shown) {
+        LogMessage(int turn, boolean yourTurn, String text, String kind, Integer card, Integer target, String shown) {
+            this("log", turn, yourTurn, text, kind, card, target, shown);
         }
     }
 
@@ -239,6 +242,10 @@ final class Game {
 
         @Override
         public <T> T choose(Decision<T> decision) {
+            // A RemotePlayer sends the board itself; a bot's moves need one each too, or its whole turn lands at once.
+            if (!(player instanceof RemotePlayer)) {
+                broadcast();
+            }
             T choice = player.choose(decision);
             tellOthers(decision, choice);
             return choice;
@@ -257,13 +264,11 @@ final class Game {
             // Labelled as if the receiver were choosing, so "your" and "opponent's" are theirs.
             OptionView view = OptionView.of(choice,
                     new Decision<>(decision.prompt(), decision.options(), seat.side(), decision.context()));
-            String text = switch (view.kind()) {
-                case "setup" -> null;
-                case "card" -> "Chose a card";
-                default -> view.label();
-            };
-            if (text != null) {
-                seat.send().accept(new LogMessage(battle.turn(), battle.attacker() == seat.side(), text));
+            boolean hidden = view.kind().equals("card");
+            if (!view.kind().equals("setup")) {
+                seat.send().accept(new LogMessage(battle.turn(), battle.attacker() == seat.side(),
+                        hidden ? "Chose a card" : view.label(), view.kind(), hidden ? null : view.card(), view.target(),
+                        view.shown()));
             }
         }
     }

@@ -62,7 +62,7 @@ class GameSocketTest {
     }
 
     @Test
-    @DisplayName("/play?bot starts a game at once against a bot that is never sent anything")
+    @DisplayName("/play?bot starts a game at once against a bot that is never sent anything, and each bot move gets its own board")
     void oneClientPlaysTheBot() throws Exception {
         Client client = connect(new Client(new Random(3), false), "/play?bot");
 
@@ -72,6 +72,9 @@ class GameSocketTest {
         assertEquals(List.of(), client.badIds);
         assertEquals("setup", client.firstDecisionKind);
         assertTrue(client.logs.contains("End turn"), "the bot's moves are logged");
+        assertEquals(0, client.movesWithoutBoard, "two bot moves arrived with no board between them");
+        assertTrue(Set.of("A1-221", "P-A-001", "P-A-005", "P-A-007").containsAll(client.shown),
+                "only the Fire deck's Trainers flash, never a Pokemon: " + client.shown);
     }
 
     private Client connect(Client client) throws Exception {
@@ -89,9 +92,14 @@ class GameSocketTest {
         final List<JsonNode> boards = new CopyOnWriteArrayList<>();
         final List<String> errors = new CopyOnWriteArrayList<>();
         final List<String> logs = new CopyOnWriteArrayList<>();
+        /** The printed ids of the opponent's played cards flashed before their effect. */
+        final List<String> shown = new CopyOnWriteArrayList<>();
         /** Options whose ids point at nothing on the board sent just before them. */
         final List<String> badIds = new CopyOnWriteArrayList<>();
         volatile String firstDecisionKind;
+        /** Logged moves that came straight after another, so the browser could not show the first one land. */
+        volatile int movesWithoutBoard;
+        private boolean lastWasLog;
         volatile boolean opponentPlacedBeforeSetup;
         private final Random random;
         private boolean cheat;
@@ -104,7 +112,12 @@ class GameSocketTest {
         @Override
         protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
             JsonNode node = json.readTree(message.getPayload());
-            switch (node.get("type").asString()) {
+            String type = node.get("type").asString();
+            if (type.equals("log") && lastWasLog) {
+                movesWithoutBoard++;
+            }
+            lastWasLog = type.equals("log");
+            switch (type) {
                 case "state" -> boards.add(node.get("board"));
                 case "decision" -> {
                     int id = node.get("id").asInt();
@@ -121,7 +134,12 @@ class GameSocketTest {
                     }
                     answer(session, id, random.nextInt(size));
                 }
-                case "log" -> logs.add(node.get("text").asString());
+                case "log" -> {
+                    logs.add(node.get("text").asString());
+                    if (!node.get("shown").isNull()) {
+                        shown.add(node.get("shown").asString());
+                    }
+                }
                 case "over" -> over.complete(node.get("result").asString());
                 case "error" -> errors.add(node.get("message").asString().replaceAll("^\\w+ -?\\d+ ", ""));
                 default -> { }
@@ -132,7 +150,11 @@ class GameSocketTest {
         private void checkIds(JsonNode options) {
             JsonNode board = boards.getLast();
             Set<Integer> hand = new HashSet<>();
-            board.get("you").get("hand").forEach(card -> hand.add(card.get("id").asInt()));
+            Set<String> handCards = new HashSet<>();
+            board.get("you").get("hand").forEach(card -> {
+                hand.add(card.get("id").asInt());
+                handCards.add(card.get("id").asInt() + " " + card.get("card").asString());
+            });
             Set<Integer> inPlay = new HashSet<>();
             for (String side : List.of("you", "opponent")) {
                 JsonNode active = board.get(side).get("active");
@@ -150,7 +172,9 @@ class GameSocketTest {
                             && option.get("bench").valueStream().allMatch(id -> hand.contains(id.asInt()));
                     case "attack", "ability" -> inPlay.contains(card.asInt());
                     default -> true;
-                } && (target.isNull() || inPlay.contains(target.asInt()));
+                } && (target.isNull() || inPlay.contains(target.asInt()))
+                        // A flashed card is the one played, as printed.
+                        && (option.get("shown").isNull() || handCards.contains(card.asInt() + " " + option.get("shown").asString()));
                 if (!ok) {
                     badIds.add(option.toString());
                 }

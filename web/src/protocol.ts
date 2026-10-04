@@ -85,6 +85,8 @@ export interface OptionView {
   target: number | null
   /** For setup, the cards from hand to Bench; empty otherwise. */
   bench: number[]
+  /** For a play, the printed id of an Item, Supporter or Stadium (a card that does not stay on a Pokemon), flashed before its effect. */
+  shown: string | null
 }
 
 export interface DecisionMessage {
@@ -101,8 +103,23 @@ export type ServerMessage =
   | DecisionMessage
   | { type: 'over'; board: BoardView; flips: boolean[]; result: string }
   | { type: 'error'; message: string }
-  /** What the opponent chose, worded for you; `turn` and `yourTurn` place it in the log. */
-  | { type: 'log'; turn: number; yourTurn: boolean; text: string }
+  | LogMessage
+
+/**
+ * What the opponent chose, worded for you; `turn` and `yourTurn` place it in the log. `kind`, `card` and `target`
+ * are its OptionView's, so the board can show the move; `card` is null for a chosen card, which stays unnamed.
+ */
+export interface LogMessage {
+  type: 'log'
+  turn: number
+  yourTurn: boolean
+  text: string
+  kind: OptionView['kind']
+  card: number | null
+  target: number | null
+  /** A played card that does not stay on a Pokemon (Item, Supporter, Stadium), as "P-A-005": flashed before its effect. */
+  shown: string | null
+}
 
 /** The only thing the browser ever sends. */
 export interface Answer {
