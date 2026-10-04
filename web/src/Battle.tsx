@@ -1,4 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import chat from './assets/battle/chat.svg'
 import send from './assets/battle/send.svg'
 import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
@@ -43,9 +54,11 @@ function sourceOf(option: OptionView, activeId: number | undefined): Source | nu
 /**
  * The battle page: the mat on the left, the battle log on the right (a bottom sheet on a phone).
  *
- * On your turn you click what to act with (a card in hand, a Pokemon, the Energy Zone); its options are listed
- * and the Pokemon they land on light up, so either answers. Any other question lists its options, with its
- * Pokemon clickable too. Every click still answers with an option index the server offered.
+ * On your turn you drag what to act with (a card in hand, a Pokemon, the Energy Zone) onto the Pokemon it lands
+ * on, or onto the field when it lands on none (a Basic to the Bench, an Item). Tapping it instead lights up those
+ * Pokemon to tap, and lists what has no Pokemon to land on (attacks, abilities, Items). Any other question lists
+ * its options, with its Pokemon tappable too. Long-press (or right-click) any card to see it large. Every gesture
+ * still answers with an option index the server offered.
  */
 export function Battle({
   bot,
@@ -101,6 +114,17 @@ export function Battle({
     else if (active === null) setSetup({ decision: decision.id, active: id, bench })
     else if (bench.length < benchLimit) setSetup({ decision: decision.id, active, bench: [...bench, id] })
   }
+  /** A Basic dropped in setup: onto the Active Spot (swapping with a benched one), the Bench, or back to hand. */
+  function placeSetup(id: number, where: 'active' | 'bench' | null) {
+    if (!decision) return
+    let active = picks.active === id ? null : picks.active
+    let bench = picks.bench.filter((b) => b !== id)
+    if (where === 'active') {
+      if (active !== null && picks.bench.includes(id)) bench = [...bench, active]
+      active = id
+    } else if (where === 'bench' && bench.length < benchLimit) bench = [...bench, id]
+    setSetup({ decision: decision.id, active, bench })
+  }
   const setupBasics = new Set(options.map(({ option }) => option.card))
   const byId = new Map(you.hand.map((card) => [card.id, card]))
   const shownActive = isSetup && picks.active !== null ? asPokemon(byId.get(picks.active)) : you.active
@@ -124,6 +148,25 @@ export function Battle({
   const pokemonState = (id: number) =>
     targets.has(id) ? 'target' : selected === id ? 'selected' : sources.has(id) ? 'can' : undefined
 
+  // Dragging picks the source, so the Pokemon it can land on light up as they do for a tap.
+  function dragStart(source: Source) {
+    if (decision && isTurn) setPick({ decision: decision.id, source })
+  }
+  function drop(source: Source, at: Element | null) {
+    if (isSetup) {
+      if (typeof source === 'number') placeSetup(source, at?.closest('.your-active') ? 'active' : at?.closest('.your-bench') ? 'bench' : null)
+      return
+    }
+    const onto = Number(at?.closest('[data-id]')?.getAttribute('data-id') ?? NaN)
+    const onField = !!at?.closest('.field') && !at?.closest('.hand')
+    const hit =
+      sourced.find((o) => o.source === source && o.option.target === onto) ??
+      sourced.find((o) => onField && o.source === source && o.option.kind === 'play' && o.option.target === null)
+    if (hit) choose(hit.index)
+    else setPick(null)
+  }
+  const { inspect, setInspect, ghost, gestures } = useGestures(dragStart, drop)
+
   let status: string
   if (result) status = result
   else if (connection === 'connecting') status = 'Connecting…'
@@ -134,8 +177,14 @@ export function Battle({
   else status = 'Starting…'
 
   let menu: { title: string; note?: string; items: { option: OptionView; index: number }[] } | null = null
-  if (isSetup) menu = { title: decision!.prompt, note: 'Tap a Basic to make it your Active, then tap others to Bench them.', items: [] }
-  else if (isTurn && selected !== null) menu = { title: nameOf(selected), items: forSelected }
+  if (isSetup) menu = { title: decision!.prompt, note: 'Drag a Basic to your Active Spot and others to your Bench, or tap them in turn.', items: [] }
+  // Options that land on a Pokemon are answered by dragging onto it or tapping it, so only the rest are listed.
+  else if (isTurn && selected !== null)
+    menu = {
+      title: nameOf(selected),
+      note: forSelected.some((o) => o.option.target !== null) ? 'Drag onto a highlighted Pokémon, or tap one.' : undefined,
+      items: forSelected.filter((o) => o.option.target === null),
+    }
   else if (isTurn && loose.length) menu = { title: 'More', items: loose }
   else if (decision && !isTurn) menu = { title: decision.prompt, items: options }
 
@@ -160,7 +209,7 @@ export function Battle({
   }
 
   return (
-    <div className={logOpen ? 'battle log-open' : 'battle'}>
+    <div className={logOpen ? 'battle log-open' : 'battle'} {...gestures}>
       <div
         className="mat"
         ref={mat}
@@ -256,8 +305,10 @@ export function Battle({
                   type="button"
                   className={selected === card.id ? 'hand-card selected' : can ? 'hand-card can' : 'hand-card'}
                   style={fan(i, hand.length, 6)}
-                  disabled={!can}
-                  onClick={() => clickHand(card.id)}
+                  aria-disabled={!can}
+                  data-card={card.card}
+                  data-drag={can && !handPicks.has(card.id) ? card.id : undefined}
+                  onClick={() => can && clickHand(card.id)}
                 >
                   <Card card={card} />
                 </button>
@@ -271,6 +322,12 @@ export function Battle({
       </div>
 
       <button type="button" className="scrim" aria-label="Close the battle log" onClick={toggleLog} />
+      {ghost}
+      {inspect && (
+        <button type="button" className="inspect" aria-label="Close" onClick={() => setInspect(null)}>
+          <img src={`${CARD_BASE}/${inspect}.webp`} alt="" />
+        </button>
+      )}
       <LogPanel
         log={log}
         subtitle={`Standard · ${me?.name ?? (you.name || 'You')} vs ${theirName}`}
@@ -300,6 +357,95 @@ function useFit(mat: RefObject<HTMLDivElement | null>) {
   return fit
 }
 
+/**
+ * Long-press (or right-click) on a `data-card` element to inspect that card, and drag a `data-drag` element
+ * (an instance id, or "energy") to drop it wherever the pointer lets go. A press that moves first is a drag;
+ * the click a long press or drag would end in is swallowed, so it doesn't also tap.
+ */
+function useGestures(onStart: (source: Source) => void, onDrop: (source: Source, at: Element | null) => void) {
+  const [inspect, setInspect] = useState<string | null>(null)
+  const [drag, setDrag] = useState<{ src: string; x: number; y: number; w: number; h: number } | null>(null)
+  const swallow = useRef(false)
+  // The latest handlers, so a drag that outlives a render answers the decision open when it ends.
+  const latest = useRef({ onStart, onDrop })
+  useEffect(() => {
+    latest.current = { onStart, onDrop }
+  })
+
+  function onPointerDown(event: ReactPointerEvent) {
+    swallow.current = false
+    if (event.button !== 0) return
+    const target = event.target as Element
+    const card = target.closest('[data-card]')?.getAttribute('data-card')
+    const handle = target.closest('[data-drag]')
+    if (!card && !handle) return
+    const raw = handle?.getAttribute('data-drag')
+    const source: Source = raw === 'energy' ? 'energy' : Number(raw)
+    const start = { x: event.clientX, y: event.clientY }
+    let dragging = false
+    const timer = setTimeout(() => {
+      end()
+      swallow.current = true
+      setInspect(card!)
+    }, 450)
+    if (!card) clearTimeout(timer)
+
+    function move(e: PointerEvent) {
+      if (!dragging && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 8) return
+      clearTimeout(timer)
+      if (!handle) return end()
+      if (!dragging) {
+        dragging = true
+        latest.current.onStart(source)
+      }
+      const art = handle.querySelector('img')!
+      const { width, height } = art.getBoundingClientRect()
+      setDrag({ src: art.src, x: e.clientX, y: e.clientY, w: width, h: height })
+    }
+    function up(e: PointerEvent) {
+      end()
+      if (!dragging) return
+      swallow.current = true
+      latest.current.onDrop(source, document.elementFromPoint(e.clientX, e.clientY))
+    }
+    function end() {
+      clearTimeout(timer)
+      setDrag(null)
+      removeEventListener('pointermove', move)
+      removeEventListener('pointerup', up)
+      removeEventListener('pointercancel', end)
+    }
+    addEventListener('pointermove', move)
+    addEventListener('pointerup', up)
+    addEventListener('pointercancel', end)
+  }
+
+  const ghost = drag && (
+    <img
+      className="ghost"
+      src={drag.src}
+      alt=""
+      style={{ left: drag.x - drag.w / 2, top: drag.y - drag.h / 2, width: drag.w, height: drag.h }}
+    />
+  )
+  const gestures = {
+    onPointerDown,
+    onClickCapture(event: MouseEvent) {
+      if (!swallow.current) return
+      swallow.current = false
+      event.stopPropagation()
+    },
+    onContextMenu(event: MouseEvent) {
+      const card = (event.target as Element).closest('[data-card]')?.getAttribute('data-card')
+      if (!card) return
+      event.preventDefault()
+      setInspect(card)
+    },
+    onDragStart: (event: DragEvent) => event.preventDefault(),
+  }
+  return { inspect, setInspect, ghost, gestures }
+}
+
 /** Where card `i` of `n` sits in a fan drawn for `designed` cards; wider hands squeeze in. */
 function fan(i: number, n: number, designed: number) {
   const d = i - (n - 1) / 2
@@ -312,7 +458,7 @@ function asPokemon(card: CardView | undefined): PokemonView | null {
 }
 
 function Card({ card, className = 'art' }: { card: Pick<CardView, 'card' | 'name'>; className?: string }) {
-  return <img className={className} src={`${CARD_BASE}/${card.card}.webp`} alt={card.name} title={card.name} />
+  return <img className={className} src={`${CARD_BASE}/${card.card}.webp`} alt={card.name} title={card.name} data-card={card.card} />
 }
 
 /** A face-down card, in its side's sleeve. */
@@ -343,8 +489,11 @@ function Pokemon({
     <button
       type="button"
       className={state ? `pokemon ${state}` : 'pokemon'}
-      disabled={!state}
-      onClick={() => onClick(pokemon.id)}
+      aria-disabled={!state}
+      data-id={pokemon.id}
+      data-card={pokemon.card}
+      data-drag={state === 'can' || state === 'selected' ? pokemon.id : undefined}
+      onClick={() => state && onClick(pokemon.id)}
     >
       <Card card={pokemon} />
       {pokemon.maxHp > 0 && <span className="hp">{pokemon.hp}</span>}
@@ -410,7 +559,13 @@ function EnergyZone({
   onClick?: () => void
 }) {
   return (
-    <button type="button" className={`energy-zone ${className} ${state ?? ''}`} disabled={!state} onClick={onClick}>
+    <button
+      type="button"
+      className={`energy-zone ${className} ${state ?? ''}`}
+      aria-disabled={!state}
+      data-drag={state ? 'energy' : undefined}
+      onClick={() => state && onClick?.()}
+    >
       <span className="glow" />
       {side.energy && (
         <img className="current" src={`${ENERGY_BASE}/${side.energy.toLowerCase()}.png`} alt={side.energy} title={`Energy: ${side.energy}`} />
