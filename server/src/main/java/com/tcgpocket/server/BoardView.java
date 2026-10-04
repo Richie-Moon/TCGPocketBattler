@@ -9,6 +9,7 @@ import com.tcgpocket.state.Side;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 /**
  * The board as one player is allowed to see it.
@@ -45,6 +46,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
     /**
      * For the opponent, {@code hand} is only what was revealed; {@code handSize} is always the real count.
      * {@code topCards} are the deck's top cards, top first, once its owner has looked at them (Porygon), and only for them.
+     * {@code bench} is by slot, {@link Side#BENCH_LIMIT} of them, null where a slot is empty.
      */
     record SideView(String name, int points, List<CardView> hand, int handSize, int deckSize, List<CardView> topCards,
                     List<CardView> discard, PokemonView active, List<PokemonView> bench,
@@ -70,7 +72,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                 (own ? side.seenTopCards() : List.<CardInstance>of()).stream().map(BoardView::card).toList(),
                 side.discardPile().stream().map(BoardView::card).toList(),
                 side.active().map(BoardView::pokemon).orElse(null),
-                side.bench().stream().map(BoardView::pokemon).toList(),
+                IntStream.range(0, Side.BENCH_LIMIT).mapToObj(slot -> side.benchAt(slot).map(BoardView::pokemon).orElse(null)).toList(),
                 side.currentEnergy().orElse(null),
                 side.nextEnergy().orElse(null),
                 cosmetics.apply(side));

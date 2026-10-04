@@ -900,7 +900,7 @@ class GeneticApexTest {
             board.active(board.you, WALL);
             CardInstance fossil = board.inHand(board.you, Trainers.HELIX_FOSSIL);
 
-            assertTrue(new PlayCardAction(fossil).execute(context).succeeded());
+            assertTrue(new PlayCardAction(fossil, 0).execute(context).succeeded());
 
             PokemonCard played = board.you.bench().getFirst().definition();
             assertTrue(board.you.hand().isEmpty());

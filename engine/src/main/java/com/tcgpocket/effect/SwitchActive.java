@@ -51,16 +51,8 @@ public record SwitchActive(ISideTarget side, Optional<ITarget> replacement) impl
             return EffectOutcome.FAILED;
         }
 
-        PokemonInPlay promoted = incoming.get();
-        Optional<PokemonInPlay> outgoing = target.active();
-
-        target.removeFromBench(promoted);
-        outgoing.ifPresent(pokemon -> {
-            pokemon.clearTemporaryState();
-            target.addToBench(pokemon);
-        });
-        target.setActive(promoted);
-
+        target.active().ifPresent(PokemonInPlay::clearTemporaryState);
+        target.switchIn(incoming.get());
         return EffectOutcome.APPLIED;
     }
 

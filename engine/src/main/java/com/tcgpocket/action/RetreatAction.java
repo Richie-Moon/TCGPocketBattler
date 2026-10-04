@@ -70,10 +70,8 @@ public record RetreatAction(ITarget replacement) implements IAction {
 
         payRetreatCost(context, retreating);
 
-        side.removeFromBench(incoming);
         retreating.clearTemporaryState();
-        side.addToBench(retreating);
-        side.setActive(incoming);
+        side.switchIn(incoming);
         side.markRetreated();
 
         TriggerDispatcher.dispatch(context.battle(), new Retreated(retreating, incoming));

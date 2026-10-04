@@ -75,7 +75,7 @@ export function Battle({
   const [pick, setPick] = useState<{ decision: number; source: Source } | null>(null)
   // The Pokemon in play whose card is open to pick an attack, Ability or Retreat from.
   const [preview, setPreview] = useState<{ decision: number; id: number } | null>(null)
-  const [setup, setSetup] = useState<{ decision: number; active: number | null; bench: number[] } | null>(null)
+  const [setup, setSetup] = useState<{ decision: number; active: number | null; bench: (number | null)[] } | null>(null)
   const [logOpen, setLogOpen] = useState(false)
   const [seen, setSeen] = useState(0)
   // Pokemon gone from play since the last board, still drawn in their old slot until their fade ends (none
@@ -109,6 +109,8 @@ export function Battle({
   // Your Pokemon with an Ability they can use now.
   const abilities = new Set(sourced.filter((o) => o.option.kind === 'ability').map((o) => o.source))
   const loose = sourced.filter((o) => isTurn && o.source === null && o.option.kind !== 'endTurn')
+  // For a picked Basic, each empty Bench slot it can go into and the option that puts it there.
+  const benchPlays = new Map(forSelected.flatMap(({ option, index }) => (option.slot === null ? [] : [[option.slot, index] as const])))
 
   // The Pokemon (and, outside a turn, hand cards) that answer with one click.
   const targets = new Map<number, number>()
@@ -118,38 +120,36 @@ export function Battle({
     if (!isTurn && option.kind === 'card' && option.card !== null) handPicks.set(option.card, index)
   }
 
-  // Setup: the clicked Basics move to the Active Spot and Bench until Confirm.
-  const picks = setup && setup.decision === decision?.id ? setup : { active: null, bench: [] as number[] }
-  const benchLimit = isSetup ? Math.max(...options.map(({ option }) => option.bench.length)) : 0
+  // Setup: the clicked Basics move to the Active Spot and Bench slots until Confirm.
+  const picks = setup && setup.decision === decision?.id ? setup : { active: null, bench: [null, null, null] as (number | null)[] }
   const setupChoice = options.findIndex(
-    ({ option }) =>
-      option.card === picks.active &&
-      option.bench.length === picks.bench.length &&
-      option.bench.every((id) => picks.bench.includes(id)),
+    ({ option }) => option.card === picks.active && option.bench.every((id, slot) => id === picks.bench[slot]),
   )
+  /** A tapped Basic: off the board if it is on it, else to the Active Spot, else to the first empty Bench slot. */
   function toggleSetup(id: number) {
-    if (!decision) return
-    const { active, bench } = picks
-    if (id === active) setSetup({ decision: decision.id, active: null, bench })
-    else if (bench.includes(id)) setSetup({ decision: decision.id, active, bench: bench.filter((b) => b !== id) })
-    else if (active === null) setSetup({ decision: decision.id, active: id, bench })
-    else if (bench.length < benchLimit) setSetup({ decision: decision.id, active, bench: [...bench, id] })
+    const slot = picks.bench.indexOf(id)
+    if (id === picks.active || slot >= 0) placeSetup(id, null)
+    else if (picks.active === null) placeSetup(id, 'active')
+    else if (picks.bench.includes(null)) placeSetup(id, picks.bench.indexOf(null))
   }
-  /** A Basic dropped in setup: onto the Active Spot (swapping with a benched one), the Bench, or back to hand. */
-  function placeSetup(id: number, where: 'active' | 'bench' | null) {
+  /** A Basic dropped in setup onto the Active Spot, a Bench slot, or back to hand; whatever was there takes its place. */
+  function placeSetup(id: number, where: 'active' | number | null) {
     if (!decision) return
-    let active = picks.active === id ? null : picks.active
-    let bench = picks.bench.filter((b) => b !== id)
-    if (where === 'active') {
-      if (active !== null && picks.bench.includes(id)) bench = [...bench, active]
-      active = id
-    } else if (where === 'bench' && bench.length < benchLimit) bench = [...bench, id]
-    setSetup({ decision: decision.id, active, bench })
+    const board = { active: picks.active, bench: [...picks.bench] }
+    const from = id === board.active ? 'active' : board.bench.includes(id) ? board.bench.indexOf(id) : null
+    const put = (at: 'active' | number | null, card: number | null) => {
+      if (at === 'active') board.active = card
+      else if (at !== null) board.bench[at] = card
+    }
+    const displaced = where === 'active' ? board.active : where === null ? null : board.bench[where]
+    put(from, displaced)
+    put(where, id)
+    setSetup({ decision: decision.id, ...board })
   }
   const setupBasics = new Set(options.map(({ option }) => option.card))
   const byId = new Map(you.hand.map((card) => [card.id, card]))
   const shownActive = isSetup && picks.active !== null ? asPokemon(byId.get(picks.active)) : you.active
-  const shownBench = isSetup ? picks.bench.map((id) => asPokemon(byId.get(id))!) : you.bench
+  const shownBench = isSetup ? picks.bench.map((id) => (id === null ? null : asPokemon(byId.get(id)))) : you.bench
   // A card you just played leaves your hand while it flashes, before the board that takes it arrives.
   const hand = isSetup
     ? you.hand.filter((card) => card.id !== picks.active && !picks.bench.includes(card.id))
@@ -181,8 +181,9 @@ export function Battle({
     if (decision && isTurn) setPick({ decision: decision.id, source })
   }
   function drop(source: Source, at: Element | null, y: number) {
+    const slot = Number(at?.closest('.your-bench [data-slot]')?.getAttribute('data-slot') ?? NaN)
     if (isSetup) {
-      if (typeof source === 'number') placeSetup(source, at?.closest('.your-active') ? 'active' : at?.closest('.your-bench') ? 'bench' : null)
+      if (typeof source === 'number') placeSetup(source, at?.closest('.your-active') ? 'active' : Number.isNaN(slot) ? null : slot)
       return
     }
     const onto = Number(at?.closest('[data-id]')?.getAttribute('data-id') ?? NaN)
@@ -190,14 +191,15 @@ export function Battle({
     const onField = !!at?.closest('.field') && y < handRow.current!.getBoundingClientRect().top
     const hit =
       sourced.find((o) => o.source === source && o.option.target === onto) ??
-      sourced.find((o) => onField && o.source === source && o.option.kind === 'play' && o.option.target === null)
+      sourced.find((o) => o.source === source && o.option.slot === slot) ??
+      sourced.find((o) => onField && o.source === source && o.option.kind === 'play' && o.option.target === null && o.option.slot === null)
     if (hit) choose(hit.index)
     else setPick(null)
   }
   const { inspect, setInspect, ghost, gestures } = useGestures(dragStart, drop)
   // Mid-drag, the places a drop would land that aren't a Pokemon (those already show as targets) light up too.
   const setupDrop = !!ghost && isSetup
-  const fieldDrop = !!ghost && isTurn && forSelected.some((o) => o.option.kind === 'play' && o.option.target === null)
+  const fieldDrop = !!ghost && isTurn && forSelected.some((o) => o.option.kind === 'play' && o.option.target === null && o.option.slot === null)
 
   let status: string
   if (result) status = result
@@ -210,13 +212,19 @@ export function Battle({
 
   let menu: { title: string; note?: string; items: { option: OptionView; index: number }[] } | null = null
   if (isSetup) menu = { title: decision!.prompt, note: 'Drag a Basic to your Active Spot and others to your Bench, or tap them in turn.', items: [] }
-  // Options that land on a Pokemon are answered by dragging onto it or tapping it, and attacks and Abilities from
-  // the card preview, so only the rest are listed.
+  // Options that land on a Pokemon or a Bench slot are answered by dragging onto it or tapping it, and attacks and
+  // Abilities from the card preview, so only the rest are listed.
   else if (isTurn && selected !== null)
     menu = {
       title: nameOf(selected),
-      note: forSelected.some((o) => o.option.target !== null) ? 'Drag onto a highlighted Pokémon, or tap one.' : undefined,
-      items: forSelected.filter((o) => o.option.target === null && o.option.kind !== 'attack' && o.option.kind !== 'ability'),
+      note: forSelected.some((o) => o.option.target !== null)
+        ? 'Drag onto a highlighted Pokémon, or tap one.'
+        : benchPlays.size
+          ? 'Drag onto a highlighted Bench slot, or tap one.'
+          : undefined,
+      items: forSelected.filter(
+        (o) => o.option.target === null && o.option.slot === null && o.option.kind !== 'attack' && o.option.kind !== 'ability',
+      ),
     }
   else if (isTurn && loose.length) menu = { title: 'More', items: loose }
   else if (decision && !isTurn) menu = { title: decision.prompt, items: options }
@@ -332,7 +340,8 @@ export function Battle({
               state={isSetup ? () => 'selected' : pokemonState}
               onClick={isSetup ? toggleSetup : clickPokemon}
               abilities={abilities}
-              open={setupDrop && picks.bench.length < benchLimit}
+              open={(i) => (setupDrop && !shownBench[i]) || benchPlays.has(i)}
+              onSlot={isSetup ? undefined : (i) => choose(benchPlays.get(i)!)}
               leaving={(i) => leavingAt('you', i)}
             />
             <EnergyZone
@@ -722,9 +731,9 @@ function Back({ sleeve }: { sleeve: string }) {
   return <img className="art" src={`${SLEEVE_BASE}/${sleeve}`} alt="" />
 }
 
-function Slot({ className, title, children }: { className: string; title?: string; children?: ReactNode }) {
+function Slot({ className, title, slot, children }: { className: string; title?: string; slot?: number; children?: ReactNode }) {
   return (
-    <div className={`slot ${className}`} title={title}>
+    <div className={`slot ${className}`} title={title} data-slot={slot}>
       {children}
     </div>
   )
@@ -801,27 +810,35 @@ function Bench({
   state,
   onClick,
   abilities,
-  open = false,
+  open = () => false,
+  onSlot,
   leaving,
 }: {
   className: string
-  pokemon: PokemonView[]
+  /** By slot, null where it is empty. */
+  pokemon: (PokemonView | null)[]
   state: (id: number) => string | undefined
   onClick: (id: number) => void
   abilities?: Set<Source | null>
-  /** Whether a drop could land in its empty slots. */
-  open?: boolean
+  /** Whether a card could go into empty slot `i`, by a drop or (with `onSlot`) a tap. */
+  open?: (i: number) => boolean
+  onSlot?: (i: number) => void
   /** What is fading out of slot `i`. */
   leaving: (i: number) => ReactNode
 }) {
   return (
     <div className={`bench ${className}`}>
-      {[0, 1, 2].map((i) => (
-        <Slot key={i} className={open && !pokemon[i] ? 'benched drop' : 'benched'}>
-          {leaving(i)}
-          {pokemon[i] && <Pokemon key={pokemon[i].id} pokemon={pokemon[i]} state={state(pokemon[i].id)} ability={abilities?.has(pokemon[i].id)} onClick={onClick} />}
-        </Slot>
-      ))}
+      {[0, 1, 2].map((i) => {
+        const p = pokemon[i]
+        const lit = !p && open(i)
+        return (
+          <Slot key={i} className={lit ? 'benched drop' : 'benched'} slot={i}>
+            {leaving(i)}
+            {p && <Pokemon key={p.id} pokemon={p} state={state(p.id)} ability={abilities?.has(p.id)} onClick={onClick} />}
+            {lit && onSlot && <button type="button" className="slot-pick" aria-label={`Bench slot ${i + 1}`} onClick={() => onSlot(i)} />}
+          </Slot>
+        )
+      })}
     </div>
   )
 }
