@@ -650,7 +650,7 @@ function textBoxes(pokemon: PokemonView): { ability?: Box; attacks: Box[] } {
 
 /**
  * The engine's coin flips, spun one after another with the coin of whoever's turn it is and then faded: only a show of results
- * already decided. useGame holds the board they led to until the last coin lands.
+ * already decided. useGame holds the board they led to until the last coin has rested and starts to fade.
  */
 function Coins({ heads, coin }: { heads: boolean[]; coin: string }) {
   const [shown, setShown] = useState(true)

@@ -65,11 +65,14 @@ export function useGame(bot = false) {
       last = next
     }
 
-    /** Shows a board's coin flips, settling once the last has landed (Battle's Coins: 0.3s apart, 0.6s spins). */
+    /**
+     * Shows a board's coin flips, settling 0.5s after the last has landed, as the coins start to fade (Battle's Coins:
+     * 0.3s apart, 0.6s spins).
+     */
     function land(message: ServerMessage) {
       if ((message.type !== 'state' && message.type !== 'over') || !message.flips.length) return
       setFlips({ id: ++flipped, heads: message.flips })
-      return new Promise<void>((resolve) => setTimeout(resolve, message.flips.length * 300 + 300))
+      return new Promise<void>((resolve) => setTimeout(resolve, message.flips.length * 300 + 800))
     }
 
     function connect() {
