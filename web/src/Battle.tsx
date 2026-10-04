@@ -14,7 +14,7 @@ import chat from './assets/battle/chat.svg'
 import send from './assets/battle/send.svg'
 import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
 import { Icon } from './Home'
-import type { CardView, OptionView, PokemonView, SideView } from './protocol'
+import type { BoardView, CardView, OptionView, PokemonView, SideView } from './protocol'
 import { useGame, type LogEntry } from './useGame'
 
 /** What a turn option starts from: a card in hand or in play (by instance id), or the Energy Zone. */
@@ -70,7 +70,7 @@ export function Battle({
   me: { name: string; profileIcon: string } | null
   onLeave: () => void
 }) {
-  const { connection, board, decision, result, error, log, choose } = useGame(bot)
+  const { connection, board, flips, decision, result, error, log, choose } = useGame(bot)
   // Picks are tagged with the decision they were made for, so a new question starts with nothing picked.
   const [pick, setPick] = useState<{ decision: number; source: Source } | null>(null)
   // The Pokemon in play whose card is open to pick an attack, Ability or Retreat from.
@@ -78,7 +78,16 @@ export function Battle({
   const [setup, setSetup] = useState<{ decision: number; active: number | null; bench: number[] } | null>(null)
   const [logOpen, setLogOpen] = useState(false)
   const [seen, setSeen] = useState(0)
+  // Pokemon gone from play since the last board, still drawn in their old slot until their fade ends (none
+  // with reduced motion, where no animation would end to remove them).
+  const [leaving, setLeaving] = useState<Leaving[]>([])
+  const [last, setLast] = useState(board)
+  if (board !== last) {
+    setLast(board)
+    if (last && board && !calm()) setLeaving((all) => [...all, ...leavers(last, board)])
+  }
   const mat = useRef<HTMLDivElement>(null)
+  const handRow = useRef<HTMLDivElement>(null)
   const fit = useFit(mat)
 
   const you = board?.you ?? NO_SIDE
@@ -161,13 +170,14 @@ export function Battle({
   function dragStart(source: Source) {
     if (decision && isTurn) setPick({ decision: decision.id, source })
   }
-  function drop(source: Source, at: Element | null) {
+  function drop(source: Source, at: Element | null, y: number) {
     if (isSetup) {
       if (typeof source === 'number') placeSetup(source, at?.closest('.your-active') ? 'active' : at?.closest('.your-bench') ? 'bench' : null)
       return
     }
     const onto = Number(at?.closest('[data-id]')?.getAttribute('data-id') ?? NaN)
-    const onField = !!at?.closest('.field') && !at?.closest('.hand')
+    // Only the board above your hand, as the highlight shows: the field runs under the hand's row too.
+    const onField = !!at?.closest('.field') && y < handRow.current!.getBoundingClientRect().top
     const hit =
       sourced.find((o) => o.source === source && o.option.target === onto) ??
       sourced.find((o) => onField && o.source === source && o.option.kind === 'play' && o.option.target === null)
@@ -207,6 +217,20 @@ export function Battle({
     return pokemon?.name ?? byId.get(source)?.name ?? ''
   }
 
+  const leavingAt = (side: Leaving['side'], slot: Leaving['slot']) =>
+    leaving
+      .filter((l) => l.side === side && l.slot === slot)
+      .map((l) => (
+        <div
+          key={l.pokemon.id}
+          className={l.knockedOut ? 'leaving knocked-out' : 'leaving'}
+          inert
+          onAnimationEnd={(event) => event.target === event.currentTarget && setLeaving((all) => all.filter((x) => x !== l))}
+        >
+          <Pokemon pokemon={l.pokemon} onClick={() => {}} />
+        </div>
+      ))
+
   const over = result !== null || connection === 'closed'
   // The mat and coin are those of whoever's turn it is; each side's cards keep their own sleeve.
   const current = board?.yourTurn ? you : opponent
@@ -229,12 +253,20 @@ export function Battle({
         style={board ? { backgroundImage: `url("${PLAYMAT_BASE}/${current.cosmetics.playmat}")` } : undefined}
       >
         <div className="stage" style={{ zoom: fit.zoom, height: fit.height }}>
+          {flips && <Coins key={flips.id} heads={flips.heads} coin={current.cosmetics.coin} />}
           <div className={fieldDrop ? 'field drop' : 'field'}>
-            <Bench className="opp-bench" pokemon={opponent.bench} state={pokemonState} onClick={clickPokemon} />
+            <Bench
+              className="opp-bench"
+              pokemon={opponent.bench}
+              state={pokemonState}
+              onClick={clickPokemon}
+              leaving={(i) => leavingAt('opponent', i)}
+            />
             <EnergyZone className="opp-energy" side={opponent} />
             <Slot className="active opp-active">
+              {leavingAt('opponent', 'active')}
               {opponent.active && (
-                <Pokemon pokemon={opponent.active} state={pokemonState(opponent.active.id)} onClick={clickPokemon} />
+                <Pokemon key={opponent.active.id} pokemon={opponent.active} state={pokemonState(opponent.active.id)} onClick={clickPokemon} />
               )}
             </Slot>
             <Zones className="opp-zones" side={opponent} deckFirst={false} />
@@ -244,12 +276,12 @@ export function Battle({
                 <Icon src={chat} size={20} />
                 {unread > 0 && <span className="badge">{unread}</span>}
               </button>
-              <div className="turn">
+              <div className="turn" key={status}>
                 {board && <img className="coin" src={`${COIN_BASE}/${current.cosmetics.coin}`} alt="" />}
                 <span className={board?.yourTurn && !over ? 'dot yours' : 'dot'} />
                 {status}
               </div>
-              {board?.stadium && <Card card={board.stadium} className="stadium" />}
+              {board?.stadium && <Card key={board.stadium.id} card={board.stadium} className="stadium" />}
               {over ? (
                 <button type="button" className="end-turn" onClick={onLeave}>
                   Leave
@@ -271,8 +303,10 @@ export function Battle({
             </div>
 
             <Slot className={setupDrop ? 'active your-active drop' : 'active your-active'}>
+              {leavingAt('you', 'active')}
               {shownActive && (
                 <Pokemon
+                  key={shownActive.id}
                   pokemon={shownActive}
                   state={isSetup ? 'selected' : pokemonState(shownActive.id)}
                   ability={abilities.has(shownActive.id)}
@@ -288,6 +322,7 @@ export function Battle({
               onClick={isSetup ? toggleSetup : clickPokemon}
               abilities={abilities}
               open={setupDrop && picks.bench.length < benchLimit}
+              leaving={(i) => leavingAt('you', i)}
             />
             <EnergyZone
               className="your-energy"
@@ -316,7 +351,7 @@ export function Battle({
           </div>
 
           <OpponentHand side={opponent} />
-          <div className="hand">
+          <div className="hand" ref={handRow}>
             {hand.map((card, i) => {
               const can = isSetup ? setupBasics.has(card.id) : handPicks.has(card.id) || sources.has(card.id)
               return (
@@ -399,7 +434,7 @@ function useFit(mat: RefObject<HTMLDivElement | null>) {
  * (an instance id, or "energy") to drop it wherever the pointer lets go. A press that moves first is a drag;
  * the click a long press or drag would end in is swallowed, so it doesn't also tap.
  */
-function useGestures(onStart: (source: Source) => void, onDrop: (source: Source, at: Element | null) => void) {
+function useGestures(onStart: (source: Source) => void, onDrop: (source: Source, at: Element | null, y: number) => void) {
   const [inspect, setInspect] = useState<string | null>(null)
   const [drag, setDrag] = useState<{ src: string; x: number; y: number; w: number; h: number } | null>(null)
   const swallow = useRef(false)
@@ -443,7 +478,7 @@ function useGestures(onStart: (source: Source) => void, onDrop: (source: Source,
       end()
       if (!dragging) return
       swallow.current = true
-      latest.current.onDrop(source, document.elementFromPoint(e.clientX, e.clientY))
+      latest.current.onDrop(source, document.elementFromPoint(e.clientX, e.clientY), e.clientY)
     }
     function end() {
       clearTimeout(timer)
@@ -513,9 +548,10 @@ function MovePreview({
     const { offsetWidth: width, offsetHeight: height } = element
     element.style.left = `${from.left + from.width / 2 - board.left - width / 2}px`
     element.style.top = `${from.top + from.height / 2 - board.top - height / 2}px`
-    element.animate(
+    animate(
+      element,
       [{ transform: `scale(${from.width / width})`, opacity: 0.6 }, { transform: 'none', opacity: 1 }],
-      { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+      { duration: 220, easing: EASE },
     )
   }, [pokemon.id])
 
@@ -592,6 +628,67 @@ function textBoxes(pokemon: PokemonView): { ability?: Box; attacks: Box[] } {
   return { ability, attacks }
 }
 
+/**
+ * The engine's coin flips, spun one after another with the coin of whoever's turn it is and then faded: only a show of results
+ * already decided. useGame holds the board they led to until the last coin lands.
+ */
+function Coins({ heads, coin }: { heads: boolean[]; coin: string }) {
+  const [shown, setShown] = useState(true)
+  // Kept from the flip: an attack's board, arriving once the coins land, may already be the other player's turn.
+  const [face] = useState(coin)
+  // When the CSS fade ends: each coin starts 0.3s after the last and spins for 0.6s, then 0.5s rest and 0.3s fade.
+  useEffect(() => {
+    const timer = setTimeout(() => setShown(false), heads.length * 300 + 1100)
+    return () => clearTimeout(timer)
+  }, [heads])
+  if (!shown) return null
+  return (
+    <div
+      className="coins"
+      role="img"
+      aria-label={heads.map((h) => (h ? 'Heads' : 'Tails')).join(', ')}
+      style={{ '--n': heads.length } as CSSProperties}
+    >
+      {heads.map((h, i) => (
+        <div key={i} className={h ? 'coin-flip' : 'coin-flip tails'} style={{ '--i': i } as CSSProperties}>
+          <img src={`${COIN_BASE}/${face}`} alt="" />
+          <img className="back" src={`${COIN_BASE}/Coin_Tails.png`} alt="" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)'
+const SHAKE: Keyframe[] = [{ translate: '0' }, { translate: '-5px' }, { translate: '4px' }, { translate: '-2px' }, { translate: '0' }]
+
+/** Whether the system asks for reduced motion; the CSS animations stop there too. */
+const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function animate(element: Element, keyframes: Keyframe[], options: KeyframeAnimationOptions) {
+  if (!calm()) element.animate(keyframes, options)
+}
+
+/** A Pokemon that left play, and the slot it left: the Active Spot or a Bench index. */
+type Leaving = { side: 'you' | 'opponent'; slot: number | 'active'; pokemon: PokemonView; knockedOut: boolean }
+
+/**
+ * The Pokemon in play on `before` that are in play nowhere on `after` (a retreat or bench shuffle only moves them).
+ * One that went to the discard pile was Knocked Out, so it takes the hit it was removed before showing, at 0 HP.
+ */
+function leavers(before: BoardView, after: BoardView): Leaving[] {
+  const inPlay = new Set([after.you, after.opponent].flatMap((side) => [side.active, ...side.bench]).map((p) => p?.id))
+  return (['you', 'opponent'] as const).flatMap((side) => {
+    const discarded = new Set(after[side].discard.map((card) => card.id))
+    const slots: (readonly [Leaving['slot'], PokemonView | null])[] = [['active', before[side].active], ...before[side].bench.map((p, i) => [i, p] as const)]
+    return slots.flatMap(([slot, pokemon]) => {
+      if (!pokemon || inPlay.has(pokemon.id)) return []
+      const knockedOut = discarded.has(pokemon.id)
+      return [{ side, slot, pokemon: knockedOut ? { ...pokemon, hp: 0 } : pokemon, knockedOut }]
+    })
+  })
+}
+
 /** Where card `i` of `n` sits in a fan drawn for `designed` cards; wider hands squeeze in. */
 function fan(i: number, n: number, designed: number) {
   const d = i - (n - 1) / 2
@@ -632,6 +729,26 @@ function Pokemon({
   ability?: boolean
   onClick: (id: number) => void
 }) {
+  const self = useRef<HTMLButtonElement>(null)
+  const was = useRef(pokemon)
+  // Entering play is a CSS animation on mount; what changes on a Pokemon already in play is compared here.
+  useEffect(() => {
+    const before = was.current
+    was.current = pokemon
+    // A Basic placed in setup has no HP yet, so its first real board is no change.
+    if (before.maxHp === 0) return
+    const element = self.current!
+    const hp = element.querySelector('.hp')
+    if (pokemon.card !== before.card) {
+      animate(element, [{ filter: 'brightness(1.8)', scale: 1.06 }, {}], { duration: 450, easing: EASE })
+    } else if (pokemon.hp < before.hp) {
+      animate(element, SHAKE, { duration: 350, easing: 'ease-out' })
+      if (hp) animate(hp, [{ background: 'var(--color-danger)', color: '#fff' }, {}], { duration: 600 })
+    } else if (pokemon.hp > before.hp && hp) {
+      animate(hp, [{ background: 'var(--heal)', color: '#fff' }, {}], { duration: 600 })
+    }
+  }, [pokemon])
+
   const types = Object.entries(pokemon.energy)
   // From 5 Energy on, each type shows once with its count, so the row stays on the card.
   const condensed = types.reduce((sum, [, count]) => sum + count, 0) >= 5
@@ -639,6 +756,7 @@ function Pokemon({
   const tags = [...pokemon.statuses, ...(pokemon.tool ? [pokemon.tool.name] : [])]
   return (
     <button
+      ref={self}
       type="button"
       className={['pokemon', state, ability && 'ability'].filter(Boolean).join(' ')}
       aria-disabled={!state}
@@ -659,7 +777,7 @@ function Pokemon({
           ))}
         </span>
       )}
-      {tags.length > 0 && <span className="tags">{tags.join(' · ')}</span>}
+      {tags.length > 0 && <span key={tags.join()} className="tags">{tags.join(' · ')}</span>}
     </button>
   )
 }
@@ -671,6 +789,7 @@ function Bench({
   onClick,
   abilities,
   open = false,
+  leaving,
 }: {
   className: string
   pokemon: PokemonView[]
@@ -679,12 +798,15 @@ function Bench({
   abilities?: Set<Source | null>
   /** Whether a drop could land in its empty slots. */
   open?: boolean
+  /** What is fading out of slot `i`. */
+  leaving: (i: number) => ReactNode
 }) {
   return (
     <div className={`bench ${className}`}>
       {[0, 1, 2].map((i) => (
         <Slot key={i} className={open && !pokemon[i] ? 'benched drop' : 'benched'}>
-          {pokemon[i] && <Pokemon pokemon={pokemon[i]} state={state(pokemon[i].id)} ability={abilities?.has(pokemon[i].id)} onClick={onClick} />}
+          {leaving(i)}
+          {pokemon[i] && <Pokemon key={pokemon[i].id} pokemon={pokemon[i]} state={state(pokemon[i].id)} ability={abilities?.has(pokemon[i].id)} onClick={onClick} />}
         </Slot>
       ))}
     </div>
@@ -696,7 +818,7 @@ function Zones({ className, side, deckFirst }: { className: string; side: SideVi
   const top = side.discard.at(-1)
   const discard = (
     <Slot key="discard" className="pile">
-      {top && <Card card={top} />}
+      {top && <Card key={top.id} card={top} />}
     </Slot>
   )
   const deck = (

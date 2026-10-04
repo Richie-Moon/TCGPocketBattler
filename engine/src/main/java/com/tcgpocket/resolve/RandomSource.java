@@ -15,6 +15,7 @@ public interface RandomSource {
     /** Uniform in {@code [0, bound)}. */
     int nextInt(int bound);
 
+    /** A coin flip, {@code true} for heads, and never anything else: the server shows the players every call as a coin. */
     boolean nextBoolean();
 
     void shuffle(List<?> list);
