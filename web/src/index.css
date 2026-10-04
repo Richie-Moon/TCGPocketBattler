@@ -2504,7 +2504,7 @@ p {
   inset: 0;
   display: grid;
   grid-template-columns: 1fr 191.67px 104.17px 308.33px 104.17px 191.67px 1fr;
-  /* Mirrored around the divider's line, which sits in the middle of the 60.16px row and so of the stage. */
+  /* Mirrored around the divider's 60.16px row, the middle of the stage. */
   grid-template-rows: 1fr 128.33px 10.71px 158.58px 60.16px 158.58px 10.71px 128.33px 1fr;
 }
 
@@ -2517,7 +2517,7 @@ p {
 .battle .opp-energy { grid-area: 2 / 2; margin: 28.03px 0 0 122px; }
 .battle .opp-active { grid-area: 4 / 4; justify-self: center; }
 .battle .opp-zones { grid-area: 4 / 2 / 6 / 3; margin-top: 12.61px; z-index: 1; }
-/* Taller than its row, so its line (65.5px down) lands on the row's middle. */
+/* Taller than its row, so the turn marker's centre (65.5px down) lands on the row's middle. */
 .battle .divider { grid-area: 5 / 1 / 6 / -1; justify-self: stretch; height: 95.58px; margin-top: -35.42px; }
 .battle .your-active { grid-area: 6 / 4; justify-self: center; }
 .battle .your-zones { grid-area: 6 / 6; margin-top: 29.3px; }
@@ -2711,19 +2711,9 @@ p {
   outline: 3px solid var(--color-accent);
 }
 
-/* The line between the two halves, with whose turn it is on it. */
+/* Between the two halves, with whose turn it is. */
 .battle .divider {
   position: relative;
-}
-
-.battle .divider::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 65.5px;
-  height: 2px;
-  background: var(--color-mat-zone);
 }
 
 .battle .turn {
@@ -3183,7 +3173,6 @@ p {
   .battle .energy-zone.selected .current { outline: 3px solid var(--color-accent); border-radius: 50%; }
 
   .battle .divider { height: 86.2px; margin-top: 0; }
-  .battle .divider::before { top: 43.1px; }
   .battle .turn { top: 29.1px; gap: 6px; padding: 7px 12px; border-radius: 4px; font-size: 12px; }
   .battle .turn .dot { width: 8px; height: 8px; }
   .battle .end-turn { left: auto; right: 20.5px; translate: none; top: 27.1px; padding: 9px 14px; font-size: 12px; font-weight: 700; }
@@ -3340,8 +3329,11 @@ p {
 /* Coin flips: each coin spins in and lands on its face (the tails side is turned to the back), 0.3s after the one
    before it; the row fades once the last has rested. Battle's Coins removes it after, on the same timings. */
 @keyframes battle-flip {
-  from { opacity: 0; transform: translateY(-40px) rotateY(-1080deg); }
-  60% { opacity: 1; }
+  from { transform: translateY(-40px) rotateY(-1080deg); }
+}
+/* On the faces, not the coin: opacity below 1 flattens a preserve-3d element, which hides the back face until it ends. */
+@keyframes battle-coin-in {
+  from { opacity: 0; }
 }
 @keyframes battle-coins-out { to { opacity: 0; } }
 
@@ -3354,6 +3346,7 @@ p {
   align-items: center;
   gap: 16px;
   pointer-events: none;
+  perspective: 600px;
   /* The board blurs behind the coins, and clears as they fade. */
   backdrop-filter: blur(4px);
   animation:
@@ -3362,7 +3355,7 @@ p {
 }
 .battle .coin-flip {
   position: relative;
-  width: 96px;
+  width: 128px;
   aspect-ratio: 1;
   transform: translateY(0) rotateY(var(--face, 0deg));
   transform-style: preserve-3d;
@@ -3377,8 +3370,11 @@ p {
   height: 100%;
   backface-visibility: hidden;
   filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.35));
+  animation: battle-coin-in 0.36s calc(var(--i) * 0.3s) backwards;
 }
-.battle .coin-flip .back { transform: rotateY(180deg); }
+/* Tails fills its 428px image edge to edge, but a heads coin's face is ~182px of its 256px (every coin is drawn the
+   same, its edge showing below the face): shrink tails to the face. */
+.battle .coin-flip .back { transform: rotateY(180deg) scale(0.71); }
 
 /* The opponent's played Item, Supporter or Stadium, held up while useGame holds the board for it. */
 .battle .flash {
