@@ -11,6 +11,9 @@ import com.tcgpocket.action.PlayedOnto;
 import com.tcgpocket.action.RetreatAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.ICard;
+import com.tcgpocket.card.IPlayableCard;
+import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.engine.OpeningPlacement;
 import com.tcgpocket.player.Decision;
 import com.tcgpocket.state.CardInstance;
@@ -36,11 +39,13 @@ import java.util.stream.Collectors;
  * @param target the Pokemon it lands on or brings up, or null
  * @param bench  for setup, the cards from hand to Bench; empty otherwise. A setup client builds a board
  *               from clicks and looks up the option with that Active and that Bench.
+ * @param shown  for a play, the printed id of a card that does not stay on a Pokemon (an Item, Supporter or
+ *               Stadium, not a Basic, Fossil or Tool), which the browser flashes before its effect; null otherwise
  */
-record OptionView(String label, String kind, Integer card, Integer target, List<Integer> bench) {
+record OptionView(String label, String kind, Integer card, Integer target, List<Integer> bench, String shown) {
 
     OptionView(String label, String kind, Integer card, Integer target) {
-        this(label, kind, card, target, List.of());
+        this(label, kind, card, target, List.of(), null);
     }
 
     static OptionView of(Object option, Decision<?> decision) {
@@ -60,7 +65,8 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
             case PlayCardAction play -> new OptionView(
                     "Play " + play.card().definition().name()
                             + play.onto().map(onto -> " on " + label(onto, decision)).orElse(""),
-                    "play", id(play.card()), play.onto().map(OptionView::id).orElse(null));
+                    "play", id(play.card()), play.onto().map(OptionView::id).orElse(null), List.of(),
+                    shown(play.card().definition()));
             case UseAbilityAction use -> new OptionView(
                     "Use " + use.ability().name() + " (" + use.source().definition().name() + ")",
                     "ability", id(use.source()), null);
@@ -68,7 +74,7 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
                     "Active " + opening.active().definition().name()
                             + (opening.bench().isEmpty() ? "" : ", Bench " + opening.bench().stream()
                                     .map(card -> card.definition().name()).collect(Collectors.joining(", "))),
-                    "setup", id(opening.active()), null, opening.bench().stream().map(OptionView::id).toList());
+                    "setup", id(opening.active()), null, opening.bench().stream().map(OptionView::id).toList(), null);
             case PlainAction plain -> other(plain.description());
             case PlayedOnto played -> other(played.description());
             case WithPrecondition guarded -> of(guarded.action(), decision);
@@ -83,6 +89,10 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
                     .collect(Collectors.joining(", ")));
             default -> other(option.toString());
         };
+    }
+
+    private static String shown(ICard card) {
+        return card instanceof IPlayableCard || card instanceof ToolCard ? null : card.id();
     }
 
     private static OptionView other(String label) {

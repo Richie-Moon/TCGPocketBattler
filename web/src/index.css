@@ -3370,6 +3370,20 @@ p {
 }
 .battle .coin-flip .back { transform: rotateY(180deg); }
 
+/* The opponent's played Item, Supporter or Stadium, held up while useGame holds the board for it. */
+.battle .flash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 15;
+  width: 260px;
+  translate: -50% -50%;
+  border-radius: 12px;
+  filter: drop-shadow(0 8px 20px rgb(0 0 0 / 0.4));
+  pointer-events: none;
+  animation: battle-pop 0.25s cubic-bezier(0.3, 1.4, 0.6, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .battle *,
   .battle *::after { animation: none !important; transition: none !important; }

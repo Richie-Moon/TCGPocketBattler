@@ -70,7 +70,7 @@ export function Battle({
   me: { name: string; profileIcon: string } | null
   onLeave: () => void
 }) {
-  const { connection, board, flips, decision, result, error, log, choose } = useGame(bot)
+  const { connection, board, flips, move, flash, decision, result, error, log, choose } = useGame(bot)
   // Picks are tagged with the decision they were made for, so a new question starts with nothing picked.
   const [pick, setPick] = useState<{ decision: number; source: Source } | null>(null)
   // The Pokemon in play whose card is open to pick an attack, Ability or Retreat from.
@@ -89,6 +89,13 @@ export function Battle({
   const mat = useRef<HTMLDivElement>(null)
   const handRow = useRef<HTMLDivElement>(null)
   const fit = useFit(mat)
+  // The opponent's move: its attacker lunges, and whatever else it acts on in play glows.
+  useEffect(() => {
+    for (const id of move ? [move.card, move.target] : []) {
+      const element = id === null ? null : mat.current!.querySelector(`.field [data-id="${id}"]`)
+      if (element) animate(element, move!.kind === 'attack' && id === move!.card ? LUNGE : GLOW, { duration: 700, easing: EASE })
+    }
+  }, [move])
 
   const you = board?.you ?? NO_SIDE
   const opponent = board?.opponent ?? NO_SIDE
@@ -143,7 +150,10 @@ export function Battle({
   const byId = new Map(you.hand.map((card) => [card.id, card]))
   const shownActive = isSetup && picks.active !== null ? asPokemon(byId.get(picks.active)) : you.active
   const shownBench = isSetup ? picks.bench.map((id) => asPokemon(byId.get(id))!) : you.bench
-  const hand = isSetup ? you.hand.filter((card) => card.id !== picks.active && !picks.bench.includes(card.id)) : you.hand
+  // A card you just played leaves your hand while it flashes, before the board that takes it arrives.
+  const hand = isSetup
+    ? you.hand.filter((card) => card.id !== picks.active && !picks.bench.includes(card.id))
+    : you.hand.filter((card) => card.id !== flash?.card)
 
   function select(source: Source) {
     if (decision && sources.has(source)) setPick(selected === source ? null : { decision: decision.id, source })
@@ -254,6 +264,7 @@ export function Battle({
       >
         <div className="stage" style={{ zoom: fit.zoom, height: fit.height }}>
           {flips && <Coins key={flips.id} heads={flips.heads} coin={current.cosmetics.coin} />}
+          {flash && <Card key={flash.id} card={{ card: flash.shown, name: '' }} className="flash" />}
           <div className={fieldDrop ? 'field drop' : 'field'}>
             <Bench
               className="opp-bench"
@@ -660,6 +671,8 @@ function Coins({ heads, coin }: { heads: boolean[]; coin: string }) {
 }
 
 const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)'
+const LUNGE: Keyframe[] = [{}, { translate: '0 32px', scale: 1.08, offset: 0.35 }, {}]
+const GLOW: Keyframe[] = [{}, { filter: 'brightness(1.25) drop-shadow(0 0 10px var(--color-glow))', scale: 1.06, offset: 0.4 }, {}]
 const SHAKE: Keyframe[] = [{ translate: '0' }, { translate: '-5px' }, { translate: '4px' }, { translate: '-2px' }, { translate: '0' }]
 
 /** Whether the system asks for reduced motion; the CSS animations stop there too. */
