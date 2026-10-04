@@ -2413,6 +2413,43 @@ p {
   width: 1200px;
 }
 
+/* Presses on the board are drags and long-presses, never scrolls, text selection or the image callout. */
+.battle .stage {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.battle .stage img { -webkit-user-drag: none; }
+
+/* The card or Energy being dragged, under the pointer; it lets the drop see what is beneath it. */
+.battle .ghost {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  border-radius: 6px;
+  box-shadow: var(--card-shadow);
+  opacity: 0.9;
+  rotate: -4deg;
+}
+
+/* A long-pressed card, large; any tap closes it. */
+.battle .inspect {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: rgba(13, 26, 51, 0.6);
+}
+
+.battle .inspect img {
+  width: min(90vw, 367px);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(13, 26, 51, 0.4);
+}
+
 .battle .field {
   position: absolute;
   inset: 0;
