@@ -56,8 +56,9 @@ function sourceOf(option: OptionView, activeId: number | undefined): Source | nu
  *
  * On your turn you drag what to act with (a card in hand, a Pokemon, the Energy Zone) onto the Pokemon it lands
  * on, or onto the field when it lands on none (a Basic to the Bench, an Item). Tapping it instead lights up those
- * Pokemon to tap, and lists what has no Pokemon to land on (attacks, abilities, Items). Any other question lists
- * its options, with its Pokemon tappable too. Long-press (or right-click) any card to see it large. Every gesture
+ * Pokemon to tap, and lists what has no Pokemon to land on (Items). Tapping a Pokemon in play opens its card, with
+ * its usable attacks, Ability and Retreat to tap on the art. Any other question lists its options, with its
+ * Pokemon tappable too. Long-press (or right-click) any card to see it large. Every gesture
  * still answers with an option index the server offered.
  */
 export function Battle({
@@ -72,6 +73,8 @@ export function Battle({
   const { connection, board, decision, result, error, log, choose } = useGame(bot)
   // Picks are tagged with the decision they were made for, so a new question starts with nothing picked.
   const [pick, setPick] = useState<{ decision: number; source: Source } | null>(null)
+  // The Pokemon in play whose card is open to pick an attack, Ability or Retreat from.
+  const [preview, setPreview] = useState<{ decision: number; id: number } | null>(null)
   const [setup, setSetup] = useState<{ decision: number; active: number | null; bench: number[] } | null>(null)
   const [logOpen, setLogOpen] = useState(false)
   const [seen, setSeen] = useState(0)
@@ -87,6 +90,8 @@ export function Battle({
   const sourced = options.map((o) => ({ ...o, source: isTurn ? sourceOf(o.option, you.active?.id) : null }))
   const sources = new Set(sourced.map((o) => o.source).filter((source) => source !== null))
   const forSelected = sourced.filter((o) => selected !== null && o.source === selected)
+  // Your Pokemon with an Ability they can use now.
+  const abilities = new Set(sourced.filter((o) => o.option.kind === 'ability').map((o) => o.source))
   const loose = sourced.filter((o) => isTurn && o.source === null && o.option.kind !== 'endTurn')
 
   // The Pokemon (and, outside a turn, hand cards) that answer with one click.
@@ -137,8 +142,12 @@ export function Battle({
   function clickPokemon(id: number) {
     const answer = targets.get(id)
     if (answer !== undefined) choose(answer)
-    else select(id)
+    else if (decision && sources.has(id)) {
+      setPick(null)
+      setPreview({ decision: decision.id, id })
+    }
   }
+  const previewed = preview && preview.decision === decision?.id ? [you.active, ...you.bench].find((p) => p?.id === preview.id) : null
   function clickHand(id: number) {
     const answer = handPicks.get(id)
     if (isSetup) toggleSetup(id)
@@ -166,6 +175,9 @@ export function Battle({
     else setPick(null)
   }
   const { inspect, setInspect, ghost, gestures } = useGestures(dragStart, drop)
+  // Mid-drag, the places a drop would land that aren't a Pokemon (those already show as targets) light up too.
+  const setupDrop = !!ghost && isSetup
+  const fieldDrop = !!ghost && isTurn && forSelected.some((o) => o.option.kind === 'play' && o.option.target === null)
 
   let status: string
   if (result) status = result
@@ -178,12 +190,13 @@ export function Battle({
 
   let menu: { title: string; note?: string; items: { option: OptionView; index: number }[] } | null = null
   if (isSetup) menu = { title: decision!.prompt, note: 'Drag a Basic to your Active Spot and others to your Bench, or tap them in turn.', items: [] }
-  // Options that land on a Pokemon are answered by dragging onto it or tapping it, so only the rest are listed.
+  // Options that land on a Pokemon are answered by dragging onto it or tapping it, and attacks and Abilities from
+  // the card preview, so only the rest are listed.
   else if (isTurn && selected !== null)
     menu = {
       title: nameOf(selected),
       note: forSelected.some((o) => o.option.target !== null) ? 'Drag onto a highlighted Pokémon, or tap one.' : undefined,
-      items: forSelected.filter((o) => o.option.target === null),
+      items: forSelected.filter((o) => o.option.target === null && o.option.kind !== 'attack' && o.option.kind !== 'ability'),
     }
   else if (isTurn && loose.length) menu = { title: 'More', items: loose }
   else if (decision && !isTurn) menu = { title: decision.prompt, items: options }
@@ -216,7 +229,7 @@ export function Battle({
         style={board ? { backgroundImage: `url("${PLAYMAT_BASE}/${current.cosmetics.playmat}")` } : undefined}
       >
         <div className="stage" style={{ zoom: fit.zoom, height: fit.height }}>
-          <div className="field">
+          <div className={fieldDrop ? 'field drop' : 'field'}>
             <Bench className="opp-bench" pokemon={opponent.bench} state={pokemonState} onClick={clickPokemon} />
             <EnergyZone className="opp-energy" side={opponent} />
             <Slot className="active opp-active">
@@ -257,9 +270,14 @@ export function Battle({
               )}
             </div>
 
-            <Slot className="active your-active">
+            <Slot className={setupDrop ? 'active your-active drop' : 'active your-active'}>
               {shownActive && (
-                <Pokemon pokemon={shownActive} state={isSetup ? 'selected' : pokemonState(shownActive.id)} onClick={isSetup ? toggleSetup : clickPokemon} />
+                <Pokemon
+                  pokemon={shownActive}
+                  state={isSetup ? 'selected' : pokemonState(shownActive.id)}
+                  ability={abilities.has(shownActive.id)}
+                  onClick={isSetup ? toggleSetup : clickPokemon}
+                />
               )}
             </Slot>
             <Zones className="your-zones" side={you} deckFirst />
@@ -268,6 +286,8 @@ export function Battle({
               pokemon={shownBench}
               state={isSetup ? () => 'selected' : pokemonState}
               onClick={isSetup ? toggleSetup : clickPokemon}
+              abilities={abilities}
+              open={setupDrop && picks.bench.length < benchLimit}
             />
             <EnergyZone
               className="your-energy"
@@ -319,15 +339,32 @@ export function Battle({
           <PlayerInfo className="opp-info" name={theirName} points={opponent.points} />
           <PlayerInfo className="your-info" name={yourName} points={you.points} icon={me?.profileIcon} />
         </div>
+        {/* Over the mat, not the window, so they centre on the board and leave the log uncovered. */}
+        {previewed && (
+          <MovePreview
+            pokemon={previewed}
+            active={previewed.id === you.active?.id}
+            options={sourced.filter((o) => o.source === previewed.id)}
+            onChoose={(index) => {
+              setPreview(null)
+              choose(index)
+            }}
+            onRetreat={() => {
+              setPreview(null)
+              setPick({ decision: decision!.id, source: previewed.id })
+            }}
+            onClose={() => setPreview(null)}
+          />
+        )}
+        {inspect && (
+          <button type="button" className="inspect" aria-label="Close" onClick={() => setInspect(null)}>
+            <img src={`${CARD_BASE}/${inspect}.webp`} alt="" />
+          </button>
+        )}
       </div>
 
       <button type="button" className="scrim" aria-label="Close the battle log" onClick={toggleLog} />
       {ghost}
-      {inspect && (
-        <button type="button" className="inspect" aria-label="Close" onClick={() => setInspect(null)}>
-          <img src={`${CARD_BASE}/${inspect}.webp`} alt="" />
-        </button>
-      )}
       <LogPanel
         log={log}
         subtitle={`Standard · ${me?.name ?? (you.name || 'You')} vs ${theirName}`}
@@ -446,6 +483,115 @@ function useGestures(onStart: (source: Source) => void, onDrop: (source: Source,
   return { inspect, setInspect, ghost, gestures }
 }
 
+/**
+ * A Pokemon's card, grown from where it sits on the board, with its usable attacks, Ability and Retreat
+ * lit up on the art to tap. Anywhere else closes it.
+ */
+function MovePreview({
+  pokemon,
+  active,
+  options,
+  onChoose,
+  onRetreat,
+  onClose,
+}: {
+  pokemon: PokemonView
+  active: boolean
+  options: { option: OptionView; index: number }[]
+  onChoose: (index: number) => void
+  onRetreat: () => void
+  onClose: () => void
+}) {
+  const card = useRef<HTMLDivElement>(null)
+  // Centred exactly on the Pokemon it was opened from, and grown out of it.
+  useLayoutEffect(() => {
+    const element = card.current!
+    const from = document.querySelector(`.battle [data-id="${pokemon.id}"]`)?.getBoundingClientRect()
+    if (!from) return
+    const board = element.parentElement!.getBoundingClientRect()
+    // Its layout size, not its box, which a grow already under way would shrink.
+    const { offsetWidth: width, offsetHeight: height } = element
+    element.style.left = `${from.left + from.width / 2 - board.left - width / 2}px`
+    element.style.top = `${from.top + from.height / 2 - board.top - height / 2}px`
+    element.animate(
+      [{ transform: `scale(${from.width / width})`, opacity: 0.6 }, { transform: 'none', opacity: 1 }],
+      { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+    )
+  }, [pokemon.id])
+
+  const boxes = textBoxes(pokemon)
+  const spots: { label: string; box: Box; onClick?: () => void }[] = []
+  const answer = (index: number | undefined) => (index === undefined ? undefined : () => onChoose(index))
+  if (pokemon.ability && boxes.ability) {
+    spots.push({ label: pokemon.ability.name, box: boxes.ability, onClick: answer(options.find((o) => o.option.kind === 'ability')?.index) })
+  }
+  pokemon.attacks.forEach((attack, i) => {
+    const index = options.find((o) => o.option.kind === 'attack' && o.option.label === `Attack: ${attack.name}`)?.index
+    spots.push({ label: attack.name, box: boxes.attacks[i], onClick: answer(index) })
+  })
+  const retreats = options.some((o) => o.option.kind === 'retreat')
+  // Only the Active can retreat, so a Benched Pokemon's retreat bar is left as printed.
+  if (active) spots.push({ label: 'Retreat', box: RETREAT, onClick: retreats ? onRetreat : undefined })
+
+  return (
+    <div className="move-preview" onClick={onClose}>
+      <div className="preview-card" ref={card}>
+        <img src={`${CARD_BASE}/${pokemon.card}.webp`} alt={pokemon.name} />
+        {spots.map(({ label, box, onClick }) => (
+          <button
+            key={label}
+            type="button"
+            className={onClick ? 'spot can' : 'spot'}
+            aria-label={label}
+            disabled={!onClick}
+            style={{
+              left: `${(box.left / CARD_W) * 100}%`,
+              width: `${((box.right - box.left) / CARD_W) * 100}%`,
+              top: `${(box.top / CARD_H) * 100}%`,
+              height: `${((box.bottom - box.top) / CARD_H) * 100}%`,
+            }}
+            onClick={(event) => {
+              event.stopPropagation()
+              onClick?.()
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Card art is 670x936; boxes on it are in those pixels. */
+const CARD_W = 670
+const CARD_H = 936
+type Box = { left: number; right: number; top: number; bottom: number }
+const RETREAT: Box = { left: 345, right: 625, top: 798, bottom: 840 }
+
+/**
+ * Where the Ability and each attack are printed, worked out from how long their text is: the Ability sits at the top
+ * of the text area with the attacks under it, and without one the attacks are centred in it.
+ * ponytail: estimated from the printed layout (55 characters a line), so an unusually worded card can be off by a few
+ * pixels; measure boxes per card if that shows.
+ */
+function textBoxes(pokemon: PokemonView): { ability?: Box; attacks: Box[] } {
+  const height = (text: string) => 45 + 32 * Math.ceil(text.length / 55)
+  const box = (top: number, h: number): Box => ({ left: 32, right: 638, top: top - 10, bottom: top + h + 10 })
+  const heights = pokemon.attacks.map((attack) => height(attack.text))
+  let top = 640 - (heights.reduce((sum, h) => sum + h, 0) + 40 * (heights.length - 1)) / 2
+  let ability: Box | undefined
+  if (pokemon.ability) {
+    const h = height(pokemon.ability.text)
+    ability = box(495, h)
+    top = 495 + h + 40
+  }
+  const attacks = heights.map((h) => {
+    const at = box(top, h)
+    top += h + 40
+    return at
+  })
+  return { ability, attacks }
+}
+
 /** Where card `i` of `n` sits in a fan drawn for `designed` cards; wider hands squeeze in. */
 function fan(i: number, n: number, designed: number) {
   const d = i - (n - 1) / 2
@@ -454,7 +600,7 @@ function fan(i: number, n: number, designed: number) {
 
 /** A hand card picked during setup, drawn in play; its HP isn't sent until it is placed, so none is shown. */
 function asPokemon(card: CardView | undefined): PokemonView | null {
-  return card ? { ...card, hp: 0, maxHp: 0, energy: {}, statuses: [], tool: null } : null
+  return card ? { ...card, hp: 0, maxHp: 0, energy: {}, statuses: [], tool: null, attacks: [], ability: null } : null
 }
 
 function Card({ card, className = 'art' }: { card: Pick<CardView, 'card' | 'name'>; className?: string }) {
@@ -477,18 +623,24 @@ function Slot({ className, title, children }: { className: string; title?: strin
 function Pokemon({
   pokemon,
   state,
+  ability = false,
   onClick,
 }: {
   pokemon: PokemonView
   state?: string
+  /** Whether it has an Ability it can use now. */
+  ability?: boolean
   onClick: (id: number) => void
 }) {
-  const energy = Object.entries(pokemon.energy).flatMap(([type, count]) => Array<string>(count).fill(type))
+  const types = Object.entries(pokemon.energy)
+  // From 5 Energy on, each type shows once with its count, so the row stays on the card.
+  const condensed = types.reduce((sum, [, count]) => sum + count, 0) >= 5
+  const energy = condensed ? types : types.flatMap(([type, count]) => Array.from({ length: count }, () => [type, 1] as const))
   const tags = [...pokemon.statuses, ...(pokemon.tool ? [pokemon.tool.name] : [])]
   return (
     <button
       type="button"
-      className={state ? `pokemon ${state}` : 'pokemon'}
+      className={['pokemon', state, ability && 'ability'].filter(Boolean).join(' ')}
       aria-disabled={!state}
       data-id={pokemon.id}
       data-card={pokemon.card}
@@ -499,8 +651,11 @@ function Pokemon({
       {pokemon.maxHp > 0 && <span className="hp">{pokemon.hp}</span>}
       {energy.length > 0 && (
         <span className="attached">
-          {energy.map((type, i) => (
-            <img key={i} src={`${ENERGY_BASE}/${type.toLowerCase()}.png`} alt={type} title={type} />
+          {energy.map(([type, count], i) => (
+            <span key={i} className="energy">
+              <img src={`${ENERGY_BASE}/${type.toLowerCase()}.png`} alt={type} title={count > 1 ? `${type} ×${count}` : type} />
+              {count > 1 && <span className="count">{count}</span>}
+            </span>
           ))}
         </span>
       )}
@@ -514,17 +669,22 @@ function Bench({
   pokemon,
   state,
   onClick,
+  abilities,
+  open = false,
 }: {
   className: string
   pokemon: PokemonView[]
   state: (id: number) => string | undefined
   onClick: (id: number) => void
+  abilities?: Set<Source | null>
+  /** Whether a drop could land in its empty slots. */
+  open?: boolean
 }) {
   return (
     <div className={`bench ${className}`}>
       {[0, 1, 2].map((i) => (
-        <Slot key={i} className="benched">
-          {pokemon[i] && <Pokemon pokemon={pokemon[i]} state={state(pokemon[i].id)} onClick={onClick} />}
+        <Slot key={i} className={open && !pokemon[i] ? 'benched drop' : 'benched'}>
+          {pokemon[i] && <Pokemon pokemon={pokemon[i]} state={state(pokemon[i].id)} ability={abilities?.has(pokemon[i].id)} onClick={onClick} />}
         </Slot>
       ))}
     </div>
