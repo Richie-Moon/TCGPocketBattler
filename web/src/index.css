@@ -48,6 +48,8 @@ p {
   --color-on-accent: #fff;
   --color-accent-strong: #294c8a;
   --color-accent-soft: #e3eaf6;
+  /* The battle's glows: what you can play, and where a dragged card can go. */
+  --color-glow: #3d9bff;
   --color-sidebar: #fff;
   --color-surface: #fff;
   --color-surface-2: #e7e9ec;
@@ -71,6 +73,7 @@ p {
     --color-on-accent: #0b1220;
     --color-accent-strong: #9bb7e8;
     --color-accent-soft: #1d2940;
+    --color-glow: #5cb0ff;
     --color-sidebar: #15181c;
     --color-surface: #1a1d22;
     --color-surface-2: #23272d;
@@ -2538,6 +2541,18 @@ p {
 
 .battle .pokemon.target {
   outline-style: dashed;
+  box-shadow: 0 0 6px 2px var(--color-glow), 0 0 22px 6px var(--color-glow);
+}
+
+/* Mid-drag: an empty slot the card can go to, or the whole field for a card that lands on no Pokemon. */
+.battle .slot.drop {
+  border-style: dashed;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 6px 2px var(--color-glow), 0 0 20px 5px var(--color-glow);
+}
+
+.battle .field.drop {
+  box-shadow: inset 0 0 64px 8px color-mix(in srgb, var(--color-glow) 75%, transparent);
 }
 
 .battle .hp {
@@ -2801,6 +2816,11 @@ p {
 
 .battle .hand-card.selected .art {
   border: 2.933px solid var(--color-accent);
+}
+
+/* A filter, so it adds to each layout's own box-shadow instead of replacing it. */
+.battle .hand-card.can .art {
+  filter: drop-shadow(0 0 4px var(--color-glow)) drop-shadow(0 0 10px var(--color-glow));
 }
 
 .battle .player-info {

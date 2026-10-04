@@ -166,6 +166,9 @@ export function Battle({
     else setPick(null)
   }
   const { inspect, setInspect, ghost, gestures } = useGestures(dragStart, drop)
+  // Mid-drag, the places a drop would land that aren't a Pokemon (those already show as targets) light up too.
+  const setupDrop = !!ghost && isSetup
+  const fieldDrop = !!ghost && isTurn && forSelected.some((o) => o.option.kind === 'play' && o.option.target === null)
 
   let status: string
   if (result) status = result
@@ -216,7 +219,7 @@ export function Battle({
         style={board ? { backgroundImage: `url("${PLAYMAT_BASE}/${current.cosmetics.playmat}")` } : undefined}
       >
         <div className="stage" style={{ zoom: fit.zoom, height: fit.height }}>
-          <div className="field">
+          <div className={fieldDrop ? 'field drop' : 'field'}>
             <Bench className="opp-bench" pokemon={opponent.bench} state={pokemonState} onClick={clickPokemon} />
             <EnergyZone className="opp-energy" side={opponent} />
             <Slot className="active opp-active">
@@ -257,7 +260,7 @@ export function Battle({
               )}
             </div>
 
-            <Slot className="active your-active">
+            <Slot className={setupDrop ? 'active your-active drop' : 'active your-active'}>
               {shownActive && (
                 <Pokemon pokemon={shownActive} state={isSetup ? 'selected' : pokemonState(shownActive.id)} onClick={isSetup ? toggleSetup : clickPokemon} />
               )}
@@ -268,6 +271,7 @@ export function Battle({
               pokemon={shownBench}
               state={isSetup ? () => 'selected' : pokemonState}
               onClick={isSetup ? toggleSetup : clickPokemon}
+              open={setupDrop && picks.bench.length < benchLimit}
             />
             <EnergyZone
               className="your-energy"
@@ -514,16 +518,19 @@ function Bench({
   pokemon,
   state,
   onClick,
+  open = false,
 }: {
   className: string
   pokemon: PokemonView[]
   state: (id: number) => string | undefined
   onClick: (id: number) => void
+  /** Whether a drop could land in its empty slots. */
+  open?: boolean
 }) {
   return (
     <div className={`bench ${className}`}>
       {[0, 1, 2].map((i) => (
-        <Slot key={i} className="benched">
+        <Slot key={i} className={open && !pokemon[i] ? 'benched drop' : 'benched'}>
           {pokemon[i] && <Pokemon pokemon={pokemon[i]} state={state(pokemon[i].id)} onClick={onClick} />}
         </Slot>
       ))}
