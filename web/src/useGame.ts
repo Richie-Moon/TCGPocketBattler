@@ -19,6 +19,8 @@ export function useGame(bot = false) {
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [log, setLog] = useState<LogEntry[]>([])
+  // The latest board's coin flips; `id` tells two boards with the same flips apart.
+  const [flips, setFlips] = useState<{ id: number; heads: boolean[] } | null>(null)
 
   useEffect(() => {
     // Deferred so StrictMode's mount-unmount-mount in dev cancels the timer instead of opening a throwaway
@@ -26,6 +28,9 @@ export function useGame(bot = false) {
     let ws: WebSocket | undefined
     let last: BoardView | null = null
     let shown = 0 // the last turn given a divider
+    let flipped = 0
+    // Messages are handled in order; one bringing coin flips holds itself, and everything after it, until they land.
+    let ready = Promise.resolve()
     const timer = setTimeout(connect, 0)
     return () => {
       clearTimeout(timer)
@@ -53,44 +58,57 @@ export function useGame(bot = false) {
       last = next
     }
 
+    /** Shows a board's coin flips, settling once the last has landed (Battle's Coins: 0.3s apart, 0.6s spins). */
+    function land(message: ServerMessage) {
+      if ((message.type !== 'state' && message.type !== 'over') || !message.flips.length) return
+      setFlips({ id: ++flipped, heads: message.flips })
+      return new Promise<void>((resolve) => setTimeout(resolve, message.flips.length * 300 + 300))
+    }
+
     function connect() {
       ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/play${bot ? '?bot' : ''}`)
       socket.current = ws
 
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data) as ServerMessage
-        switch (message.type) {
-          case 'waiting':
-            setConnection('waiting')
-            break
-          case 'state':
-            setConnection('playing')
-            setBoard(message.board)
-            setDecision(null)
-            track(message.board)
-            break
-          case 'decision':
-            setDecision(message)
-            setError(null)
-            break
-          case 'over':
-            setBoard(message.board)
-            setDecision(null)
-            setResult(message.result)
-            track(message.board)
-            setLog((log) => [...log, { kind: 'info', text: `Game over: ${message.result}.` }])
-            break
-          case 'error':
-            setError(message.message)
-            break
-          case 'log': {
-            const entries = [...divide(message.turn, message.yourTurn), { kind: 'them', text: `Opponent: ${message.text}` } as const]
-            setLog((log) => [...log, ...entries])
-            break
-          }
+        ready = ready.then(() => land(message)).then(() => handle(message))
+      }
+      ws.onclose = () => {
+        ready = ready.then(() => setConnection('closed'))
+      }
+    }
+
+    function handle(message: ServerMessage) {
+      switch (message.type) {
+        case 'waiting':
+          setConnection('waiting')
+          break
+        case 'state':
+          setConnection('playing')
+          setBoard(message.board)
+          setDecision(null)
+          track(message.board)
+          break
+        case 'decision':
+          setDecision(message)
+          setError(null)
+          break
+        case 'over':
+          setBoard(message.board)
+          setDecision(null)
+          setResult(message.result)
+          track(message.board)
+          setLog((log) => [...log, { kind: 'info', text: `Game over: ${message.result}.` }])
+          break
+        case 'error':
+          setError(message.message)
+          break
+        case 'log': {
+          const entries = [...divide(message.turn, message.yourTurn), { kind: 'them', text: `Opponent: ${message.text}` } as const]
+          setLog((log) => [...log, ...entries])
+          break
         }
       }
-      ws.onclose = () => setConnection('closed')
     }
   }, [bot])
 
@@ -102,5 +120,5 @@ export function useGame(bot = false) {
     setDecision(null)
   }
 
-  return { connection, board, decision, result, error, log, choose }
+  return { connection, board, flips, decision, result, error, log, choose }
 }

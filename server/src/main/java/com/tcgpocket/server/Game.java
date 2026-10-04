@@ -44,15 +44,16 @@ final class Game {
             "A1-033", "A1-033", "A1-034", "A1-034", "A1-036", "A1-036", "A1-039", "A1-039", "A1-040", "A1-040",
             "A1-046", "A1-046", "A1-221", "A1-221", "P-A-001", "P-A-001", "P-A-005", "P-A-005", "P-A-007", "P-A-007");
 
-    record StateMessage(String type, BoardView board) {
-        StateMessage(BoardView board) {
-            this("state", board);
+    /** {@code flips} are the coins flipped since the last board, in order, {@code true} for heads. */
+    record StateMessage(String type, BoardView board, List<Boolean> flips) {
+        StateMessage(BoardView board, List<Boolean> flips) {
+            this("state", board, flips);
         }
     }
 
-    record OverMessage(String type, BoardView board, String result) {
-        OverMessage(BoardView board, String result) {
-            this("over", board, result);
+    record OverMessage(String type, BoardView board, List<Boolean> flips, String result) {
+        OverMessage(BoardView board, List<Boolean> flips, String result) {
+            this("over", board, flips, result);
         }
     }
 
@@ -71,6 +72,7 @@ final class Game {
 
     private final List<Seat> seats;
     private final Battle battle;
+    private final Flips flips;
     private int nextInstanceId;
 
     /** A deck to deal: printed card ids, the energy types its Energy Zone generates, and how it looks. */
@@ -98,7 +100,9 @@ final class Game {
 
         this.seats = List.of(new Seat(first, firstSide, sendFirst, firstDeck.cosmetics()),
                 new Seat(second, secondSide, sendSecond, secondDeck.cosmetics()));
-        this.battle = Battle.flipForFirst(firstSide, secondSide, rng);
+        this.flips = new Flips(rng);
+        this.battle = Battle.flipForFirst(firstSide, secondSide, flips);
+        flips.take(); // who goes first is not shown as a coin
     }
 
     /** The browsers, first player first; a bot is not one. */
@@ -128,8 +132,9 @@ final class Game {
             LOG.error("game crashed", e);
             result = "The game crashed";
         }
+        List<Boolean> flipped = flips.take();
         for (Seat seat : seats) {
-            seat.send().accept(new OverMessage(view(seat), result));
+            seat.send().accept(new OverMessage(view(seat), flipped, result));
         }
         return score;
     }
@@ -179,8 +184,43 @@ final class Game {
     }
 
     private void broadcast() {
+        List<Boolean> flipped = flips.take();
         for (Seat seat : seats) {
-            seat.send().accept(new StateMessage(view(seat)));
+            seat.send().accept(new StateMessage(view(seat), flipped));
+        }
+    }
+
+    /** The game's chance, noting each coin flip for the browsers to show. Setup broadcasts from two threads. */
+    private static final class Flips implements RandomSource {
+        private final RandomSource rng;
+        private final List<Boolean> since = new ArrayList<>();
+
+        Flips(RandomSource rng) {
+            this.rng = rng;
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            return rng.nextInt(bound);
+        }
+
+        @Override
+        public synchronized boolean nextBoolean() {
+            boolean heads = rng.nextBoolean();
+            since.add(heads);
+            return heads;
+        }
+
+        @Override
+        public void shuffle(List<?> list) {
+            rng.shuffle(list);
+        }
+
+        /** The flips since the last call. */
+        synchronized List<Boolean> take() {
+            List<Boolean> taken = List.copyOf(since);
+            since.clear();
+            return taken;
         }
     }
 

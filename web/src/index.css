@@ -2361,6 +2361,8 @@ p {
    zoomed to fit by Battle's useFit; the field grid's tracks are the design's measurements. */
 .battle {
   --point: #f2b632;
+  /* The HP badge's flash when a Pokemon is healed. */
+  --heal: #2fa65a;
   --card-shadow: 0 5.5px 14.667px rgba(13, 26, 51, 0.15);
   --hand-shadow: 0 4.4px 10.267px rgba(13, 26, 51, 0.18);
   display: flex;
@@ -2600,8 +2602,16 @@ p {
   box-shadow: 0 0 6px 2px var(--color-glow), 0 0 20px 5px var(--color-glow);
 }
 
-.battle .field.drop {
-  box-shadow: inset 0 0 64px 8px color-mix(in srgb, var(--color-glow) 75%, transparent);
+/* The whole board above your hand, outlined as a slot is; it lets presses through so the drop sees the board. */
+.battle .field.drop::after {
+  content: '';
+  position: absolute;
+  inset: 8px 8px calc(109.4px + 8px);
+  border: 2px dashed var(--color-accent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-glow) 10%, transparent);
+  box-shadow: 0 0 6px 2px var(--color-glow), inset 0 0 20px 5px var(--color-glow);
+  pointer-events: none;
 }
 
 .battle .hp {
@@ -2844,7 +2854,7 @@ p {
 .battle .hand-card,
 .battle .opp-card {
   position: absolute;
-  transition: translate 0.1s;
+  transition: translate 0.1s, transform 0.25s ease-out;
 }
 
 .battle .hand-card {
@@ -3201,6 +3211,8 @@ p {
     top: calc(100% - 85.55px);
   }
 
+  .battle .field.drop::after { inset: 6px 6px calc(85.55px + 6px); }
+
   .battle .opp-hand {
     --step: 26px;
     --drop: 3px;
@@ -3274,4 +3286,91 @@ p {
   .battle .say { gap: 10px; padding: 0; border: 0; }
   .battle .say input { padding: 12px 16px; font-size: 14px; }
   .battle .say button { width: 44px; height: 44px; }
+}
+
+/* Battle animations: short and quiet, each played once as something arrives (keyed elements remount when what
+   they show changes). Damage, healing and evolving on a Pokemon already in play are Battle's animate() calls. */
+@keyframes battle-enter { from { opacity: 0; scale: 0.88; } }
+@keyframes battle-fade { from { opacity: 0; } }
+@keyframes battle-pop { from { scale: 0.3; opacity: 0; } }
+@keyframes battle-draw { from { opacity: 0; translate: 0 36px; } }
+@keyframes battle-draw-opp { from { opacity: 0; translate: 0 -24px; } }
+
+.battle .pokemon { animation: battle-enter 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.battle .attached .energy { animation: battle-pop 0.25s ease-out; }
+.battle .tags,
+.battle .turn,
+.battle .stadium,
+.battle .pile:not(.deck) .art { animation: battle-fade 0.3s ease-out; }
+.battle .hand-card { animation: battle-draw 0.3s ease-out; }
+.battle .opp-card { animation: battle-draw-opp 0.3s ease-out; }
+.battle .point.won { animation: battle-pop 0.35s cubic-bezier(0.3, 1.4, 0.6, 1); }
+
+/* A Pokemon leaving play greys, then sinks and fades over whatever takes its slot. A Knocked Out one first takes
+   the hit (Battle's SHAKE, and the HP flash) that the board removing it skipped. */
+@keyframes battle-leave {
+  25% { opacity: 1; filter: grayscale(1) brightness(0.85); }
+  to { opacity: 0; translate: 0 12px; scale: 0.92; filter: grayscale(1) brightness(0.85); }
+}
+@keyframes battle-knocked-out {
+  45% { opacity: 1; filter: none; translate: 0; scale: 1; }
+  60% { opacity: 1; filter: grayscale(1) brightness(0.85); }
+  to { opacity: 0; translate: 0 12px; scale: 0.92; filter: grayscale(1) brightness(0.85); }
+}
+@keyframes battle-shake { 25% { translate: -5px; } 50% { translate: 4px; } 75% { translate: -2px; } }
+@keyframes battle-hit { from { background: var(--color-danger); color: #fff; } }
+
+.battle .leaving { position: absolute; inset: 0; z-index: 1; animation: battle-leave 0.6s ease-in forwards; }
+.battle .leaving.knocked-out { animation: battle-knocked-out 0.75s ease-in forwards; }
+.battle .leaving .pokemon,
+.battle .leaving .pokemon * { animation: none; }
+.battle .knocked-out .pokemon { animation: battle-shake 0.35s ease-out; }
+.battle .knocked-out .hp { animation: battle-hit 0.6s; }
+
+/* Coin flips: each coin spins in and lands on its face (the tails side is turned to the back), 0.3s after the one
+   before it; the row fades once the last has rested. Battle's Coins removes it after, on the same timings. */
+@keyframes battle-flip {
+  from { opacity: 0; transform: translateY(-40px) rotateY(-1080deg); }
+  60% { opacity: 1; }
+}
+@keyframes battle-coins-out { to { opacity: 0; } }
+
+.battle .coins {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+  /* The board blurs behind the coins, and clears as they fade. */
+  backdrop-filter: blur(4px);
+  animation:
+    battle-fade 0.2s ease-out,
+    battle-coins-out 0.3s ease-in calc(var(--n) * 0.3s + 0.8s) forwards;
+}
+.battle .coin-flip {
+  position: relative;
+  width: 96px;
+  aspect-ratio: 1;
+  transform: translateY(0) rotateY(var(--face, 0deg));
+  transform-style: preserve-3d;
+  animation: battle-flip 0.6s cubic-bezier(0.3, 0.7, 0.4, 1) calc(var(--i) * 0.3s) backwards;
+}
+/* The same functions as battle-flip's, so it interpolates as turns rather than as a matrix, which would not spin. */
+.battle .coin-flip.tails { --face: 180deg; }
+.battle .coin-flip img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.35));
+}
+.battle .coin-flip .back { transform: rotateY(180deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .battle *,
+  .battle *::after { animation: none !important; transition: none !important; }
 }

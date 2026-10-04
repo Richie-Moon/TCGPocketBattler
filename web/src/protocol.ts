@@ -96,9 +96,10 @@ export interface DecisionMessage {
 
 export type ServerMessage =
   | { type: 'waiting' }
-  | { type: 'state'; board: BoardView }
+  /** `flips`: the coins flipped since the last board, in order, true for heads. */
+  | { type: 'state'; board: BoardView; flips: boolean[] }
   | DecisionMessage
-  | { type: 'over'; board: BoardView; result: string }
+  | { type: 'over'; board: BoardView; flips: boolean[]; result: string }
   | { type: 'error'; message: string }
   /** What the opponent chose, worded for you; `turn` and `yourTurn` place it in the log. */
   | { type: 'log'; turn: number; yourTurn: boolean; text: string }
