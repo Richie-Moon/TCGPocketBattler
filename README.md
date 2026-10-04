@@ -54,6 +54,9 @@ npm run dev    # then open http://localhost:5173 in two tabs
 - Tap the Active Pokémon for an attack/ability popover, drawn by the client rather than hotspots on the art
 - Clear turn, prompt and coin-flip feedback; game-over screen
 - Allow importing from Pocket/Limitless
+- Split `index.css`
+- Add mouse dragging
+- Add animations
 
 ### Later
 - AI opponent (start from `RandomPlayer`, then something that searches `legalActions`)
