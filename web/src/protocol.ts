@@ -8,7 +8,13 @@ export interface CardView {
   name: string
 }
 
-/** `id` stays the same from hand to play and through evolution. */
+/** A printed attack or Ability; `text` is its effect, empty when it has none. */
+export interface TextView {
+  name: string
+  text: string
+}
+
+/** `id` stays the same from hand to play and through evolution. `attacks` and `ability` are the printed text. */
 export interface PokemonView {
   id: number
   card: string
@@ -18,6 +24,8 @@ export interface PokemonView {
   energy: Record<string, number>
   statuses: string[]
   tool: CardView | null
+  attacks: TextView[]
+  ability: TextView | null
 }
 
 /** Object-storage names from the side's deck ("Coin_Pokéball.png"), under COIN_BASE, SLEEVE_BASE and PLAYMAT_BASE. */

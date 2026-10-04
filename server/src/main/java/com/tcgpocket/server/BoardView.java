@@ -24,9 +24,17 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
     record CardView(int id, String card, String name) {
     }
 
-    /** {@code id} stays the same from hand to play and through evolution. */
+    /**
+     * {@code id} stays the same from hand to play and through evolution. {@code attacks} and {@code ability}
+     * are the printed text, which the client uses to find each one on the card art.
+     */
     record PokemonView(int id, String card, String name, int hp, int maxHp,
-                       Map<Type, Integer> energy, List<String> statuses, CardView tool) {
+                       Map<Type, Integer> energy, List<String> statuses, CardView tool,
+                       List<TextView> attacks, TextView ability) {
+    }
+
+    /** A printed attack or Ability: its name and its effect text, empty when it has none. */
+    record TextView(String name, String text) {
     }
 
     /** Object-storage names from the side's deck ({@code "Coin_Pokéball.png"}); public, so both players see both. */
@@ -81,6 +89,10 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                 pokemon.maxHp(),
                 pokemon.attachedEnergy(),
                 pokemon.statuses().stream().map(status -> status.getClass().getSimpleName().replace("Status", "")).toList(),
-                pokemon.tool().map(BoardView::card).orElse(null));
+                pokemon.tool().map(BoardView::card).orElse(null),
+                pokemon.definition().actions().stream().flatMap(Cards::attacks)
+                        .map(attack -> new TextView(attack.name(), attack.description())).toList(),
+                pokemon.definition().ability()
+                        .map(ability -> new TextView(ability.name(), ability.description())).orElse(null));
     }
 }

@@ -48,7 +48,7 @@ class Cards {
     static Entry entry(ICard card) {
         return switch (card) {
             case PokemonCard pokemon -> new Entry(card.id(), card.name(), "Pokémon", pokemon.types(),
-                    Stream.concat(pokemon.actions().stream().flatMap(Cards::attackName),
+                    Stream.concat(pokemon.actions().stream().flatMap(Cards::attacks).map(Action::name),
                                     pokemon.ability().map(IAbility::name).stream())
                             .collect(Collectors.joining(" ")));
             case PlayableItemCard _, ItemCard _ -> trainer(card, "Item");
@@ -63,10 +63,10 @@ class Cards {
     }
 
     /** An attack is an {@link Action}, sometimes behind a precondition; the other actions carry no name. */
-    private static Stream<String> attackName(IAction action) {
+    static Stream<Action> attacks(IAction action) {
         return switch (action) {
-            case Action attack -> Stream.of(attack.name());
-            case WithPrecondition guarded -> attackName(guarded.action());
+            case Action attack -> Stream.of(attack);
+            case WithPrecondition guarded -> attacks(guarded.action());
             default -> Stream.empty();
         };
     }
