@@ -435,6 +435,24 @@ class TurnEngineTest {
             assertTrue(offersEvolution(), "turn 4");
         }
 
+        @Test
+        @DisplayName("a Basic played this turn cannot evolve until the next")
+        void playedBasicWaits() {
+            board.battle.switchSides();
+            board.battle.switchSides();
+            board.inHand(board.you, PIKACHU);
+            board.inHand(board.you, RAICHU);
+            yours.setTurnPlayed(board.battle.turn());
+
+            engine.legalActions().stream()
+                    .filter(action -> action instanceof PlayCardAction play
+                            && play.card().definition() == PIKACHU)
+                    .findFirst().orElseThrow()
+                    .execute(board.contextWithoutSource());
+
+            assertFalse(offersEvolution(), "same turn");
+        }
+
         private boolean offersEvolution() {
             return engine.legalActions().stream().anyMatch(EvolveAction.class::isInstance);
         }
