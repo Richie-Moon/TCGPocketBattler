@@ -2602,6 +2602,16 @@ p {
   box-shadow: 0 0 6px 2px var(--color-glow), 0 0 20px 5px var(--color-glow);
 }
 
+/* Covers an empty Bench slot a picked Basic can be tapped into. */
+.battle .slot-pick {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  cursor: pointer;
+}
+
 /* The whole board above your hand, outlined as a slot is; it lets presses through so the drop sees the board. */
 .battle .field.drop::after {
   content: '';

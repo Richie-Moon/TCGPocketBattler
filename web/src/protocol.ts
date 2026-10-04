@@ -46,7 +46,8 @@ export interface SideView {
   topCards: CardView[]
   discard: CardView[]
   active: PokemonView | null
-  bench: PokemonView[]
+  /** By slot, three of them, null where a slot is empty. */
+  bench: (PokemonView | null)[]
   energy: string | null
   nextEnergy: string | null
   cosmetics: Cosmetics
@@ -83,10 +84,12 @@ export interface OptionView {
   card: number | null
   /** The Pokemon it lands on or brings up. */
   target: number | null
-  /** For setup, the cards from hand to Bench; empty otherwise. */
-  bench: number[]
+  /** For setup, the card from hand for each Bench slot, null for an empty one; empty otherwise. */
+  bench: (number | null)[]
   /** For a play, the printed id of an Item, Supporter or Stadium (a card that does not stay on a Pokemon), flashed before its effect. */
   shown: string | null
+  /** For a Basic played to the Bench, the slot it goes into. */
+  slot: number | null
 }
 
 export interface DecisionMessage {

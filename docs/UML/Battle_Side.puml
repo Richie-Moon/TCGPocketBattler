@@ -24,7 +24,7 @@ class Battle {
 class Side {
     - player: IPlayer
     - active: Optional<PokemonInPlay>
-    - bench: List<PokemonInPlay>
+    - bench: PokemonInPlay[BENCH_LIMIT]  /' by slot, null = empty; nobody shifts '/
     - hand: List<CardInstance>
     - deck: List<CardInstance>
     - discardPile: List<CardInstance>
@@ -41,8 +41,9 @@ class Side {
     - retreatedThisTurn: boolean
 
     + shuffleDeck(RandomSource): void
-    + switchActive(PokemonInPlay): void
-    + placeOnBench(CardInstance): void
+    + switchIn(PokemonInPlay): void  /' old Active takes the vacated slot '/
+    + addToBench(PokemonInPlay, slot): void
+    + benchAt(slot): Optional<PokemonInPlay>
     + placeOnActive(CardInstance): void
     + drawCard(): Optional<CardInstance>
     + discard(CardInstance): void

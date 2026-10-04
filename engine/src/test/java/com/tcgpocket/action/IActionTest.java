@@ -43,6 +43,7 @@ import com.tcgpocket.target.PlayTarget;
 import com.tcgpocket.target.Self;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -414,9 +415,39 @@ class IActionTest {
         void aBasicGoesToTheBench() {
             CardInstance card = board.inHand(board.you, PIKACHU);
 
-            assertTrue(new PlayCardAction(card).execute(context).succeeded());
+            assertTrue(new PlayCardAction(card, 1).execute(context).succeeded());
             assertEquals(1, board.you.bench().size());
+            assertTrue(board.you.benchAt(1).isPresent(), "into the slot it was dropped on");
             assertEquals(0, board.you.hand().size());
+        }
+
+        @Test
+        @DisplayName("a Basic is offered once per empty Bench slot, and only there")
+        void oneMovePerEmptySlot() {
+            board.bench(board.you, PIKACHU);
+            CardInstance card = board.inHand(board.you, PIKACHU);
+
+            assertEquals(List.of(new PlayCardAction(card, 1), new PlayCardAction(card, 2)), PlayCardAction.all(card, context));
+            assertFalse(new PlayCardAction(card, 0).isLegal(context), "slot 0 is taken");
+            assertFalse(new PlayCardAction(card).isLegal(context), "a Basic must name its slot");
+        }
+
+        @Test
+        @DisplayName("Benched Pokemon keep their slots when a neighbour leaves, and a retreat swaps into the vacated one")
+        void benchSlotsAreStable() {
+            board.active(board.you, PIKACHU);
+            PokemonInPlay first = board.bench(board.you, PIKACHU);
+            PokemonInPlay second = board.bench(board.you, PIKACHU);
+            PokemonInPlay third = board.bench(board.you, PIKACHU);
+            PokemonInPlay active = board.you.active().orElseThrow();
+
+            board.you.removeFromBench(first);
+            assertEquals(List.of(Optional.empty(), Optional.of(second), Optional.of(third)),
+                    List.of(board.you.benchAt(0), board.you.benchAt(1), board.you.benchAt(2)));
+
+            board.you.switchIn(third);
+            assertEquals(Optional.of(active), board.you.benchAt(2));
+            assertEquals(Optional.of(third), board.you.active());
         }
 
         @Test

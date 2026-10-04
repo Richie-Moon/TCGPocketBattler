@@ -161,7 +161,8 @@ class GameSocketTest {
                 if (!active.isNull()) {
                     inPlay.add(active.get("id").asInt());
                 }
-                board.get(side).get("bench").forEach(pokemon -> inPlay.add(pokemon.get("id").asInt()));
+                board.get(side).get("bench").valueStream().filter(pokemon -> !pokemon.isNull())
+                        .forEach(pokemon -> inPlay.add(pokemon.get("id").asInt()));
             }
             for (JsonNode option : options) {
                 JsonNode card = option.get("card");
@@ -169,7 +170,7 @@ class GameSocketTest {
                 boolean ok = switch (option.get("kind").asString()) {
                     case "play", "evolve" -> hand.contains(card.asInt());
                     case "setup" -> hand.contains(card.asInt())
-                            && option.get("bench").valueStream().allMatch(id -> hand.contains(id.asInt()));
+                            && option.get("bench").valueStream().allMatch(id -> id.isNull() || hand.contains(id.asInt()));
                     case "attack", "ability" -> inPlay.contains(card.asInt());
                     default -> true;
                 } && (target.isNull() || inPlay.contains(target.asInt()))

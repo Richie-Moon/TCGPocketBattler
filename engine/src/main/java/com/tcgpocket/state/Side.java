@@ -7,12 +7,15 @@ import com.tcgpocket.player.IPlayer;
 import com.tcgpocket.resolve.RandomSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 /**
  * One player's half of the board.
@@ -27,7 +30,8 @@ public final class Side {
 
     private final String name;
     private final IPlayer player;
-    private final List<PokemonInPlay> bench = new ArrayList<>();
+    /** By slot; null is an empty slot. A Pokemon keeps its slot until it leaves the Bench. */
+    private final PokemonInPlay[] bench = new PokemonInPlay[BENCH_LIMIT];
     private final List<CardInstance> hand = new ArrayList<>();
     private final List<CardInstance> deck = new ArrayList<>();
     private final List<CardInstance> discardPile = new ArrayList<>();
@@ -65,7 +69,7 @@ public final class Side {
     }
 
     public boolean benchIsFull() {
-        return bench.size() >= BENCH_LIMIT;
+        return emptyBenchSlots().isEmpty();
     }
 
     /* ------------------------------------------------------------------ */
@@ -83,24 +87,61 @@ public final class Side {
         }
     }
 
+    /** The Benched Pokemon in slot order, without the empty slots. */
     public List<PokemonInPlay> bench() {
-        return Collections.unmodifiableList(bench);
+        return Arrays.stream(bench).filter(Objects::nonNull).toList();
     }
 
+    /** The Pokemon in a Bench slot; empty for an empty slot or one past the end. */
+    public Optional<PokemonInPlay> benchAt(int slot) {
+        return slot < 0 || slot >= BENCH_LIMIT ? Optional.empty() : Optional.ofNullable(bench[slot]);
+    }
+
+    public List<Integer> emptyBenchSlots() {
+        return IntStream.range(0, BENCH_LIMIT).filter(slot -> bench[slot] == null).boxed().toList();
+    }
+
+    /** Into the first empty slot, for text that puts a Pokemon on the Bench without saying where. */
     public void addToBench(PokemonInPlay pokemon) {
-        bench.add(pokemon);
+        addToBench(pokemon, emptyBenchSlots().getFirst());
+    }
+
+    public void addToBench(PokemonInPlay pokemon, int slot) {
+        if (bench[slot] != null) {
+            throw new IllegalStateException("bench slot " + slot + " is taken by " + bench[slot]);
+        }
+        bench[slot] = pokemon;
         pokemon.moveTo(Zone.BENCH);
     }
 
+    /** Empties its slot; the others stay where they are. */
     public boolean removeFromBench(PokemonInPlay pokemon) {
-        return bench.remove(pokemon);
+        int slot = Arrays.asList(bench).indexOf(pokemon);
+        if (slot < 0) {
+            return false;
+        }
+        bench[slot] = null;
+        return true;
+    }
+
+    /** Brings a Benched Pokemon up; the old Active, if any, takes the slot it left. */
+    public void switchIn(PokemonInPlay benched) {
+        int slot = Arrays.asList(bench).indexOf(benched);
+        if (slot < 0) {
+            throw new IllegalArgumentException(benched + " is not on the bench");
+        }
+        bench[slot] = null;
+        if (active != null) {
+            addToBench(active, slot);
+        }
+        setActive(benched);
     }
 
     /** Active plus bench, in that order. */
     public List<PokemonInPlay> inPlay() {
         List<PokemonInPlay> all = new ArrayList<>();
         active().ifPresent(all::add);
-        all.addAll(bench);
+        all.addAll(bench());
         return Collections.unmodifiableList(all);
     }
 
@@ -120,7 +161,7 @@ public final class Side {
     }
 
     public boolean hasPokemonInPlay() {
-        return active != null || !bench.isEmpty();
+        return active != null || !bench().isEmpty();
     }
 
     /* ------------------------------------------------------------------ */
@@ -237,7 +278,7 @@ public final class Side {
             case HAND -> hand();
             case DISCARD -> discardPile();
             case ACTIVE -> active == null ? List.of() : List.of(active);
-            case BENCH -> List.copyOf(bench);
+            case BENCH -> List.copyOf(bench());
             case ATTACHED -> inPlay().stream()
                     .flatMap(pokemon -> pokemon.tool().stream())
                     .toList();

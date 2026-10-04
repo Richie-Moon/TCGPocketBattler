@@ -37,15 +37,17 @@ import java.util.stream.Collectors;
  * @param card   the card being played, evolved with or used (for an attack, the attacking Pokemon; for
  *               setup, the Active), or null
  * @param target the Pokemon it lands on or brings up, or null
- * @param bench  for setup, the cards from hand to Bench; empty otherwise. A setup client builds a board
- *               from clicks and looks up the option with that Active and that Bench.
+ * @param bench  for setup, the card from hand for each Bench slot, null for an empty one; empty otherwise. A
+ *               setup client builds a board from clicks and looks up the option with that Active and that Bench.
  * @param shown  for a play, the printed id of a card that does not stay on a Pokemon (an Item, Supporter or
  *               Stadium, not a Basic, Fossil or Tool), which the browser flashes before its effect; null otherwise
+ * @param slot   for a Basic played to the Bench, the slot it goes into; null otherwise
  */
-record OptionView(String label, String kind, Integer card, Integer target, List<Integer> bench, String shown) {
+record OptionView(String label, String kind, Integer card, Integer target, List<Integer> bench, String shown,
+                  Integer slot) {
 
     OptionView(String label, String kind, Integer card, Integer target) {
-        this(label, kind, card, target, List.of(), null);
+        this(label, kind, card, target, List.of(), null, null);
     }
 
     static OptionView of(Object option, Decision<?> decision) {
@@ -64,17 +66,20 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
                     "evolve", id(evolve.evolution()), id(evolve.onto(), decision));
             case PlayCardAction play -> new OptionView(
                     "Play " + play.card().definition().name()
-                            + play.onto().map(onto -> " on " + label(onto, decision)).orElse(""),
+                            + play.onto().map(onto -> " on " + label(onto, decision)).orElse("")
+                            + (play.benchSlot().isPresent() ? " to Bench slot " + (play.benchSlot().getAsInt() + 1) : ""),
                     "play", id(play.card()), play.onto().map(OptionView::id).orElse(null), List.of(),
-                    shown(play.card().definition()));
+                    shown(play.card().definition()),
+                    play.benchSlot().isPresent() ? play.benchSlot().getAsInt() : null);
             case UseAbilityAction use -> new OptionView(
                     "Use " + use.ability().name() + " (" + use.source().definition().name() + ")",
                     "ability", id(use.source()), null);
             case OpeningPlacement opening -> new OptionView(
                     "Active " + opening.active().definition().name()
-                            + (opening.bench().isEmpty() ? "" : ", Bench " + opening.bench().stream()
+                            + (opening.benched().isEmpty() ? "" : ", Bench " + opening.benched().stream()
                                     .map(card -> card.definition().name()).collect(Collectors.joining(", "))),
-                    "setup", id(opening.active()), null, opening.bench().stream().map(OptionView::id).toList(), null);
+                    "setup", id(opening.active()), null,
+                    opening.bench().stream().map(slot -> slot.map(OptionView::id).orElse(null)).toList(), null, null);
             case PlainAction plain -> other(plain.description());
             case PlayedOnto played -> other(played.description());
             case WithPrecondition guarded -> of(guarded.action(), decision);

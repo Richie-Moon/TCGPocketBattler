@@ -3,7 +3,6 @@ package com.tcgpocket.target;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,19 +13,14 @@ import java.util.Optional;
  * Benched Pokemon" wants {@code ChosenFrom} instead, once {@code IPlayer}
  * exists.
  *
- * <p>An index past the end of the bench resolves to empty rather than throwing.
+ * <p>The index is the slot, not the position among Benched Pokemon: slots
+ * keep their place when a neighbour leaves. An empty slot, or one past the
+ * end, resolves to empty rather than throwing.
  */
 public record AttackerBenchSpecific(int benchIndex) implements ITarget {
 
     @Override
     public Optional<PokemonInPlay> resolve(ResolutionContext context) {
-        return at(context.battle().attacker().bench(), benchIndex);
-    }
-
-    static Optional<PokemonInPlay> at(List<PokemonInPlay> bench, int index) {
-        if (index < 0 || index >= bench.size()) {
-            return Optional.empty();
-        }
-        return Optional.of(bench.get(index));
+        return context.battle().attacker().benchAt(benchIndex);
     }
 }

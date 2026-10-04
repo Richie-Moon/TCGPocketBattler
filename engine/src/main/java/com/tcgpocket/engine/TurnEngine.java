@@ -137,21 +137,30 @@ public final class TurnEngine {
         List<OpeningPlacement> options = new ArrayList<>();
         for (CardInstance active : basics) {
             List<CardInstance> rest = basics.stream().filter(card -> card != active).toList();
-            for (int mask = 0; mask < 1 << rest.size(); mask++) {
-                if (Integer.bitCount(mask) > Side.BENCH_LIMIT) {
-                    continue;
-                }
-                List<CardInstance> bench = new ArrayList<>();
-                for (int i = 0; i < rest.size(); i++) {
-                    if ((mask & 1 << i) != 0) {
-                        bench.add(rest.get(i));
-                    }
-                }
+            for (List<Optional<CardInstance>> bench : benches(rest, List.of())) {
                 options.add(new OpeningPlacement(active, bench));
             }
         }
         return new Decision<>("Choose your Active Pokemon and any Benched Pokemon, then confirm",
                 options, side, contextFor(side));
+    }
+
+    /** Every way to fill the Bench slots after {@code placed} from {@code rest}, each slot empty or one card. */
+    private static List<List<Optional<CardInstance>>> benches(List<CardInstance> rest, List<Optional<CardInstance>> placed) {
+        if (placed.size() == Side.BENCH_LIMIT) {
+            return List.of(placed);
+        }
+        List<List<Optional<CardInstance>>> all = new ArrayList<>(benches(rest, append(placed, Optional.empty())));
+        for (CardInstance card : rest) {
+            all.addAll(benches(rest.stream().filter(other -> other != card).toList(), append(placed, Optional.of(card))));
+        }
+        return all;
+    }
+
+    private static List<Optional<CardInstance>> append(List<Optional<CardInstance>> list, Optional<CardInstance> slot) {
+        List<Optional<CardInstance>> longer = new ArrayList<>(list);
+        longer.add(slot);
+        return longer;
     }
 
     /** Puts a side's chosen opening board into play. Must be one of {@link #openingDecision}'s options. */
@@ -161,9 +170,12 @@ public final class TurnEngine {
         }
         side.removeFromHand(placement.active());
         side.setActive(enterPlay(placement.active(), side, Zone.ACTIVE));
-        for (CardInstance benched : placement.bench()) {
-            side.removeFromHand(benched);
-            side.addToBench(enterPlay(benched, side, Zone.BENCH));
+        for (int slot = 0; slot < Side.BENCH_LIMIT; slot++) {
+            Optional<CardInstance> benched = placement.bench().get(slot);
+            if (benched.isPresent()) {
+                side.removeFromHand(benched.get());
+                side.addToBench(enterPlay(benched.get(), side, Zone.BENCH), slot);
+            }
         }
     }
 
@@ -262,16 +274,18 @@ public final class TurnEngine {
 
         List<ITarget> ownPokemon = new ArrayList<>();
         side.active().ifPresent(active -> ownPokemon.add(new AttackerActive()));
-        for (int i = 0; i < side.bench().size(); i++) {
-            ownPokemon.add(new AttackerBenchSpecific(i));
+        List<ITarget> benched = new ArrayList<>();
+        for (int slot = 0; slot < Side.BENCH_LIMIT; slot++) {
+            if (side.benchAt(slot).isPresent()) {
+                benched.add(new AttackerBenchSpecific(slot));
+            }
         }
+        ownPokemon.addAll(benched);
 
         List<IAction> candidates = new ArrayList<>();
         side.active().ifPresent(active -> candidates.addAll(active.definition().actions()));
         ownPokemon.forEach(target -> candidates.add(new AttachEnergyAction(target)));
-        for (int i = 0; i < side.bench().size(); i++) {
-            candidates.add(new RetreatAction(new AttackerBenchSpecific(i)));
-        }
+        benched.forEach(target -> candidates.add(new RetreatAction(target)));
         if (battle.turn() > 2) {
             for (CardInstance card : side.hand()) {
                 ownPokemon.forEach(target -> candidates.add(new EvolveAction(card, target)));
