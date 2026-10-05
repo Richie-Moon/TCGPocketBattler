@@ -356,10 +356,15 @@ public final class Fighting {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.PSYCHIC);
 
+    /** A1-238 · Diglett (alternate art of A1-139) */
+    public static final PokemonCard DIGLETT_IR = DIGLETT.withId("A1-238", CardRarity.ILLUSTRATION_RARE);
+    /** A1-239 · Cubone (alternate art of A1-151) */
+    public static final PokemonCard CUBONE_IR = CUBONE.withId("A1-239", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             SANDSHREW, SANDSLASH, DIGLETT, DUGTRIO, MANKEY, PRIMEAPE, MACHOP, MACHOKE, MACHAMP, MACHAMP_EX,
             GEODUDE, GRAVELER, GOLEM, ONIX, CUBONE, MAROWAK, MAROWAK_EX, HITMONLEE, HITMONCHAN, RHYHORN, RHYDON, 
-            KABUTO, KABUTOPS, MIENFOO, MIENSHAO, CLOBBOPUS, GRAPPLOCT);
+            KABUTO, KABUTOPS, MIENFOO, MIENSHAO, CLOBBOPUS, GRAPPLOCT, DIGLETT_IR, CUBONE_IR);
 
     private Fighting() {
     }

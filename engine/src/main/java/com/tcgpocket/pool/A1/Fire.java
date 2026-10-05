@@ -289,10 +289,15 @@ public final class Fire {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.WATER);
     
+    /** A1-230 · Charmander (alternate art of A1-033) */
+    public static final PokemonCard CHARMANDER_IR = CHARMANDER.withId("A1-230", CardRarity.ILLUSTRATION_RARE);
+    /** A1-231 · Rapidash (alternate art of A1-043) */
+    public static final PokemonCard RAPIDASH_IR = RAPIDASH.withId("A1-231", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             CHARMANDER, CHARMELEON, CHARIZARD, CHARIZARD_EX, VULPIX, NINETALES, GROWLITHE,
             ARCANINE, ARCANINE_EX, PONYTA, RAPIDASH, MAGMAR, FLAREON, MOLTRES, MOLTRES_EX, HEATMOR, SALANDIT, SALAZZLE, 
-            SIZZLIPEDE, CENTISKORCH
+            SIZZLIPEDE, CENTISKORCH, CHARMANDER_IR, RAPIDASH_IR
     );
 
     private Fire() {

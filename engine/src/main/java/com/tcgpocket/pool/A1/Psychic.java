@@ -357,9 +357,14 @@ public final class Psychic {
                             )))), CardRarity.IMMERSIVE)
             .withWeakness(Type.DARKNESS);
 
+    /** A1-236 · Alakazam (alternate art of A1-117) */
+    public static final PokemonCard ALAKAZAM_IR = ALAKAZAM.withId("A1-236", CardRarity.ILLUSTRATION_RARE);
+    /** A1-237 · Slowpoke (alternate art of A1-118) */
+    public static final PokemonCard SLOWPOKE_IR = SLOWPOKE.withId("A1-237", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             CLEFAIRY, CLEFABLE, ABRA, KADABRA, ALAKAZAM, SLOWPOKE, SLOWBRO, GASTLY, HAUNTER, GENGAR, GENGAR_EX,
-            DROWZEE, HYPNO, MR_MIME, JYNX, MEWTWO, MEWTWO_EX, RALTS, KIRLIA, GARDEVOIR, WOOBAT, SWOOBAT, GOLETT, GOLURK, MEW);
+            DROWZEE, HYPNO, MR_MIME, JYNX, MEWTWO, MEWTWO_EX, RALTS, KIRLIA, GARDEVOIR, WOOBAT, SWOOBAT, GOLETT, GOLURK, MEW, ALAKAZAM_IR, SLOWPOKE_IR);
 
     private Psychic() {
     }

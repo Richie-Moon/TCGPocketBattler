@@ -141,6 +141,12 @@ public record PokemonCard(
                 evolvesFrom, retreatCost, weakness, weaknessDamage, ability, rarity);
     }
 
+    /** The same card under another id and rarity: an alternate art or a reprint. */
+    public PokemonCard withId(String newId, CardRarity newRarity) {
+        return new PokemonCard(newId, name, description, tags, actions, maxHp, stage, types,
+                evolvesFrom, retreatCost, weakness, weaknessDamage, ability, newRarity);
+    }
+
     public PokemonCard withWeakness(Type weakTo) {
         return new PokemonCard(id, name, description, tags, actions, maxHp, stage, types,
                 evolvesFrom, retreatCost, Optional.of(weakTo), weaknessDamage, ability, rarity);

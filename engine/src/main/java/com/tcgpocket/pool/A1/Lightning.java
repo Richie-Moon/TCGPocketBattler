@@ -286,9 +286,12 @@ public final class Lightning {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
 
+    /** A1-235 · Electrode (alternate art of A1-100) */
+    public static final PokemonCard ELECTRODE_IR = ELECTRODE.withId("A1-235", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(PIKACHU, RAICHU, PIKACHU_EX, MAGNEMITE, MAGNETON,
             VOLTORB, ELECTRODE, ELECTABUZZ, JOLTEON, ZAPDOS, BLITZLE, ZEBSTRIKA, TYNAMO, EELEKTRIK, EELEKTROSS,
-            HELIOPTILE, HELIOLISK, PINCURCHIN);
+            HELIOPTILE, HELIOLISK, PINCURCHIN, ELECTRODE_IR);
 
     private Lightning() {
     }
