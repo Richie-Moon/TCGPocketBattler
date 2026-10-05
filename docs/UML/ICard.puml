@@ -46,6 +46,7 @@ class SupporterCard <<record>> implements ITrainerCard {}
 
 class ToolCard <<record>> implements ITrainerCard {
     - triggers: List<ITrigger>
+    - rules: List<IRule>
 }
 
 class StadiumCard <<record>> implements ITrainerCard {

@@ -1,8 +1,11 @@
 package com.tcgpocket.state;
 
 import com.tcgpocket.card.EnergyBoost;
+import com.tcgpocket.card.HpBonus;
+import com.tcgpocket.card.IRule;
 import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.status.IStatus;
 import com.tcgpocket.status.StatusCategory;
@@ -119,8 +122,17 @@ public final class PokemonInPlay extends CardInstance {
         abilityUsedThisTurn = false;
     }
 
+    /** The printed HP, plus any {@link HpBonus} on the held Tool. */
     public int maxHp() {
-        return definition().maxHp();
+        int bonus = 0;
+        if (tool().map(CardInstance::definition).orElse(null) instanceof ToolCard card) {
+            for (IRule rule : card.rules()) {
+                if (rule instanceof HpBonus hp) {
+                    bonus += hp.amount();
+                }
+            }
+        }
+        return definition().maxHp() + bonus;
     }
 
     /** Damage counters on this Pokemon, never negative and never above max HP. */
@@ -193,8 +205,26 @@ public final class PokemonInPlay extends CardInstance {
         }
     }
 
-    /** Removes up to {@code count} energy of a type; returns how many actually went. */
+    /**
+     * Discards up to {@code count} energy of a type to its owner's discard
+     * pile, where Volkner can find it; returns how many actually went.
+     */
     public int discardEnergy(Type type, int count) {
+        int removed = detachEnergy(type, count);
+        owner().addDiscardedEnergy(type, removed);
+        return removed;
+    }
+
+    /** Every attached energy to the discard pile, as when leaving play. */
+    public void discardAllEnergy() {
+        Map.copyOf(attachedEnergy).forEach(this::discardEnergy);
+    }
+
+    /**
+     * Removes up to {@code count} energy of a type without discarding it — the
+     * first half of a move. Returns how many actually went.
+     */
+    public int detachEnergy(Type type, int count) {
         requireNonNegative(count, "energy count");
         int removed = Math.min(count, energyOf(type));
         if (removed > 0) {

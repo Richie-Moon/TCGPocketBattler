@@ -165,7 +165,7 @@ public final class Trainers {
      * Colorless Pokemon" are rules for {@code PlayCardAction} and
      * {@code RetreatAction} to learn, not effects, so only the discard is a node.
      */
-    private static PlainAction discardFromPlay() {
+    public static PlainAction discardFromPlay() {
         return new PlainAction(
                 "Play this card as if it were a 40-HP Basic Colorless Pokémon. At any time during your turn, you can discard this card from play. This card can't retreat.",
                 new Attempt(List.of(

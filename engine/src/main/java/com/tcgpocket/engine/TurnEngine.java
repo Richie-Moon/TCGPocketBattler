@@ -365,7 +365,7 @@ public final class TurnEngine {
         return card.tags().contains(CardTag.EX) ? 2 : 1;
     }
 
-    /** Attached energy is not a card in Pocket, so it simply goes. */
+    /** Attached energy is not a card, so it goes to the discard pile as a count. */
     private static void leavePlay(PokemonInPlay pokemon) {
         Side owner = pokemon.owner();
         if (owner.active().filter(pokemon::equals).isPresent()) {
@@ -375,6 +375,7 @@ public final class TurnEngine {
         }
         pokemon.cards().forEach(owner::addToDiscard);
         pokemon.removeTool().ifPresent(owner::addToDiscard);
+        pokemon.discardAllEnergy();
     }
 
     /**

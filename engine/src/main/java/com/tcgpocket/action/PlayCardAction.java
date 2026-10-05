@@ -3,6 +3,7 @@ package com.tcgpocket.action;
 import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.SupporterCard;
 import com.tcgpocket.card.SupporterLock;
+import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.resolve.ResolutionContext;
@@ -22,7 +23,8 @@ import java.util.OptionalInt;
  * Plays a card from hand.
  *
  * <p>A Basic Pokemon goes to the bench, and so does a Fossil, which plays as
- * one; anything else runs its printed actions and is discarded.
+ * one; a Tool is attached to the Pokemon it was dragged onto, which must not
+ * already hold one; anything else runs its printed actions and is discarded.
  *
  * <p>A card printed with {@link PlayedOnto} is dragged onto a Pokemon, and
  * {@code onto} is where it was dropped. So "Misty onto Lapras" and "Misty onto
@@ -66,6 +68,8 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
     public static List<PlayCardAction> all(CardInstance card, ResolutionContext context) {
         List<PlayCardAction> moves = card.definition() instanceof IPlayableCard
                 ? context.controller().emptyBenchSlots().stream().map(slot -> new PlayCardAction(card, slot)).toList()
+                : card.definition() instanceof ToolCard
+                ? context.controller().inPlay().stream().map(pokemon -> new PlayCardAction(card, pokemon)).toList()
                 : playedOnto(card)
                         .map(dragged -> dragged.candidates(context).stream()
                                 .map(pokemon -> new PlayCardAction(card, pokemon))
@@ -87,6 +91,10 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
         }
         if (benchSlot.isPresent()) {
             return false;
+        }
+
+        if (card.definition() instanceof ToolCard) {
+            return onto.filter(pokemon -> side.inPlay().contains(pokemon) && !pokemon.hasTool()).isPresent();
         }
 
         if (card.definition() instanceof SupporterCard
@@ -118,6 +126,11 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
         if (card.definition() instanceof IPlayableCard playable) {
             side.addToBench(new PokemonInPlay(
                     card.instanceId(), playable, side, Zone.BENCH, context.battle().turn()), benchSlot.getAsInt());
+            return AttemptResult.success(List.of(EffectOutcome.APPLIED));
+        }
+
+        if (card.definition() instanceof ToolCard) {
+            onto.orElseThrow().attachTool(card);
             return AttemptResult.success(List.of(EffectOutcome.APPLIED));
         }
 

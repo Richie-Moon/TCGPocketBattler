@@ -164,6 +164,18 @@ class IEffectTest {
             assertEquals(1, board.you.hand().size());
             assertEquals("Snorlax", board.you.hand().get(0).definition().name());
         }
+
+        @Test
+        void handOwnerChoosesWhichCardsGo() {
+            TestBoard board = new TestBoard(new ScriptedPlayer("you", 1), new ScriptedPlayer("them"));
+            board.inHand(board.you, PIKACHU);
+            board.inHand(board.you, SNORLAX);
+
+            assertEquals(EffectOutcome.APPLIED, new DiscardFromHand(new AttackerSide(), new Literal(1))
+                    .apply(board.contextWithoutSource()));
+            assertEquals("Pikachu", board.you.hand().get(0).definition().name());
+            assertEquals("Snorlax", board.you.discardPile().get(0).definition().name());
+        }
     }
 
     @Nested
@@ -314,6 +326,27 @@ class IEffectTest {
 
             assertEquals(1, first.energyOf(Type.LIGHTNING));
             assertEquals(1, second.energyOf(Type.LIGHTNING));
+            assertEquals(0, picking.remaining(), "asked exactly once");
+        }
+
+        @Test
+        @DisplayName("distinct places at most one each, still as one question")
+        void distinctChoosesDifferentPokemon() {
+            ScriptedPlayer picking = new ScriptedPlayer("you", 2);
+            TestBoard board = new TestBoard(picking, new ScriptedPlayer("them"));
+            board.active(board.you, PIKACHU);
+            PokemonInPlay first = board.bench(board.you, PIKACHU);
+            PokemonInPlay second = board.bench(board.you, PIKACHU);
+            PokemonInPlay third = board.bench(board.you, PIKACHU);
+
+            // Subsets of two over three: [1,2], [1,3], [2,3].
+            assertEquals(EffectOutcome.APPLIED,
+                    new DistributeEnergy(Type.LIGHTNING, new Literal(2), new AttackerBench(), "choose 2", true)
+                            .apply(board.contextWithoutSource()));
+
+            assertEquals(0, first.energyOf(Type.LIGHTNING));
+            assertEquals(1, second.energyOf(Type.LIGHTNING));
+            assertEquals(1, third.energyOf(Type.LIGHTNING));
             assertEquals(0, picking.remaining(), "asked exactly once");
         }
 

@@ -79,6 +79,13 @@ class Matching <<record>> implements IMultiTarget {
     - condition: ICondition<PokemonInPlay>
 }
 
+/' "Your other Pokemon": a group minus one target. A condition cannot ask
+   "is this me?", since it sees only its subject. '/
+class Except <<record>> implements IMultiTarget {
+    - from: IMultiTarget
+    - excluded: ITarget
+}
+
 interface ISideTarget <<sealed>> {
     + resolve(ResolutionContext): Side
 }

@@ -26,9 +26,18 @@ final class Energies {
      * unit, because "whenever an Energy is attached" counts Energy, not effects.
      */
     static void attach(ResolutionContext context, PokemonInPlay pokemon, Type type, int count) {
+        attach(context, pokemon, type, count, true);
+    }
+
+    /** Energy moved off another Pokemon rather than taken from the Energy Zone. */
+    static void attachMoved(ResolutionContext context, PokemonInPlay pokemon, Type type, int count) {
+        attach(context, pokemon, type, count, false);
+    }
+
+    private static void attach(ResolutionContext context, PokemonInPlay pokemon, Type type, int count, boolean fromEnergyZone) {
         pokemon.attachEnergy(type, count);
         for (int i = 0; i < count; i++) {
-            TriggerDispatcher.dispatch(context.battle(), new EnergyAttached(pokemon, type));
+            TriggerDispatcher.dispatch(context.battle(), new EnergyAttached(pokemon, type, fromEnergyZone));
         }
     }
 
@@ -61,7 +70,7 @@ final class Energies {
         List<Type> taken = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             Type type = units.remove(rng.nextInt(units.size()));
-            pokemon.discardEnergy(type, 1);
+            pokemon.detachEnergy(type, 1);
             taken.add(type);
         }
         return taken;

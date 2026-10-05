@@ -40,12 +40,12 @@ public sealed interface ICondition<T> permits
         // subject: ResolutionContext
         GreaterThan, LessThan, EqualTo, Probability, For, ForAny,
         LastCoinTossHeads, AllFlipsHeads, StadiumInPlay, KnockedOutLastTurn,
-        EventConcerns, EventSideIs,
+        EventConcerns, EventSideIs, EnergyFromZone,
         // subject: PokemonInPlay
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
         IsActive, IsBenched, IsDamaged, HasTool, HasEnergy,
         // subject: CardInstance
-        InZone, IsSpecies, HasTag, IsType, IsBasic {
+        InZone, IsSpecies, HasTag, IsType, IsBasic, IsPokemon {
 
     boolean evaluate(T subject);
 }

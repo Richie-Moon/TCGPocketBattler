@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 public sealed interface GameEvent permits
         TurnStart, TurnEnd,
-        AttackDeclared, DamageDealt, Knockout, Healed,
+        AttackDeclared, DamageIncoming, DamageDealt, Knockout, Healed,
         StatusApplied, StatusRemoved,
         CardPlayed, Evolved, ToolAttached, ToolRemoved, Retreated, EnergyAttached {
 
