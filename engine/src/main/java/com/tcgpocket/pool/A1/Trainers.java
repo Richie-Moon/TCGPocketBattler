@@ -126,9 +126,29 @@ public final class Trainers {
                             "Move all Lightning Energy from your Benched Pokémon to your Raichu, Electrode, or Electabuzz in the Active Spot.",
                             new Attempt(List.of(
                                     new MoveTypeEnergy(Type.LIGHTNING, new AttackerBench(), new AttackerActive()))))));
+
+    // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
+    /** A1-266 · Erika (alternate art of A1-219) */
+    public static final SupporterCard ERIKA_UR = ERIKA.withId("A1-266");
+    /** A1-267 · Misty (alternate art of A1-220) */
+    public static final SupporterCard MISTY_UR = MISTY.withId("A1-267");
+    /** A1-268 · Blaine (alternate art of A1-221) */
+    public static final SupporterCard BLAINE_UR = BLAINE.withId("A1-268");
+    /** A1-269 · Koga (alternate art of A1-222) */
+    public static final SupporterCard KOGA_UR = KOGA.withId("A1-269");
+    /** A1-270 · Giovanni (alternate art of A1-223) */
+    public static final SupporterCard GIOVANNI_UR = GIOVANNI.withId("A1-270");
+    /** A1-271 · Brock (alternate art of A1-224) */
+    public static final SupporterCard BROCK_UR = BROCK.withId("A1-271");
+    /** A1-272 · Sabrina (alternate art of A1-225) */
+    public static final SupporterCard SABRINA_UR = SABRINA.withId("A1-272");
+    /** A1-273 · Lt. Surge (alternate art of A1-226) */
+    public static final SupporterCard LT_SURGE_UR = LT_SURGE.withId("A1-273");
+
     static final List<ITrainerCard> CARDS = List.of(
             HELIX_FOSSIL, DOME_FOSSIL, OLD_AMBER,
-            ERIKA, MISTY, BLAINE, KOGA, GIOVANNI, BROCK, SABRINA, LT_SURGE);
+            ERIKA, MISTY, BLAINE, KOGA, GIOVANNI, BROCK, SABRINA, LT_SURGE,
+            ERIKA_UR, MISTY_UR, BLAINE_UR, KOGA_UR, GIOVANNI_UR, BROCK_UR, SABRINA_UR, LT_SURGE_UR);
 
     private Trainers() {
     }

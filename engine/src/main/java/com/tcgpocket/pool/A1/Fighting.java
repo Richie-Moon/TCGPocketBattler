@@ -361,10 +361,18 @@ public final class Fighting {
     /** A1-239 · Cubone (alternate art of A1-151) */
     public static final PokemonCard CUBONE_IR = CUBONE.withId("A1-239", CardRarity.ILLUSTRATION_RARE);
 
+    /** A1-263 · Machamp ex (alternate art of A1-146) */
+    public static final PokemonCard MACHAMP_EX_UR = MACHAMP_EX.withId("A1-263", CardRarity.ULTRA_RARE);
+    /** A1-264 · Marowak ex (alternate art of A1-153) */
+    public static final PokemonCard MAROWAK_EX_UR = MAROWAK_EX.withId("A1-264", CardRarity.ULTRA_RARE);
+
+    /** A1-278 · Machamp ex (alternate art of A1-146) */
+    public static final PokemonCard MACHAMP_EX_SIR = MACHAMP_EX.withId("A1-278", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             SANDSHREW, SANDSLASH, DIGLETT, DUGTRIO, MANKEY, PRIMEAPE, MACHOP, MACHOKE, MACHAMP, MACHAMP_EX,
             GEODUDE, GRAVELER, GOLEM, ONIX, CUBONE, MAROWAK, MAROWAK_EX, HITMONLEE, HITMONCHAN, RHYHORN, RHYDON, 
-            KABUTO, KABUTOPS, MIENFOO, MIENSHAO, CLOBBOPUS, GRAPPLOCT, DIGLETT_IR, CUBONE_IR);
+            KABUTO, KABUTOPS, MIENFOO, MIENSHAO, CLOBBOPUS, GRAPPLOCT, DIGLETT_IR, CUBONE_IR, MACHAMP_EX_UR, MAROWAK_EX_UR, MACHAMP_EX_SIR);
 
     private Fighting() {
     }

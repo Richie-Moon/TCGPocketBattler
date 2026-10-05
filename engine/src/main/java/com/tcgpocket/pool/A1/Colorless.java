@@ -381,12 +381,18 @@ public final class Colorless {
     /** A1-250 · Snorlax (alternate art of A1-211) */
     public static final PokemonCard SNORLAX_IR = SNORLAX.withId("A1-250", CardRarity.ILLUSTRATION_RARE);
 
+    /** A1-265 · Wigglytuff ex (alternate art of A1-195) */
+    public static final PokemonCard WIGGLYTUFF_EX_UR = WIGGLYTUFF_EX.withId("A1-265", CardRarity.ULTRA_RARE);
+
+    /** A1-279 · Wigglytuff ex (alternate art of A1-195) */
+    public static final PokemonCard WIGGLYTUFF_EX_SIR = WIGGLYTUFF_EX.withId("A1-279", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             PIDGEY, PIDGEOTTO, PIDGEOT, RATTATA, RATICATE, SPEAROW, FEAROW,
             JIGGLYPUFF, WIGGLYTUFF, WIGGLYTUFF_EX, MEOWTH, PERSIAN, FARFETCHD,
             DODUO, DODRIO, LICKITUNG, CHANSEY, KANGASKHAN, TAUROS, DITTO,
             EEVEE_206, EEVEE_207, EEVEE_208, PORYGON, AERODACTYL, SNORLAX,
-            MINCCINO, CINCCINO, WOOLOO, DUBWOOL, PIDGEOT_IR, MEOWTH_IR, DITTO_IR, EEVEE_IR, PORYGON_IR, SNORLAX_IR);
+            MINCCINO, CINCCINO, WOOLOO, DUBWOOL, PIDGEOT_IR, MEOWTH_IR, DITTO_IR, EEVEE_IR, PORYGON_IR, SNORLAX_IR, WIGGLYTUFF_EX_UR, WIGGLYTUFF_EX_SIR);
 
     private Colorless() {
     }

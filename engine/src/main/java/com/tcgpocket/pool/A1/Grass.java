@@ -359,7 +359,7 @@ public final class Grass {
     ).withWeakness(Type.FIRE);
 
     /**
-     * A1-023 - Exeggcutor ex
+     * A1-023 - Exeggutor ex
      */
     public static final PokemonCard EXEGGUTOR_EX = PokemonCard.evolution(
             "A1-023", "Exeggutor ex", "",
@@ -496,11 +496,16 @@ public final class Grass {
     /** A1-229 · Pinsir (alternate art of A1-026) */
     public static final PokemonCard PINSIR_IR = PINSIR.withId("A1-229", CardRarity.ILLUSTRATION_RARE);
 
+    /** A1-251 · Venusaur ex (alternate art of A1-004) */
+    public static final PokemonCard VENUSAUR_EX_UR = VENUSAUR_EX.withId("A1-251", CardRarity.ULTRA_RARE);
+    /** A1-252 · Exeggutor ex (alternate art of A1-023) */
+    public static final PokemonCard EXEGGUTOR_EX_UR = EXEGGUTOR_EX.withId("A1-252", CardRarity.ULTRA_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             BULBASAUR, IVYSAUR, VENUSAUR, VENUSAUR_EX, CATERPIE, METAPOD, BUTTERFREE, WEEDLE, KAKUNA,
             BEEDRILL, ODDISH, GLOOM, VILEPLUME, PARAS, PARASECT, VENONAT, VENOMOTH, BELLSPROUT, WEEPINBELL, VICTREEBEL,
             EXEGGCUTE, EXEGGUTOR, EXEGGUTOR_EX, TANGELA, SCYTHER, PINSIR, COTTONEE, WHIMSICOTT, PETILIL, LILLIGANT,
-            SKIDDO, GOGOAT, BULBASAUR_IR, GLOOM_IR, PINSIR_IR);
+            SKIDDO, GOGOAT, BULBASAUR_IR, GLOOM_IR, PINSIR_IR, VENUSAUR_EX_UR, EXEGGUTOR_EX_UR);
 
     private Grass() {
     }

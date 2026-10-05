@@ -362,9 +362,22 @@ public final class Psychic {
     /** A1-237 · Slowpoke (alternate art of A1-118) */
     public static final PokemonCard SLOWPOKE_IR = SLOWPOKE.withId("A1-237", CardRarity.ILLUSTRATION_RARE);
 
+    /** A1-261 · Gengar ex (alternate art of A1-123) */
+    public static final PokemonCard GENGAR_EX_UR = GENGAR_EX.withId("A1-261", CardRarity.ULTRA_RARE);
+    /** A1-262 · Mewtwo ex (alternate art of A1-129) */
+    public static final PokemonCard MEWTWO_EX_UR = MEWTWO_EX.withId("A1-262", CardRarity.ULTRA_RARE);
+
+    /** A1-277 · Gengar ex (alternate art of A1-123) */
+    public static final PokemonCard GENGAR_EX_SIR = GENGAR_EX.withId("A1-277", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
+    /** A1-282 · Mewtwo ex (alternate art of A1-129) */
+    public static final PokemonCard MEWTWO_EX_IM = MEWTWO_EX.withId("A1-282", CardRarity.IMMERSIVE);
+    /** A1-286 · Mewtwo ex (alternate art of A1-129) */
+    public static final PokemonCard MEWTWO_EX_HR = MEWTWO_EX.withId("A1-286", CardRarity.HYPER_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             CLEFAIRY, CLEFABLE, ABRA, KADABRA, ALAKAZAM, SLOWPOKE, SLOWBRO, GASTLY, HAUNTER, GENGAR, GENGAR_EX,
-            DROWZEE, HYPNO, MR_MIME, JYNX, MEWTWO, MEWTWO_EX, RALTS, KIRLIA, GARDEVOIR, WOOBAT, SWOOBAT, GOLETT, GOLURK, MEW, ALAKAZAM_IR, SLOWPOKE_IR);
+            DROWZEE, HYPNO, MR_MIME, JYNX, MEWTWO, MEWTWO_EX, RALTS, KIRLIA, GARDEVOIR, WOOBAT, SWOOBAT, GOLETT, GOLURK, MEW, ALAKAZAM_IR, SLOWPOKE_IR, GENGAR_EX_UR, MEWTWO_EX_UR, GENGAR_EX_SIR, MEWTWO_EX_IM, MEWTWO_EX_HR);
 
     private Psychic() {
     }
