@@ -114,8 +114,12 @@ public final class Fire {
             )), CardRarity.COMMON
     ).withWeakness(Type.WATER);
 
+    /** A1a-071 · Salandit (alternate art of A1a-015) */
+    public static final PokemonCard SALANDIT_IR = SALANDIT.withId("A1a-071", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            PONYTA, RAPIDASH, MAGMAR, LARVESTA, VOLCARONA, SALANDIT, SALAZZLE);
+            PONYTA, RAPIDASH, MAGMAR, LARVESTA, VOLCARONA, SALANDIT, SALAZZLE,
+            SALANDIT_IR);
 
     private Fire() {
     }

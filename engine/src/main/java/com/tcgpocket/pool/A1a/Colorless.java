@@ -96,7 +96,10 @@ public final class Colorless {
                             )))), CardRarity.COMMON)
             .withWeakness(Type.LIGHTNING);
 
-    static final List<PokemonCard> CARDS = List.of(PIDGEY, PIDGEOTTO, PIDGEOT_EX, TAUROS, EEVEE, CHATOT);
+    /** A1a-079 · Pidgeot ex (alternate art of A1a-059) */
+    public static final PokemonCard PIDGEOT_EX_UR = PIDGEOT_EX.withId("A1a-079", CardRarity.ULTRA_RARE);
+
+    static final List<PokemonCard> CARDS = List.of(PIDGEY, PIDGEOTTO, PIDGEOT_EX, TAUROS, EEVEE, CHATOT, PIDGEOT_EX_UR);
 
     private Colorless() {
     }

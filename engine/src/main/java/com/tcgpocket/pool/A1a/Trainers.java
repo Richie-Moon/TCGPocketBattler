@@ -85,8 +85,17 @@ public final class Trainers {
                     new Attempt(List.of(
                             new ReduceRetreatCost(new Literal(2), new AttackerActive(), new Literal(0))))));
 
+    // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
+    /** A1a-080 · Budding Expeditioner (alternate art of A1a-066) */
+    public static final SupporterCard BUDDING_EXPEDITIONER_UR = BUDDING_EXPEDITIONER.withId("A1a-080");
+    /** A1a-081 · Blue (alternate art of A1a-067) */
+    public static final SupporterCard BLUE_UR = BLUE.withId("A1a-081");
+    /** A1a-082 · Leaf (alternate art of A1a-068) */
+    public static final SupporterCard LEAF_UR = LEAF.withId("A1a-082");
+
     static final List<ITrainerCard> CARDS = List.of(
-            OLD_AMBER, POKEMON_FLUTE, MYTHICAL_SLAB, BUDDING_EXPEDITIONER, BLUE, LEAF);
+            OLD_AMBER, POKEMON_FLUTE, MYTHICAL_SLAB, BUDDING_EXPEDITIONER, BLUE, LEAF,
+            BUDDING_EXPEDITIONER_UR, BLUE_UR, LEAF_UR);
 
     private Trainers() {
     }
