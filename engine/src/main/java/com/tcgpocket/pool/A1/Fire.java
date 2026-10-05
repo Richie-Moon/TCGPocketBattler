@@ -289,10 +289,30 @@ public final class Fire {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.WATER);
     
+    /** A1-230 · Charmander (alternate art of A1-033) */
+    public static final PokemonCard CHARMANDER_IR = CHARMANDER.withId("A1-230", CardRarity.ILLUSTRATION_RARE);
+    /** A1-231 · Rapidash (alternate art of A1-043) */
+    public static final PokemonCard RAPIDASH_IR = RAPIDASH.withId("A1-231", CardRarity.ILLUSTRATION_RARE);
+
+    /** A1-253 · Charizard ex (alternate art of A1-036) */
+    public static final PokemonCard CHARIZARD_EX_UR = CHARIZARD_EX.withId("A1-253", CardRarity.ULTRA_RARE);
+    /** A1-254 · Arcanine ex (alternate art of A1-041) */
+    public static final PokemonCard ARCANINE_EX_UR = ARCANINE_EX.withId("A1-254", CardRarity.ULTRA_RARE);
+    /** A1-255 · Moltres ex (alternate art of A1-047) */
+    public static final PokemonCard MOLTRES_EX_UR = MOLTRES_EX.withId("A1-255", CardRarity.ULTRA_RARE);
+
+    /** A1-274 · Moltres ex (alternate art of A1-047) */
+    public static final PokemonCard MOLTRES_EX_SIR = MOLTRES_EX.withId("A1-274", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
+    /** A1-280 · Charizard ex (alternate art of A1-036) */
+    public static final PokemonCard CHARIZARD_EX_IM = CHARIZARD_EX.withId("A1-280", CardRarity.IMMERSIVE);
+    /** A1-284 · Charizard ex (alternate art of A1-036) */
+    public static final PokemonCard CHARIZARD_EX_HR = CHARIZARD_EX.withId("A1-284", CardRarity.HYPER_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             CHARMANDER, CHARMELEON, CHARIZARD, CHARIZARD_EX, VULPIX, NINETALES, GROWLITHE,
             ARCANINE, ARCANINE_EX, PONYTA, RAPIDASH, MAGMAR, FLAREON, MOLTRES, MOLTRES_EX, HEATMOR, SALANDIT, SALAZZLE, 
-            SIZZLIPEDE, CENTISKORCH
+            SIZZLIPEDE, CENTISKORCH, CHARMANDER_IR, RAPIDASH_IR, CHARIZARD_EX_UR, ARCANINE_EX_UR, MOLTRES_EX_UR, MOLTRES_EX_SIR, CHARIZARD_EX_IM, CHARIZARD_EX_HR
     );
 
     private Fire() {

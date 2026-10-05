@@ -286,9 +286,25 @@ public final class Lightning {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.FIGHTING);
 
+    /** A1-235 · Electrode (alternate art of A1-100) */
+    public static final PokemonCard ELECTRODE_IR = ELECTRODE.withId("A1-235", CardRarity.ILLUSTRATION_RARE);
+
+    /** A1-259 · Pikachu ex (alternate art of A1-096) */
+    public static final PokemonCard PIKACHU_EX_UR = PIKACHU_EX.withId("A1-259", CardRarity.ULTRA_RARE);
+    /** A1-260 · Zapdos ex (alternate art of A1-104) */
+    public static final PokemonCard ZAPDOS_EX_UR = ZAPDOS_EX.withId("A1-260", CardRarity.ULTRA_RARE);
+
+    /** A1-276 · Zapdos ex (alternate art of A1-104) */
+    public static final PokemonCard ZAPDOS_EX_SIR = ZAPDOS_EX.withId("A1-276", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
+    /** A1-281 · Pikachu ex (alternate art of A1-096) */
+    public static final PokemonCard PIKACHU_EX_IM = PIKACHU_EX.withId("A1-281", CardRarity.IMMERSIVE);
+    /** A1-285 · Pikachu ex (alternate art of A1-096) */
+    public static final PokemonCard PIKACHU_EX_HR = PIKACHU_EX.withId("A1-285", CardRarity.HYPER_RARE);
+
     static final List<PokemonCard> CARDS = List.of(PIKACHU, RAICHU, PIKACHU_EX, MAGNEMITE, MAGNETON,
             VOLTORB, ELECTRODE, ELECTABUZZ, JOLTEON, ZAPDOS, BLITZLE, ZEBSTRIKA, TYNAMO, EELEKTRIK, EELEKTROSS,
-            HELIOPTILE, HELIOLISK, PINCURCHIN);
+            HELIOPTILE, HELIOLISK, PINCURCHIN, ELECTRODE_IR, PIKACHU_EX_UR, ZAPDOS_EX_UR, ZAPDOS_EX_SIR, PIKACHU_EX_IM, PIKACHU_EX_HR);
 
     private Lightning() {
     }

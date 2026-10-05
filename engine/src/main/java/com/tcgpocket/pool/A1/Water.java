@@ -563,10 +563,27 @@ public final class Water {
                             )))), CardRarity.UNCOMMON)
             .withWeakness(Type.METAL);
 
+    /** A1-232 · Squirtle (alternate art of A1-053) */
+    public static final PokemonCard SQUIRTLE_IR = SQUIRTLE.withId("A1-232", CardRarity.ILLUSTRATION_RARE);
+    /** A1-233 · Gyarados (alternate art of A1-078) */
+    public static final PokemonCard GYARADOS_IR = GYARADOS.withId("A1-233", CardRarity.ILLUSTRATION_RARE);
+    /** A1-234 · Lapras (alternate art of A1-079) */
+    public static final PokemonCard LAPRAS_IR = LAPRAS.withId("A1-234", CardRarity.ILLUSTRATION_RARE);
+
+    /** A1-256 · Blastoise ex (alternate art of A1-056) */
+    public static final PokemonCard BLASTOISE_EX_UR = BLASTOISE_EX.withId("A1-256", CardRarity.ULTRA_RARE);
+    /** A1-257 · Starmie ex (alternate art of A1-076) */
+    public static final PokemonCard STARMIE_EX_UR = STARMIE_EX.withId("A1-257", CardRarity.ULTRA_RARE);
+    /** A1-258 · Articuno ex (alternate art of A1-084) */
+    public static final PokemonCard ARTICUNO_EX_UR = ARTICUNO_EX.withId("A1-258", CardRarity.ULTRA_RARE);
+
+    /** A1-275 · Articuno ex (alternate art of A1-084) */
+    public static final PokemonCard ARTICUNO_EX_SIR = ARTICUNO_EX.withId("A1-275", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(SQUIRTLE, WARTORTLE, BLASTOISE, BLASTOISE_EX, 
             PSYDUCK, GOLDUCK, POLIWAG, POLIWHIRL, POLIWRATH, TENTACOOL, TENTACRUEL, SEEL, DEWGONG, SHELLDER, CLOYSTER, 
             KRABBY, KINGLER, HORSEA, SEADRA, GOLDEEN, SEAKING, STARYU, STARMIE, STARMIE_EX, MAGIKARP, GYARADOS, LAPRAS, 
             VAPOREON, OMANYTE, OMASTAR, ARTICUNO, ARTICUNO_EX, DUCKLETT, SWANNA, FROAKIE, FROGADIER, GRENINJA, 
-            PYUKUMUKU, BRUXISH, SNOM, FROSMOTH);
+            PYUKUMUKU, BRUXISH, SNOM, FROSMOTH, SQUIRTLE_IR, GYARADOS_IR, LAPRAS_IR, BLASTOISE_EX_UR, STARMIE_EX_UR, ARTICUNO_EX_UR, ARTICUNO_EX_SIR);
 
 }

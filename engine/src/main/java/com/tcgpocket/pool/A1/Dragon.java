@@ -54,5 +54,8 @@ public final class Dragon {
                                     new RepeatEffect(new Literal(4), new DealDamage(new Literal(50), new RandomFrom(new OpponentAll())))
                             )))), CardRarity.RARE);
 
-    static final List<PokemonCard> CARDS = List.of(DRATINI, DRAGONAIR, DRAGONITE);
+    /** A1-244 · Dragonite (alternate art of A1-185) */
+    public static final PokemonCard DRAGONITE_IR = DRAGONITE.withId("A1-244", CardRarity.ILLUSTRATION_RARE);
+
+    static final List<PokemonCard> CARDS = List.of(DRATINI, DRAGONAIR, DRAGONITE, DRAGONITE_IR);
 }

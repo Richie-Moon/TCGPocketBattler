@@ -36,7 +36,6 @@ import com.tcgpocket.trigger.TriggerDispatcher;
 import com.tcgpocket.trigger.TurnEnd;
 import com.tcgpocket.trigger.TurnStart;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -1299,18 +1298,7 @@ class GeneticApexTest {
     @Test
     @DisplayName("all fire cards are correctly added to list")
     void fireCardsInList() {
-        Set<String> cards = Fire.CARDS.stream()
-                .map(PokemonCard::name)
-                .map(String::toUpperCase)
-                .map(s -> s.replace(" ", "_"))
-                .collect(Collectors.toSet());
-
-        Set<String> fields = Stream.of(Fire.class.getDeclaredFields())
-                .map(Field::getName)
-                .filter(name -> !name.equals("CARDS"))
-                .collect(Collectors.toSet());
-
-        assertEquals(cards, fields);
+        assertEveryCardListed(Fire.class, Fire.CARDS);
     }
 
     @Test
@@ -1324,15 +1312,25 @@ class GeneticApexTest {
     @Test
     @DisplayName("all grass cards are correctly added to list")
     void grassCardsInList() {
-        Set<String> cards = Grass.CARDS.stream()
-                .map(PokemonCard::name)
-                .map(String::toUpperCase)
-                .map(s -> s.replace(" ", "_"))
+        assertEveryCardListed(Grass.class, Grass.CARDS);
+    }
+
+    /** Every PokemonCard constant in {@code pool} appears in {@code list}. */
+    private static void assertEveryCardListed(Class<?> pool, List<PokemonCard> list) {
+        // By id, not name: an alternate art shares its original's name.
+        Set<String> cards = list.stream()
+                .map(PokemonCard::id)
                 .collect(Collectors.toSet());
 
-        Set<String> fields = Stream.of(Grass.class.getDeclaredFields())
-                .map(Field::getName)
-                .filter(name -> !name.equals("CARDS"))
+        Set<String> fields = Stream.of(pool.getDeclaredFields())
+                .filter(field -> field.getType() == PokemonCard.class)
+                .map(field -> {
+                    try {
+                        return ((PokemonCard) field.get(null)).id();
+                    } catch (IllegalAccessException e) {
+                        throw new AssertionError(e);
+                    }
+                })
                 .collect(Collectors.toSet());
 
         assertEquals(cards, fields);

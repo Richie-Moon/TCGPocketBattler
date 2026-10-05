@@ -193,9 +193,18 @@ public final class Darkness {
                     ))), true, new Not<>(new For(new IsPoisoned(), new OpponentActive()))
             ));
     
+    /** A1-240 · Nidoqueen (alternate art of A1-168) */
+    public static final PokemonCard NIDOQUEEN_IR = NIDOQUEEN.withId("A1-240", CardRarity.ILLUSTRATION_RARE);
+    /** A1-241 · Nidoking (alternate art of A1-171) */
+    public static final PokemonCard NIDOKING_IR = NIDOKING.withId("A1-241", CardRarity.ILLUSTRATION_RARE);
+    /** A1-242 · Golbat (alternate art of A1-173) */
+    public static final PokemonCard GOLBAT_IR = GOLBAT.withId("A1-242", CardRarity.ILLUSTRATION_RARE);
+    /** A1-243 · Weezing (alternate art of A1-177) */
+    public static final PokemonCard WEEZING_IR = WEEZING.withId("A1-243", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             EKANS, ARBOK, NIDORAN_F, NIDORINA, NIDOQUEEN, NIDORAN_M, NIDORINO, NIDOKING,
-            ZUBAT, GOLBAT, GRIMER, MUK, KOFFING, WEEZING);
+            ZUBAT, GOLBAT, GRIMER, MUK, KOFFING, WEEZING, NIDOQUEEN_IR, NIDOKING_IR, GOLBAT_IR, WEEZING_IR);
 
     private Darkness() {
     }

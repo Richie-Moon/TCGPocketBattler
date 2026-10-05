@@ -368,12 +368,31 @@ public final class Colorless {
                                     new DealDamage(new Literal(80), new OpponentActive())
                             )))), CardRarity.COMMON)
             .withWeakness(Type.FIGHTING);
+    /** A1-245 · Pidgeot (alternate art of A1-187) */
+    public static final PokemonCard PIDGEOT_IR = PIDGEOT.withId("A1-245", CardRarity.ILLUSTRATION_RARE);
+    /** A1-246 · Meowth (alternate art of A1-196) */
+    public static final PokemonCard MEOWTH_IR = MEOWTH.withId("A1-246", CardRarity.ILLUSTRATION_RARE);
+    /** A1-247 · Ditto (alternate art of A1-205) */
+    public static final PokemonCard DITTO_IR = DITTO.withId("A1-247", CardRarity.ILLUSTRATION_RARE);
+    /** A1-248 · Eevee (alternate art of A1-206) */
+    public static final PokemonCard EEVEE_IR = EEVEE_206.withId("A1-248", CardRarity.ILLUSTRATION_RARE);
+    /** A1-249 · Porygon (alternate art of A1-209) */
+    public static final PokemonCard PORYGON_IR = PORYGON.withId("A1-249", CardRarity.ILLUSTRATION_RARE);
+    /** A1-250 · Snorlax (alternate art of A1-211) */
+    public static final PokemonCard SNORLAX_IR = SNORLAX.withId("A1-250", CardRarity.ILLUSTRATION_RARE);
+
+    /** A1-265 · Wigglytuff ex (alternate art of A1-195) */
+    public static final PokemonCard WIGGLYTUFF_EX_UR = WIGGLYTUFF_EX.withId("A1-265", CardRarity.ULTRA_RARE);
+
+    /** A1-279 · Wigglytuff ex (alternate art of A1-195) */
+    public static final PokemonCard WIGGLYTUFF_EX_SIR = WIGGLYTUFF_EX.withId("A1-279", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             PIDGEY, PIDGEOTTO, PIDGEOT, RATTATA, RATICATE, SPEAROW, FEAROW,
             JIGGLYPUFF, WIGGLYTUFF, WIGGLYTUFF_EX, MEOWTH, PERSIAN, FARFETCHD,
             DODUO, DODRIO, LICKITUNG, CHANSEY, KANGASKHAN, TAUROS, DITTO,
             EEVEE_206, EEVEE_207, EEVEE_208, PORYGON, AERODACTYL, SNORLAX,
-            MINCCINO, CINCCINO, WOOLOO, DUBWOOL);
+            MINCCINO, CINCCINO, WOOLOO, DUBWOOL, PIDGEOT_IR, MEOWTH_IR, DITTO_IR, EEVEE_IR, PORYGON_IR, SNORLAX_IR, WIGGLYTUFF_EX_UR, WIGGLYTUFF_EX_SIR);
 
     private Colorless() {
     }
