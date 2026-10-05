@@ -109,7 +109,11 @@ export function DeckEditor({
   useEffect(() => {
     fetch('/api/cards')
       .then((response) => (response.ok ? response.json() : []))
-      .then(setCatalogue, () => {})
+      .then(
+        (cards: typeof catalogue) =>
+          setCatalogue(cards.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))),
+        () => {},
+      )
   }, [])
   useEffect(() => {
     if (id === 'new') return
