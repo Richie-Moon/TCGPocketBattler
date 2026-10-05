@@ -123,8 +123,16 @@ public final class Fighting {
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.GRASS);
 
+    /** A1a-074 · Marshadow (alternate art of A1a-047) */
+    public static final PokemonCard MARSHADOW_IR = MARSHADOW.withId("A1a-074", CardRarity.ILLUSTRATION_RARE);
+    /** A1a-078 · Aerodactyl ex (alternate art of A1a-046) */
+    public static final PokemonCard AERODACTYL_EX_UR = AERODACTYL_EX.withId("A1a-078", CardRarity.ULTRA_RARE);
+    /** A1a-084 · Aerodactyl ex (alternate art of A1a-046) */
+    public static final PokemonCard AERODACTYL_EX_SIR = AERODACTYL_EX.withId("A1a-084", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            MANKEY, PRIMEAPE, GEODUDE, GRAVELER, GOLEM, AERODACTYL_EX, MARSHADOW, STONJOURNER);
+            MANKEY, PRIMEAPE, GEODUDE, GRAVELER, GOLEM, AERODACTYL_EX, MARSHADOW, STONJOURNER,
+            MARSHADOW_IR, AERODACTYL_EX_UR, AERODACTYL_EX_SIR);
 
     private Fighting() {
     }

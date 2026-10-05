@@ -146,8 +146,16 @@ public final class Psychic {
             )), CardRarity.COMMON
     ).withWeakness(Type.METAL);
 
+    /** A1a-077 · Mew ex (alternate art of A1a-032) */
+    public static final PokemonCard MEW_EX_UR = MEW_EX.withId("A1a-077", CardRarity.ULTRA_RARE);
+    /** A1a-083 · Mew ex (alternate art of A1a-032) */
+    public static final PokemonCard MEW_EX_SIR = MEW_EX.withId("A1a-083", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+    /** A1a-086 · Mew ex (alternate art of A1a-032) */
+    public static final PokemonCard MEW_EX_HR = MEW_EX.withId("A1a-086", CardRarity.HYPER_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            MEW, MEW_EX, SIGILYPH, ELGYEM, BEHEEYEM, FLABEBE, FLOETTE, FLORGES, SWIRLIX, SLURPUFF);
+            MEW, MEW_EX, SIGILYPH, ELGYEM, BEHEEYEM, FLABEBE, FLOETTE, FLORGES, SWIRLIX, SLURPUFF,
+            MEW_EX_UR, MEW_EX_SIR, MEW_EX_HR);
 
     private Psychic() {
     }

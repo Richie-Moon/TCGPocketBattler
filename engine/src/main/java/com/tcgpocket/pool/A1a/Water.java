@@ -139,8 +139,14 @@ public final class Water {
             )), CardRarity.COMMON
     ).withWeakness(Type.LIGHTNING);
 
+    /** A1a-072 · Vaporeon (alternate art of A1a-019) */
+    public static final PokemonCard VAPOREON_IR = VAPOREON.withId("A1a-072", CardRarity.ILLUSTRATION_RARE);
+    /** A1a-076 · Gyarados ex (alternate art of A1a-018) */
+    public static final PokemonCard GYARADOS_EX_UR = GYARADOS_EX.withId("A1a-076", CardRarity.ULTRA_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            MAGIKARP, GYARADOS_EX, VAPOREON, FINNEON, LUMINEON, CHEWTLE, DREDNAW, CRAMORANT);
+            MAGIKARP, GYARADOS_EX, VAPOREON, FINNEON, LUMINEON, CHEWTLE, DREDNAW, CRAMORANT,
+            VAPOREON_IR, GYARADOS_EX_UR);
 
     private Water() {
     }

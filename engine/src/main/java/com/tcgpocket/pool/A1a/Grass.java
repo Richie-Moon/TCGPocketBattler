@@ -143,8 +143,18 @@ public final class Grass {
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.FIRE);
 
+    /** A1a-069 · Exeggutor (alternate art of A1a-002) */
+    public static final PokemonCard EXEGGUTOR_IR = EXEGGUTOR.withId("A1a-069", CardRarity.ILLUSTRATION_RARE);
+    /** A1a-070 · Serperior (alternate art of A1a-006) */
+    public static final PokemonCard SERPERIOR_IR = SERPERIOR.withId("A1a-070", CardRarity.ILLUSTRATION_RARE);
+    /** A1a-075 · Celebi ex (alternate art of A1a-003) */
+    public static final PokemonCard CELEBI_EX_UR = CELEBI_EX.withId("A1a-075", CardRarity.ULTRA_RARE);
+    /** A1a-085 · Celebi ex (alternate art of A1a-003) */
+    public static final PokemonCard CELEBI_EX_IM = CELEBI_EX.withId("A1a-085", CardRarity.IMMERSIVE);
+
     static final List<PokemonCard> CARDS = List.of(
-            EXEGGCUTE, EXEGGUTOR, CELEBI_EX, SNIVY, SERVINE, SERPERIOR, MORELULL, SHIINOTIC, DHELMISE);
+            EXEGGCUTE, EXEGGUTOR, CELEBI_EX, SNIVY, SERVINE, SERPERIOR, MORELULL, SHIINOTIC, DHELMISE,
+            EXEGGUTOR_IR, SERPERIOR_IR, CELEBI_EX_UR, CELEBI_EX_IM);
 
     private Grass() {
     }

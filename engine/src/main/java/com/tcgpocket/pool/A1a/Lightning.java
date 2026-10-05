@@ -100,8 +100,12 @@ public final class Lightning {
             )), CardRarity.COMMON
     ).withWeakness(Type.FIGHTING);
 
+    /** A1a-073 · Dedenne (alternate art of A1a-030) */
+    public static final PokemonCard DEDENNE_IR = DEDENNE.withId("A1a-073", CardRarity.ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            PIKACHU, RAICHU, ELECTABUZZ, JOLTIK, GALVANTULA, DEDENNE);
+            PIKACHU, RAICHU, ELECTABUZZ, JOLTIK, GALVANTULA, DEDENNE,
+            DEDENNE_IR);
 
     private Lightning() {
     }
