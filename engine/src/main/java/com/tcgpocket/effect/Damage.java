@@ -5,6 +5,7 @@ import com.tcgpocket.damage.DamageEvent;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.trigger.DamageDealt;
+import com.tcgpocket.trigger.DamageIncoming;
 import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.Optional;
@@ -26,6 +27,10 @@ final class Damage {
      * <p>The weakness bonus is evaluated here rather than inside the
      * calculator, because it is printed as an {@code INumber} and only this
      * side of the boundary holds a context to evaluate it in.
+     *
+     * <p>Attack damage that would land announces {@link DamageIncoming} first,
+     * and {@link #apply} works the amount out again afterwards, so whatever a
+     * trigger installed there counts.
      */
     static void deal(ResolutionContext context, PokemonInPlay target, int base, boolean isAttackDamage) {
         Optional<PokemonInPlay> source = context.source();
@@ -34,7 +39,12 @@ final class Damage {
                 .map(printed -> printed.evaluate(context))
                 .orElse(DamageCalculator.DEFAULT_WEAKNESS_BONUS);
 
-        int removed = apply(context, new DamageEvent(source, target, base, isAttackDamage, weaknessBonus));
+        DamageEvent event = new DamageEvent(source, target, base, isAttackDamage, weaknessBonus);
+        if (isAttackDamage && DamageCalculator.calculate(event, context.battle().turn()) > 0) {
+            TriggerDispatcher.dispatch(context.battle(), new DamageIncoming(source, target));
+        }
+
+        int removed = apply(context, event);
         context.scope().recordDamageDealt(removed);
     }
 

@@ -19,11 +19,14 @@ import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DrawCard;
+import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.effect.HealDamage;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.effect.PreventAttack;
 import com.tcgpocket.effect.PreventRetreat;
 import com.tcgpocket.effect.ReduceRetreatCost;
+import com.tcgpocket.effect.ReturnToHand;
+import com.tcgpocket.effect.SwitchActive;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.Literal;
@@ -353,6 +356,19 @@ class IActionTest {
             assertTrue(retreat.execute(context).succeeded());
 
             assertFalse(new RetreatAction(new AttackerBenchSpecific(0)).isLegal(context));
+        }
+
+        @Test
+        @DisplayName("leaving the Active Spot by a card effect (Koga, Budding Expeditioner, a switch) is not a retreat")
+        void cardEffectsDoNotUseTheRetreat() {
+            assertEquals(EffectOutcome.APPLIED, new SwitchActive(new AttackerSide()).apply(context));
+            assertSame(benched, board.you.active().orElseThrow());
+
+            benched.attachEnergy(Type.LIGHTNING, 1);
+            assertTrue(retreat.isLegal(context), "the retreat is still available after a switch");
+
+            assertEquals(EffectOutcome.APPLIED, new ReturnToHand(new AttackerActive()).apply(context));
+            assertFalse(board.you.retreatedThisTurn(), "nor is returning the Active to hand");
         }
     }
 

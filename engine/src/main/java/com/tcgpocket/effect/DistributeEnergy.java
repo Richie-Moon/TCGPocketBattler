@@ -29,17 +29,27 @@ import java.util.Objects;
  * never appears twice and a player cannot pick between two spellings of the
  * same placement.
  *
+ * <p>{@code distinct} is "choose 2 of your Benched Pokemon; for each, attach
+ * an Energy" (Oceanic Gift): at most one Energy per Pokemon, so the options are
+ * the subsets rather than the multisets. A group smaller than the amount gets
+ * one each, which is what choosing "2 of" a bench of one comes to.
+ *
  * <p>Fails on an empty group, since there is nowhere to put them; an amount of
  * zero is a {@link EffectOutcome#NO_OP} and asks nothing.
  */
 public record DistributeEnergy(
-        Type energyType, INumber amount, IMultiTarget among, String prompt) implements IEffect {
+        Type energyType, INumber amount, IMultiTarget among, String prompt, boolean distinct) implements IEffect {
 
     public DistributeEnergy {
         Objects.requireNonNull(energyType, "energyType");
         Objects.requireNonNull(amount, "amount");
         Objects.requireNonNull(among, "among");
         Objects.requireNonNull(prompt, "prompt");
+    }
+
+    /** "In any way you like": several Energy may land on one Pokemon. */
+    public DistributeEnergy(Type energyType, INumber amount, IMultiTarget among, String prompt) {
+        this(energyType, amount, among, prompt, false);
     }
 
     @Override
@@ -50,11 +60,14 @@ public record DistributeEnergy(
         }
 
         int count = amount.evaluate(context);
+        if (distinct) {
+            count = Math.min(count, candidates.size());
+        }
         if (count <= 0) {
             return EffectOutcome.NO_OP;
         }
 
-        List<List<PokemonInPlay>> placements = placements(candidates, count);
+        List<List<PokemonInPlay>> placements = placements(candidates, count, distinct);
         List<PokemonInPlay> chosen = placements.size() == 1
                 ? placements.get(0)
                 : ask(context, placements);
@@ -70,7 +83,8 @@ public record DistributeEnergy(
 
     /**
      * Every way to place {@code count} Energy on {@code candidates}, as
-     * non-decreasing index sequences so that each multiset appears once.
+     * non-decreasing index sequences so that each multiset appears once —
+     * strictly increasing when {@code distinct}, so each subset appears once.
      *
      * <p>ponytail: enumerates them all rather than modelling a placement
      * lazily. There are C(n+count-1, count) of them — ten, for three Energy
@@ -78,7 +92,8 @@ public record DistributeEnergy(
      * {@code Decision<T>}, so {@code RandomPlayer} and {@code ScriptedPlayer}
      * need no special case. Revisit only if some format lifts the bench cap.
      */
-    private static List<List<PokemonInPlay>> placements(List<PokemonInPlay> candidates, int count) {
+    private static List<List<PokemonInPlay>> placements(
+            List<PokemonInPlay> candidates, int count, boolean distinct) {
         if (count == 0) {
             return List.of(List.of());
         }
@@ -86,7 +101,8 @@ public record DistributeEnergy(
         List<List<PokemonInPlay>> placements = new ArrayList<>();
         for (int i = 0; i < candidates.size(); i++) {
             PokemonInPlay first = candidates.get(i);
-            for (List<PokemonInPlay> rest : placements(candidates.subList(i, candidates.size()), count - 1)) {
+            for (List<PokemonInPlay> rest : placements(
+                    candidates.subList(distinct ? i + 1 : i, candidates.size()), count - 1, distinct)) {
                 List<PokemonInPlay> placement = new ArrayList<>(rest.size() + 1);
                 placement.add(first);
                 placement.addAll(rest);

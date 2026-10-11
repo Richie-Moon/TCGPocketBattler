@@ -13,7 +13,7 @@ import java.util.Optional;
  * hand".
  *
  * <p>The same departure as {@link ShuffleIntoDeck} and {@link DiscardFromPlay}:
- * Energy goes, an Active is replaced from the Bench, and with nothing to
+ * Energy is discarded, an Active is replaced from the Bench, and with nothing to
  * replace it this {@link EffectOutcome#FAILED fails}.
  */
 public record ReturnToHand(ITarget target) implements IEffect {

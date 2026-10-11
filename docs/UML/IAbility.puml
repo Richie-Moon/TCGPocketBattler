@@ -48,6 +48,16 @@ class EvolutionLock <<record>> implements IRule {
 }
 note bottom of EvolutionLock : read by EvolveAction.isLegal
 
+class NoRetreatCost <<record>> implements IRule {
+    - whileHolder: ICondition<PokemonInPlay>
+}
+note bottom of NoRetreatCost : read by RetreatAction; only the holder's own cost
+
+class HpBonus <<record>> implements IRule {
+    - amount: int
+}
+note bottom of HpBonus : carried by a ToolCard, read by PokemonInPlay.maxHp
+
 class SupporterLock <<record>> implements IRule {
     - whileHolder: ICondition<PokemonInPlay>
 }

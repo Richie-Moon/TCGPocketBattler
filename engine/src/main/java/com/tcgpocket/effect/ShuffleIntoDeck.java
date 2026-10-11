@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * Shuffles a Pokemon in play, with every card under it and its Tool, into its
  * owner's deck — "your opponent shuffles their Active Pokemon into their deck".
  *
- * <p>Energy is not a card in Pocket, so it simply goes. An Active that leaves
+ * <p>Energy is not a card in Pocket, so it goes to the discard pile as a count. An Active that leaves
  * is replaced from the Bench by its owner, as after {@link SwitchActive}; with
  * nothing on the Bench to replace it this {@link EffectOutcome#FAILED fails}
  * rather than leave a side without an Active.
@@ -71,6 +71,7 @@ public record ShuffleIntoDeck(ITarget target) implements IEffect {
 
         pokemon.cards().forEach(destination);
         pokemon.removeTool().ifPresent(destination);
+        pokemon.discardAllEnergy();
         return true;
     }
 }

@@ -120,6 +120,44 @@ class HealDamage <<record>> implements IEffect {
     - target: ITarget
 }
 
+/' The top cards of a deck to its discard pile; a short deck discards what
+   it has. '/
+class DiscardTopOfDeck <<record>> implements IEffect {
+    - cardCount: INumber
+    - side: ISideTarget
+}
+
+class DiscardTool <<record>> implements IEffect {
+    - target: ITarget
+}
+
+class AttachFromDiscard <<record>> implements IEffect {
+    - energyType: Type
+    - amount: INumber
+    - target: ITarget
+}
+
+class SwapFromDeck <<record>> implements IEffect {
+    - side: ISideTarget
+    - matching: ICondition<CardInstance>
+}
+
+class ChangeNextEnergy <<record>> implements IEffect {
+    - side: ISideTarget
+    - types: List<Type>
+}
+
+class ShuffleFromHand <<record>> implements IEffect {
+    - side: ISideTarget
+}
+
+/' All of one Pokemon's damage onto another. Neither healing nor damage
+   dealt, so no Healed or DamageDealt event. '/
+class MoveDamage <<record>> implements IEffect {
+    - from: ITarget
+    - to: ITarget
+}
+
 /' --- Energy --- '/
 
 class AttachEnergy <<record>> implements IEffect {
@@ -137,12 +175,14 @@ class AttachFromEnergyZone <<record>> implements IEffect {
 /' "Attach them to your Benched Fire Pokemon in any way you like." One
    Decision over every placement of the Energy rather than one question per
    Energy, so a player — or an interface with a confirm button — commits to a
-   whole placement at once. '/
+   whole placement at once. distinct: at most one each ("choose 2 of your
+   Benched Pokemon"), so the options are subsets. '/
 class DistributeEnergy <<record>> implements IEffect {
     - energyType: Type
     - amount: INumber
     - among: IMultiTarget
     - prompt: String
+    - distinct: boolean
 }
 
 class DiscardRandomEnergy <<record>> implements IEffect {

@@ -20,7 +20,7 @@ import com.tcgpocket.resolve.ResolutionContext;
  *       would let an attempt abort with the payment already made.
  * </ul>
  */
-public sealed interface IEffect permits AddStatus, AttachEnergy, BenchFromDeck, BenchFromDiscard, TopCardToHand,AttachFromEnergyZone, AttachTool, ConditionalEffect, CopyAttack, DamageEach, DiscardFromPlay, DealDamage, DiscardAllEnergy, DiscardFromHand, DiscardRandomEnergy, DiscardRandomEnergyAmong, DiscardRandomFromHand, DiscardTypeEnergy, DistributeEnergy, DrawCard, Fail, HealDamage, HealEach, IDurationEffect, IFlipStrategy, LookAtTopCards, MoveEnergy, MoveTypeEnergy, MultiHit, NoEffect, PlaceDamage, RemoveStatus, RepeatEffect, ReturnToHand, RevealHand, SearchDeck, ShuffleDeck, ShuffleHandIntoDeck, ShuffleIntoDeck, SpreadDamage, SwitchActive {
+public sealed interface IEffect permits AddStatus, AttachEnergy, AttachFromDiscard, BenchFromDeck, BenchFromDiscard, TopCardToHand,AttachFromEnergyZone, AttachTool, ChangeNextEnergy, ConditionalEffect, CopyAttack, DamageEach, DiscardFromPlay, DealDamage, DiscardAllEnergy, DiscardFromHand, DiscardRandomEnergy, DiscardRandomEnergyAmong, DiscardRandomFromHand, DiscardTool, DiscardTopOfDeck, DiscardTypeEnergy, DistributeEnergy, DrawCard, Fail, HealDamage, HealEach, IDurationEffect, IFlipStrategy, LookAtTopCards, MoveDamage, MoveEnergy, MoveTypeEnergy, MultiHit, NoEffect, PlaceDamage, RemoveStatus, RepeatEffect, ReturnToHand, RevealHand, SearchDeck, ShuffleDeck, ShuffleFromHand, ShuffleHandIntoDeck, ShuffleIntoDeck, SpreadDamage, SwapFromDeck, SwitchActive {
 
     EffectOutcome apply(ResolutionContext context);
 }

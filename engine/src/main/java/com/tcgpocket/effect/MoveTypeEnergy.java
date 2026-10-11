@@ -36,10 +36,10 @@ public record MoveTypeEnergy(Type energyType, IMultiTarget from, ITarget to) imp
         int moved = 0;
         for (PokemonInPlay source : from.resolve(context)) {
             if (source != destination.get()) {
-                moved += source.discardEnergy(energyType, source.energyOf(energyType));
+                moved += source.detachEnergy(energyType, source.energyOf(energyType));
             }
         }
-        Energies.attach(context, destination.get(), energyType, moved);
+        Energies.attachMoved(context, destination.get(), energyType, moved);
         return moved > 0 ? EffectOutcome.APPLIED : EffectOutcome.NO_OP;
     }
 }

@@ -9,7 +9,9 @@ import com.tcgpocket.resolve.RandomSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -37,6 +39,8 @@ public final class Side {
     private final List<CardInstance> discardPile = new ArrayList<>();
     private List<CardInstance> revealed = List.of();
     private List<CardInstance> seenTop = List.of();
+    /** Energy is not a card, so its discard pile is a count per type. */
+    private final Map<Type, Integer> discardedEnergy = new EnumMap<>(Type.class);
 
     /** Types this deck registered; the Energy Zone draws from these. */
     private final Set<Type> registeredTypes = EnumSet.noneOf(Type.class);
@@ -310,6 +314,31 @@ public final class Side {
     /** Previewed to both players, so an opponent can plan against it. */
     public Optional<Type> nextEnergy() {
         return Optional.ofNullable(nextEnergy);
+    }
+
+    public Map<Type, Integer> discardedEnergy() {
+        return Collections.unmodifiableMap(discardedEnergy);
+    }
+
+    public void addDiscardedEnergy(Type type, int count) {
+        if (count > 0) {
+            discardedEnergy.merge(type, count, Integer::sum);
+        }
+    }
+
+    /** Takes up to {@code count} of a type back out of the discard pile; returns how many. */
+    public int takeDiscardedEnergy(Type type, int count) {
+        int taken = Math.min(Math.max(0, count), discardedEnergy.getOrDefault(type, 0));
+        if (taken > 0) {
+            discardedEnergy.merge(type, -taken, Integer::sum);
+            discardedEnergy.remove(type, 0);
+        }
+        return taken;
+    }
+
+    /** Replaces the previewed energy; the zone still generates normally after it. */
+    public void setNextEnergy(Type type) {
+        nextEnergy = type;
     }
 
     /** Takes the current energy out of the zone, or empty if there is none. */

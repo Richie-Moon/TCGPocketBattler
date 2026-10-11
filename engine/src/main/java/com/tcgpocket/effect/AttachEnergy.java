@@ -11,11 +11,14 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Attaches energy of a given type from outside the Energy Zone — the "attach a
- * Water Energy from your discard pile" family.
+ * Attaches energy of a given type that card text conjures — "take a Fire
+ * Energy from your Energy Zone and attach it", where the zone supplies any
+ * type on demand.
  *
- * <p>Does not touch the zone or the once-per-turn attachment limit; see
- * {@link AttachFromEnergyZone} for the ordinary turn action.
+ * <p>Does not spend the zone's current Energy or the once-per-turn attachment
+ * limit; see {@link AttachFromEnergyZone} for the ordinary turn action. Counts
+ * as from the Energy Zone for {@code EnergyAttached}; a future "from your
+ * discard pile" card would need its own flag there.
  */
 public record AttachEnergy(Type energyType, INumber energyCount, ITarget target) implements IEffect {
 

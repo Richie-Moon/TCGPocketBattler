@@ -14,5 +14,5 @@ package com.tcgpocket.card;
  *
  * <p>Each rule is read by exactly one place in the engine, named on the rule.
  */
-public sealed interface IRule permits EnergyBoost, EvolutionLock, SupporterLock {
+public sealed interface IRule permits EnergyBoost, EvolutionLock, HpBonus, NoRetreatCost, SupporterLock {
 }

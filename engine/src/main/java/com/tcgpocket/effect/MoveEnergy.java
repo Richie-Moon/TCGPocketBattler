@@ -2,10 +2,12 @@ package com.tcgpocket.effect;
 
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.INumber;
+import com.tcgpocket.player.Decision;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -18,7 +20,7 @@ import java.util.Optional;
  * that case moves nothing.
  *
  * @param ofType moves only that type — Vaporeon's "move a Water Energy"; empty
- *               moves random Energy of any type
+ *               lets the source's owner choose the type, as in Dawn's "move an Energy"
  */
 public record MoveEnergy(ITarget from, ITarget to, INumber energyCount, Optional<Type> ofType) implements IEffect {
 
@@ -57,13 +59,32 @@ public record MoveEnergy(ITarget from, ITarget to, INumber energyCount, Optional
         List<Type> moved = ofType
                 .map(type -> source.get().energyOf(type) < count
                         ? List.<Type>of()
-                        : Collections.nCopies(source.get().discardEnergy(type, count), type))
-                .orElseGet(() -> Energies.takeRandom(source.get(), count, context.battle().rng()));
+                        : Collections.nCopies(source.get().detachEnergy(type, count), type))
+                .orElseGet(() -> takeChosen(source.get(), count, context));
         if (moved.isEmpty()) {
             return EffectOutcome.FAILED;
         }
 
-        moved.forEach(type -> Energies.attach(context, destination.get(), type, 1));
+        moved.forEach(type -> Energies.attachMoved(context, destination.get(), type, 1));
         return EffectOutcome.APPLIED;
+    }
+
+    /**
+     * The source's owner picks the type of each unit, asked only when more
+     * than one type is attached. All-or-nothing, like {@link Energies#takeRandom}.
+     */
+    private static List<Type> takeChosen(PokemonInPlay source, int count, ResolutionContext context) {
+        if (source.totalEnergy() < count) {
+            return List.of();
+        }
+        List<Type> taken = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            List<Type> types = List.copyOf(source.attachedEnergy().keySet());
+            Type type = types.size() == 1 ? types.getFirst() : source.owner().player().choose(
+                    new Decision<>("Choose an Energy to move.", types, source.owner(), context));
+            source.detachEnergy(type, 1);
+            taken.add(type);
+        }
+        return taken;
     }
 }

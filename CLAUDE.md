@@ -122,5 +122,4 @@ Details are in `server/CLAUDE.md`. These rules hold everywhere:
 
 ## Not built yet
 
-`CoinFlipped`, and choosing which cards `DiscardFromHand` takes, are designed or marked TODO but
-not built. Check the code before assuming a documented piece exists.
+`CoinFlipped` is designed but not built. Check the code before assuming a documented piece exists.

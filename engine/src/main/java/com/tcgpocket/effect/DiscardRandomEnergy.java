@@ -1,10 +1,12 @@
 package com.tcgpocket.effect;
 
+import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.INumber;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -37,7 +39,8 @@ public record DiscardRandomEnergy(INumber energyCount, ITarget target) implement
             return EffectOutcome.NO_OP;
         }
 
-        boolean paid = !Energies.takeRandom(resolved.get(), count, context.battle().rng()).isEmpty();
-        return paid ? EffectOutcome.APPLIED : EffectOutcome.FAILED;
+        List<Type> taken = Energies.takeRandom(resolved.get(), count, context.battle().rng());
+        taken.forEach(type -> resolved.get().owner().addDiscardedEnergy(type, 1));
+        return !taken.isEmpty() ? EffectOutcome.APPLIED : EffectOutcome.FAILED;
     }
 }

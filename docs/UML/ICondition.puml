@@ -85,6 +85,10 @@ class ForAny <<record>> implements IConditionCtx {
 }
 
 class LastCoinTossHeads <<record>> implements IConditionCtx {}
+/' The event is that type of Energy attached from the Energy Zone, not moved. '/
+class EnergyFromZone <<record>> implements IConditionCtx {
+    - type: Type
+}
 class AllFlipsHeads <<record>> implements IConditionCtx {}
 
 class StadiumInPlay <<record>> implements IConditionCtx {
@@ -138,6 +142,9 @@ class IsType <<record>> implements IConditionCard {
     - type: Type
 }
 class IsBasic <<record>> implements IConditionCard {
+}
+
+class IsPokemon <<record>> implements IConditionCard {
 }
 
 note bottom of IConditionCard

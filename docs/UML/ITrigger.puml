@@ -68,6 +68,12 @@ class AttackDeclared <<record>> implements GameEvent {
     - attacker: PokemonInPlay
     - action: Action
 }
+/' Attack damage that would land (more than 0), before it lands; the pipeline
+   works the amount out again after, so a modifier set here counts. '/
+class DamageIncoming <<record>> implements GameEvent {
+    - source: Optional<PokemonInPlay>
+    - target: PokemonInPlay
+}
 class DamageDealt <<record>> implements GameEvent {
     - source: Optional<PokemonInPlay>
     - target: PokemonInPlay
@@ -118,6 +124,7 @@ class Retreated <<record>> implements GameEvent {
 class EnergyAttached <<record>> implements GameEvent {
     - target: PokemonInPlay
     - type: Type
+    - fromEnergyZone: boolean
 }
 
 /'

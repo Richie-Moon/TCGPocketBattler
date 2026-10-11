@@ -13,7 +13,7 @@ import java.util.List;
  * is hit.
  */
 public sealed interface IMultiTarget
-        permits AttackerBench, OpponentBench, AttackerAll, OpponentAll, AllInPlay, Matching {
+        permits AttackerBench, OpponentBench, AttackerAll, OpponentAll, AllInPlay, Matching, Except {
 
     List<PokemonInPlay> resolve(ResolutionContext context);
 }

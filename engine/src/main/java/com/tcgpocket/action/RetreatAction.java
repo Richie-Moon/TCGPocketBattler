@@ -1,6 +1,7 @@
 package com.tcgpocket.action;
 
 import com.tcgpocket.card.CardTag;
+import com.tcgpocket.card.NoRetreatCost;
 import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
@@ -88,9 +89,16 @@ public record RetreatAction(ITarget replacement) implements IAction {
      *
      * <p>Less any live {@link ModifierKind#REDUCE_RETREAT_COST}, taken off the
      * colorless part and never below zero. Every printed retreat cost is
-     * colorless, so that is all of it.
+     * colorless, so that is all of it. Nothing at all while the Pokemon holds
+     * a {@link NoRetreatCost} whose condition it meets.
      */
     private static EnergyCost retreatCostOf(ResolutionContext context, PokemonInPlay retreating) {
+        boolean free = retreating.owner().standingRules().stream()
+                .anyMatch(held -> held.holder() == retreating
+                        && held.rule() instanceof NoRetreatCost rule && rule.whileHolder().evaluate(retreating));
+        if (free) {
+            return EnergyCost.free();
+        }
         int turn = context.battle().turn();
         int reduction = retreating.modifiers().stream()
                 .filter(modifier -> modifier.kind() == ModifierKind.REDUCE_RETREAT_COST)
