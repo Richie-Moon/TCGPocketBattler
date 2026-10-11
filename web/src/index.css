@@ -1184,6 +1184,36 @@ p {
   background: var(--color-surface-2);
 }
 
+/* The home page's deck dropdown: the same menu, dropped below the deck button at its width. */
+.home .deck-options {
+  position-area: bottom span-right;
+  width: anchor-size(width);
+}
+
+.home .deck-menu .deck-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+.home .deck-menu .deck-option.selected {
+  background: var(--color-surface-2);
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* The Decks page's tick, in the row instead of over a cover. */
+.home .deck-option .check {
+  display: flex;
+  position: static;
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-width: 3px;
+}
+
 .home .deck-menu .danger {
   color: var(--color-danger);
 }

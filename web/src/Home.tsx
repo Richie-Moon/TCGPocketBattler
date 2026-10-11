@@ -4,6 +4,7 @@ import chevronDown from './assets/home/chevron-down.svg'
 import chevronRight from './assets/home/chevron-right.svg'
 import edit from './assets/decks/edit.svg'
 import plus from './assets/decks/plus.svg'
+import check from './assets/editor/check.svg'
 import decksIcon from './assets/home/decks.svg'
 import friends from './assets/home/friends.svg'
 import homeIcon from './assets/home/home.svg'
@@ -168,10 +169,35 @@ export function Home({
           <div className="panel play">
             <h2>Play</h2>
             <div className="label">Deck</div>
-            <button type="button" className="deck-select" onClick={() => onNavigate('Decks')}>
+            <button type="button" className="deck-select" popoverTarget="deck-options">
               {deck ? <DeckLine deck={deck} /> : <DeckLine name="No deck selected" detail="Choose a deck to queue" />}
               <Icon src={chevronDown} size={20} />
             </button>
+            {/* A native popover like the Decks page's More menu: only legal decks, since only they can be selected. */}
+            <div id="deck-options" popover="auto" className="deck-menu deck-options">
+              {decks
+                .filter((d) => d.problems.length === 0)
+                .map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className={d.selected ? 'deck-option selected' : 'deck-option'}
+                    popoverTarget="deck-options"
+                    popoverTargetAction="hide"
+                    onClick={() => select(d)}
+                  >
+                    <DeckLine deck={d} />
+                    {d.selected && (
+                      <span className="check">
+                        <Icon src={check} size={18} />
+                      </span>
+                    )}
+                  </button>
+                ))}
+              <button type="button" popoverTarget="deck-options" popoverTargetAction="hide" onClick={() => onNavigate('Decks')}>
+                Manage decks
+              </button>
+            </div>
             <div className="label">Format</div>
             <div className="segmented">
               {(['Standard', 'Ranked'] as const).map((option) => (
