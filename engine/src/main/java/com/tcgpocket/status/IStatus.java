@@ -7,9 +7,10 @@ import java.util.List;
 /**
  * A special condition afflicting a Pokemon.
  *
- * <p>Every implementation is a component-less record, so two instances of the
- * same status compare equal. That is what lets a Pokemon hold them in a plain
- * {@code Set} and lets {@code IsPoisoned} ask a simple membership question.
+ * <p>A status is identified by its class: a Pokemon holds at most one of each,
+ * and {@code IsPoisoned} or {@code RemoveStatus} ask about the kind, not the
+ * details. Every implementation is a component-less record except
+ * {@link PoisonStatus}, whose damage varies.
  *
  * <p>A status has no behaviour of its own beyond {@link #triggers()}: poison
  * damage, burn's recovery flip and confusion's missed attack are all ordinary

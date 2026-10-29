@@ -1,5 +1,6 @@
 package com.tcgpocket.action;
 
+import com.tcgpocket.card.AttackCostReduction;
 import com.tcgpocket.condition.HasEnergy;
 import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
@@ -41,8 +42,8 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
     /**
      * Legal when the attacking Pokemon is the active one, has the energy, and
      * is neither held down by a special condition nor under a
-     * {@code CANNOT_ATTACK} modifier. Any {@code INCREASE_ATTACK_COST} adds
-     * Colorless to the printed cost.
+     * {@code CANNOT_ATTACK} modifier, against the printed cost adjusted by
+     * {@link #colorlessAdjustment}.
      */
     @Override
     public boolean isLegal(ResolutionContext context) {
@@ -58,9 +59,24 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
 
         return !heldDown
                 && context.controller().active().filter(pokemon::equals).isPresent()
-                && new HasEnergy(cost.plusColorless(
-                        pokemon.modifierTotal(ModifierKind.INCREASE_ATTACK_COST, context.battle().turn())))
-                .evaluate(pokemon);
+                && new HasEnergy(cost.plusColorless(colorlessAdjustment(context, pokemon))).evaluate(pokemon);
+    }
+
+    /**
+     * Colorless added to the printed cost: any {@code INCREASE_ATTACK_COST},
+     * less the side's {@code ReduceSideAttackCost} (Barry) and the attacker's
+     * own {@link AttackCostReduction} (Vigor Link).
+     */
+    private static int colorlessAdjustment(ResolutionContext context, PokemonInPlay pokemon) {
+        int turn = context.battle().turn();
+        int ruleReduction = pokemon.owner().standingRules().stream()
+                .filter(held -> held.holder() == pokemon
+                        && held.rule() instanceof AttackCostReduction rule && rule.whileHolder().evaluate(pokemon))
+                .mapToInt(held -> ((AttackCostReduction) held.rule()).colorless())
+                .sum();
+        return pokemon.modifierTotal(ModifierKind.INCREASE_ATTACK_COST, turn)
+                - pokemon.owner().attackCostReductionFor(pokemon, turn)
+                - ruleReduction;
     }
 
     /**

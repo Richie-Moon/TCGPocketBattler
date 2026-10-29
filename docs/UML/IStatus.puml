@@ -26,7 +26,11 @@ enum StatusCategory {
     DAMAGE_OVER_TIME
 }
 
-class PoisonStatus <<record>> implements IStatus {}
+/' damage is 10 unless a card says otherwise (Toxic: 20). A status is identified
+   by its class, so a new Poison replaces an old one of different strength. '/
+class PoisonStatus <<record>> implements IStatus {
+    - damage: int
+}
 class BurnStatus <<record>> implements IStatus {}
 
 class SleepStatus <<record>> implements IStatus {}

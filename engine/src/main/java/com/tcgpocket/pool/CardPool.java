@@ -4,6 +4,7 @@ import com.tcgpocket.card.ICard;
 import com.tcgpocket.pool.A1.GeneticApex;
 import com.tcgpocket.pool.A1a.MythicalIsland;
 import com.tcgpocket.pool.A2.SpaceTimeSmackdown;
+import com.tcgpocket.pool.A2a.TriumphantLight;
 import com.tcgpocket.pool.A3.CelestialGuardians;
 
 import java.util.Collections;
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
 public final class CardPool {
 
     private static final Map<String, ICard> BY_ID = index(Stream.of(
-            GeneticApex.CARDS, MythicalIsland.CARDS, SpaceTimeSmackdown.CARDS, CelestialGuardians.CARDS, com.tcgpocket.pool.PA.Trainers.CARDS)
+            GeneticApex.CARDS, MythicalIsland.CARDS, SpaceTimeSmackdown.CARDS, TriumphantLight.CARDS, CelestialGuardians.CARDS, com.tcgpocket.pool.PA.Trainers.CARDS)
             .flatMap(List::stream).toList());
 
     private CardPool() {

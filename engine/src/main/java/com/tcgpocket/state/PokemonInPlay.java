@@ -253,8 +253,13 @@ public final class PokemonInPlay extends CardInstance {
         return Collections.unmodifiableSet(statuses);
     }
 
+    /** Whether the Pokemon has this kind of status, whatever its details; see {@link IStatus}. */
     public boolean hasStatus(IStatus status) {
-        return statuses.contains(status);
+        return statuses.stream().anyMatch(held -> sameKind(held, status));
+    }
+
+    private static boolean sameKind(IStatus a, IStatus b) {
+        return a.getClass() == b.getClass();
     }
 
     /**
@@ -266,11 +271,13 @@ public final class PokemonInPlay extends CardInstance {
         if (status.category() == StatusCategory.SPECIAL) {
             statuses.removeIf(existing -> existing.category() == StatusCategory.SPECIAL);
         }
+        // A new Poison replaces an old one of different strength.
+        statuses.removeIf(existing -> sameKind(existing, status));
         statuses.add(status);
     }
 
     public boolean removeStatus(IStatus status) {
-        return statuses.remove(status);
+        return statuses.removeIf(held -> sameKind(held, status));
     }
 
     /** Statuses come off when a Pokemon leaves the active spot or evolves. */

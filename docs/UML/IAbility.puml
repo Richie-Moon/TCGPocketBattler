@@ -53,6 +53,19 @@ class NoRetreatCost <<record>> implements IRule {
 }
 note bottom of NoRetreatCost : read by RetreatAction; only the holder's own cost
 
+class RetreatCostReduction <<record>> implements IRule {
+    - amount: int
+    - retreating: ICondition<? super PokemonInPlay>
+    - whileHolder: ICondition<PokemonInPlay>
+}
+note bottom of RetreatCostReduction : read by RetreatAction; helps another Pokemon, and holders stack. Sky Support
+
+class AttackCostReduction <<record>> implements IRule {
+    - colorless: int
+    - whileHolder: ICondition<PokemonInPlay>
+}
+note bottom of AttackCostReduction : read by Action.isLegal; only the holder's own attacks. Vigor Link
+
 class HpBonus <<record>> implements IRule {
     - amount: int
     - holder: ICondition<PokemonInPlay>
@@ -65,7 +78,7 @@ class SupporterLock <<record>> implements IRule {
 note bottom of SupporterLock : read by PlayCardAction.isLegal; the condition is on the holder
 
 class StatusImmunity <<record>> implements IRule {
-    - protects: ICondition<PokemonInPlay>
+    - protects: ICondition<? super PokemonInPlay>
 }
 note bottom of StatusImmunity : read by AddStatus (refuses) and Side.recoverProtected (clears, after each action)
 

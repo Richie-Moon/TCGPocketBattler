@@ -122,6 +122,11 @@ class HasTool <<record>> implements IConditionPokemon {}
    first, TurnEngine marks the owner's first turn over. '/
 class MovedToActiveThisTurn <<record>> implements IConditionPokemon {}
 class OwnersFirstTurn <<record>> implements IConditionPokemon {}
+/' "If you have Arceus in play", asked of a holder, so a standing rule can use it
+   whoever's turn it is. '/
+class OwnerHasInPlay <<record>> implements IConditionPokemon {
+    - condition: ICondition<? super PokemonInPlay>
+}
 
 /' Gates an attack on its cost. Without this nothing in the model could stop a
    Pokemon attacking with no energy attached. See Energy.puml. '/

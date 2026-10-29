@@ -17,7 +17,7 @@ import java.util.Objects;
  * Psychic Energy is attached, or Comfey comes into play. Recovery is for good:
  * losing the Energy later brings nothing back.
  */
-public record StatusImmunity(ICondition<PokemonInPlay> protects) implements IRule {
+public record StatusImmunity(ICondition<? super PokemonInPlay> protects) implements IRule {
 
     public StatusImmunity {
         Objects.requireNonNull(protects, "protects");

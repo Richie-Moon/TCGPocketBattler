@@ -61,8 +61,9 @@ public final class Side {
     /** Not a turn flag: set once, when this side's first turn ends, and never cleared. */
     private boolean hasTakenATurn;
     private int knockedOutByAttackOnTurn = -1;
-    private final List<AttackBonus> attackBonuses = new ArrayList<>();
-    private final List<DamageReduction> damageReductions = new ArrayList<>();
+    private final List<SideModifier> attackBonuses = new ArrayList<>();
+    private final List<SideModifier> damageReductions = new ArrayList<>();
+    private final List<SideModifier> attackCostReductions = new ArrayList<>();
 
     public Side(String name, IPlayer player) {
         this.name = name;
@@ -445,7 +446,8 @@ public final class Side {
     }
 
     /**
-     * A damage bonus for this side's attacks — Giovanni, Blaine.
+     * A standing bonus or reduction for this side's Pokemon — Giovanni, Blaine,
+     * Blue, Barry.
      *
      * <p>On the {@code Side} for the reason {@link #supportersLocked} is: it
      * belongs to the player, so it must reach a Pokemon that retreats, switches
@@ -453,43 +455,43 @@ public final class Side {
      * than an {@code ICondition} keeps {@code state} out of the model's
      * dependency cycle, as {@code ActiveModifier} does.
      */
-    public record AttackBonus(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
+    public record SideModifier(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
+    }
+
+    private static int total(List<SideModifier> modifiers, PokemonInPlay pokemon, int currentTurn) {
+        // ponytail: expired modifiers are never pruned; a handful per game, prune if that changes.
+        return modifiers.stream()
+                .filter(modifier -> currentTurn <= modifier.expiresOnTurn())
+                .filter(modifier -> modifier.appliesTo().test(pokemon))
+                .mapToInt(SideModifier::amount)
+                .sum();
     }
 
     public void addAttackBonus(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
-        attackBonuses.add(new AttackBonus(amount, appliesTo, expiresOnTurn));
+        attackBonuses.add(new SideModifier(amount, appliesTo, expiresOnTurn));
     }
 
     /** The bonus one of this side's Pokemon attacks with this turn. */
     public int attackBonusFor(PokemonInPlay attacker, int currentTurn) {
-        // ponytail: expired bonuses are never pruned; a handful per game, prune if that changes.
-        return attackBonuses.stream()
-                .filter(bonus -> currentTurn <= bonus.expiresOnTurn())
-                .filter(bonus -> bonus.appliesTo().test(attacker))
-                .mapToInt(AttackBonus::amount)
-                .sum();
+        return total(attackBonuses, attacker, currentTurn);
     }
 
-    /**
-     * Less damage from the opponent's attacks for every one of this side's
-     * Pokemon — Blue. On the {@code Side} for the same reason as
-     * {@link AttackBonus}: it covers whichever Pokemon is hit, including one
-     * benched after the card was played.
-     */
-    public record DamageReduction(int amount, int expiresOnTurn) {
+    public void addDamageReduction(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
+        damageReductions.add(new SideModifier(amount, appliesTo, expiresOnTurn));
     }
 
-    public void addDamageReduction(int amount, int expiresOnTurn) {
-        damageReductions.add(new DamageReduction(amount, expiresOnTurn));
+    /** How much less damage one of this side's Pokemon takes from the opponent's attacks this turn. */
+    public int damageReductionFor(PokemonInPlay target, int currentTurn) {
+        return total(damageReductions, target, currentTurn);
     }
 
-    /** How much less damage this side's Pokemon take from the opponent's attacks this turn. */
-    public int damageReductionOn(int currentTurn) {
-        // ponytail: never pruned, like attackBonuses.
-        return damageReductions.stream()
-                .filter(reduction -> currentTurn <= reduction.expiresOnTurn())
-                .mapToInt(DamageReduction::amount)
-                .sum();
+    public void addAttackCostReduction(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
+        attackCostReductions.add(new SideModifier(amount, appliesTo, expiresOnTurn));
+    }
+
+    /** How much less Colorless one of this side's Pokemon's attacks cost this turn. */
+    public int attackCostReductionFor(PokemonInPlay attacker, int currentTurn) {
+        return total(attackCostReductions, attacker, currentTurn);
     }
 
     /**

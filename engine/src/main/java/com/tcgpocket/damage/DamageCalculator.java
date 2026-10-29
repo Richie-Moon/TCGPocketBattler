@@ -104,7 +104,7 @@ public final class DamageCalculator {
         if (event.source().filter(source -> source.owner() != target.owner()).isEmpty()) {
             return 0;
         }
-        return target.owner().damageReductionOn(currentTurn);
+        return target.owner().damageReductionFor(target, currentTurn);
     }
 
     private static int sumModifiers(PokemonInPlay pokemon, ModifierKind kind, int currentTurn) {
