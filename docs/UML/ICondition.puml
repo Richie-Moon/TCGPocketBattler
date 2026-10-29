@@ -90,6 +90,11 @@ class EnergyFromZone <<record>> implements IConditionCtx {
     - type: Type
 }
 class AllFlipsHeads <<record>> implements IConditionCtx {}
+/' Rare Candy's legality: Basic, not played this turn, not your first turn,
+   not locked, a Stage 2 in hand that evolves from it via its Stage 1. '/
+class CanSkipStage1 <<record>> implements IConditionCtx {
+    - target: ITarget
+}
 
 class StadiumInPlay <<record>> implements IConditionCtx {
     - cardId: String
@@ -113,6 +118,10 @@ class IsActive <<record>> implements IConditionPokemon {}
 class IsBenched <<record>> implements IConditionPokemon {}
 class IsDamaged <<record>> implements IConditionPokemon {}
 class HasTool <<record>> implements IConditionPokemon {}
+/' Turn facts read off the instance and its owner: Side.setActive stamps the
+   first, TurnEngine marks the owner's first turn over. '/
+class MovedToActiveThisTurn <<record>> implements IConditionPokemon {}
+class OwnersFirstTurn <<record>> implements IConditionPokemon {}
 
 /' Gates an attack on its cost. Without this nothing in the model could stop a
    Pokemon attacking with no energy attached. See Energy.puml. '/
@@ -142,6 +151,9 @@ class IsType <<record>> implements IConditionCard {
     - type: Type
 }
 class IsBasic <<record>> implements IConditionCard {
+}
+class IsStage <<record>> implements IConditionCard {
+    - stage: int
 }
 
 class IsPokemon <<record>> implements IConditionCard {

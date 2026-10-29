@@ -254,6 +254,16 @@ class IConditionTest {
         }
 
         @Test
+        void abilityComesFromTheCard() {
+            PokemonInPlay plain = board.active(board.you, PIKACHU);
+            PokemonInPlay persian = board.bench(board.you,
+                    (com.tcgpocket.card.PokemonCard) com.tcgpocket.pool.CardPool.get("A3-109"));
+
+            assertFalse(new HasAbility().evaluate(plain));
+            assertTrue(new HasAbility().evaluate(persian));
+        }
+
+        @Test
         void typeComesFromTheDefinition() {
             PokemonInPlay pokemon = board.active(board.you, CHARIZARD);
 
@@ -321,6 +331,31 @@ class IConditionTest {
             board.battle.switchSides();
             assertFalse(new KnockedOutLastTurn().evaluate(ResolutionContext.of(board.battle, board.them)),
                     "only the turn just gone counts");
+        }
+
+        @Test
+        @DisplayName("moving up from the Bench is remembered until the turn's flags reset")
+        void movedToActiveThisTurn() {
+            PokemonInPlay starter = board.active(board.you, SNORLAX);
+            PokemonInPlay benched = board.bench(board.you, PIKACHU);
+            assertFalse(new MovedToActiveThisTurn().evaluate(starter), "starting Active is not moving there");
+
+            board.you.switchIn(benched);
+            assertTrue(new MovedToActiveThisTurn().evaluate(benched));
+            assertFalse(new MovedToActiveThisTurn().evaluate(starter));
+
+            board.you.resetTurnFlags();
+            assertFalse(new MovedToActiveThisTurn().evaluate(benched));
+        }
+
+        @Test
+        @DisplayName("a side's first turn lasts until it marks a turn taken")
+        void ownersFirstTurn() {
+            PokemonInPlay pokemon = board.active(board.you, PIKACHU);
+            assertTrue(new OwnersFirstTurn().evaluate(pokemon));
+
+            board.you.markTurnTaken();
+            assertFalse(new OwnersFirstTurn().evaluate(pokemon));
         }
 
         @Test

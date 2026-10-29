@@ -3,13 +3,19 @@ package com.tcgpocket.trigger;
 import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.card.StadiumCard;
 import com.tcgpocket.card.ToolCard;
+import com.tcgpocket.condition.EventConcerns;
+import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.AttemptResult;
+import com.tcgpocket.effect.PlaceDamage;
+import com.tcgpocket.number.Literal;
 import com.tcgpocket.state.Battle;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.status.ConfusionStatus;
 import com.tcgpocket.status.IStatus;
+import com.tcgpocket.target.EventSource;
+import com.tcgpocket.target.Self;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +40,7 @@ import java.util.List;
  * <p>Fixed, so a seeded game replays identically: attacker's side then
  * defender's, active before bench, and per Pokemon its statuses (in the order
  * they were applied), then its Tool, then its passive ability, then any
- * {@code ATTACK_NEEDS_HEADS} modifier. The Stadium
+ * {@code ATTACK_NEEDS_HEADS} or {@code COUNTER_DAMAGE} modifier. The Stadium
  * goes last, as it belongs to neither board.
  */
 public final class TriggerDispatcher {
@@ -93,6 +99,14 @@ public final class TriggerDispatcher {
                 if (pokemon.hasModifier(ModifierKind.ATTACK_NEEDS_HEADS, battle.turn())) {
                     held(found, new ConfusionStatus().triggers(), pokemon);
                 }
+                // Spike Armor: Rough Skin for as long as the modifier lasts, one trigger per modifier.
+                pokemon.modifiers().stream()
+                        .filter(modifier -> modifier.kind() == ModifierKind.COUNTER_DAMAGE)
+                        .filter(modifier -> modifier.isActiveOn(battle.turn()))
+                        .forEach(modifier -> held(found, List.of(new Trigger(DamageDealt.class,
+                                new EventConcerns(new Self()),
+                                new Attempt(List.of(new PlaceDamage(new Literal(modifier.amount()), new EventSource()))))),
+                                pokemon));
             }
         }
 

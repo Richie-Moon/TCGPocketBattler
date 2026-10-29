@@ -47,6 +47,7 @@ public final class PokemonInPlay extends CardInstance {
     private int damage;
     private int turnPlayed;
     private boolean abilityUsedThisTurn;
+    private boolean movedToActiveThisTurn;
 
     /**
      * @param definition the card put into play: a Basic Pokemon, or a Fossil,
@@ -118,16 +119,26 @@ public final class PokemonInPlay extends CardInstance {
         abilityUsedThisTurn = true;
     }
 
-    public void resetTurnFlags() {
-        abilityUsedThisTurn = false;
+    /** Whether this Pokemon moved from the Bench to the Active Spot this turn — Golisopod's First Impression. */
+    public boolean movedToActiveThisTurn() {
+        return movedToActiveThisTurn;
     }
 
-    /** The printed HP, plus any {@link HpBonus} on the held Tool. */
+    public void markMovedToActive() {
+        movedToActiveThisTurn = true;
+    }
+
+    public void resetTurnFlags() {
+        abilityUsedThisTurn = false;
+        movedToActiveThisTurn = false;
+    }
+
+    /** The printed HP, plus any {@link HpBonus} on the held Tool that applies to this holder. */
     public int maxHp() {
         int bonus = 0;
         if (tool().map(CardInstance::definition).orElse(null) instanceof ToolCard card) {
             for (IRule rule : card.rules()) {
-                if (rule instanceof HpBonus hp) {
+                if (rule instanceof HpBonus hp && hp.holder().evaluate(this)) {
                     bonus += hp.amount();
                 }
             }
@@ -292,6 +303,14 @@ public final class PokemonInPlay extends CardInstance {
     public boolean hasModifier(ModifierKind kind, int currentTurn) {
         return modifiers.stream()
                 .anyMatch(modifier -> modifier.kind() == kind && modifier.isActiveOn(currentTurn));
+    }
+
+    /** The summed amount of every live modifier of one kind. */
+    public int modifierTotal(ModifierKind kind, int currentTurn) {
+        return modifiers.stream()
+                .filter(modifier -> modifier.kind() == kind && modifier.isActiveOn(currentTurn))
+                .mapToInt(ActiveModifier::amount)
+                .sum();
     }
 
     /** Drops modifiers whose duration has run out. Called between turns. */

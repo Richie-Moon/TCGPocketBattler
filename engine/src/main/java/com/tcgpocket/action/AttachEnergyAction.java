@@ -28,7 +28,11 @@ public record AttachEnergyAction(ITarget target) implements IAction {
         Side side = context.controller();
         return side.currentEnergy().isPresent()
                 && !side.energyAttachedThisTurn()
-                && target.resolve(context).filter(side.inPlay()::contains).isPresent();
+                && target.resolve(context)
+                        .filter(side.inPlay()::contains)
+                        .filter(pokemon -> !(side.active().filter(pokemon::equals).isPresent()
+                                && side.activeEnergyLocked(context.battle().turn())))
+                        .isPresent();
     }
 
     @Override

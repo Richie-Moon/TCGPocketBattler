@@ -14,6 +14,7 @@ import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.condition.Always;
 import com.tcgpocket.condition.IsActive;
+import com.tcgpocket.condition.IsItem;
 import com.tcgpocket.condition.IsSpecies;
 import com.tcgpocket.condition.IsType;
 import com.tcgpocket.condition.HasType;
@@ -194,6 +195,15 @@ class IEffectTest {
                     new DealDamage(new Literal(30), new OpponentActive()).apply(context));
 
             assertEquals(50, defender.damage());
+        }
+
+        @Test
+        @DisplayName("an increase to damage taken adds on after weakness")
+        void increasedDamageTakenAddsOn() {
+            new IncreaseDamageTaken(new Literal(30), new OpponentActive(), new Literal(1)).apply(context);
+            new DealDamage(new Literal(30), new OpponentActive()).apply(context);
+
+            assertEquals(80, defender.damage());
         }
 
         @Test
@@ -506,6 +516,72 @@ class IEffectTest {
 
             assertFalse(new PlayCardAction(supporter).isLegal(theirs));
         }
+
+        @Test
+        @DisplayName("an Item lock stops the opponent's Items through their next turn, and not the caster's")
+        void anItemLockedSideCannotPlayAnItem() {
+            CardInstance theirBall = board.inHand(board.them, com.tcgpocket.pool.PA.Trainers.POKE_BALL);
+            CardInstance myBall = board.inHand(board.you, com.tcgpocket.pool.PA.Trainers.POKE_BALL);
+            board.inDeck(board.them, PIKACHU);
+            board.inDeck(board.you, PIKACHU);
+            ResolutionContext theirs = context.withController(board.them);
+            assertTrue(new PlayCardAction(theirBall).isLegal(theirs));
+
+            assertEquals(EffectOutcome.APPLIED, new PreventItem(new Literal(1)).apply(context));
+
+            assertFalse(new PlayCardAction(theirBall).isLegal(theirs));
+            assertTrue(new PlayCardAction(myBall).isLegal(context));
+            assertFalse(board.them.itemsLocked(board.battle.turn() + 2), "gone after their next turn");
+        }
+
+        @Test
+        @DisplayName("Night Bind stops Energy Zone attaches to the opponent's Active, not to their Bench")
+        void activeEnergyLockCoversOnlyTheActive() {
+            board.active(board.them, SNORLAX);
+            board.bench(board.them, SNORLAX);
+            new PreventActiveEnergy(new Literal(1)).apply(context);
+
+            assertEquals(EffectOutcome.FAILED,
+                    new AttachEnergy(Type.PSYCHIC, new OpponentActive()).apply(context));
+            assertEquals(EffectOutcome.APPLIED,
+                    new AttachEnergy(Type.PSYCHIC, new com.tcgpocket.target.OpponentBenchSpecific(0)).apply(context));
+            assertFalse(board.you.activeEnergyLocked(board.battle.turn()), "the caster attaches freely");
+        }
+
+        @Test
+        @DisplayName("a status immunity refuses new statuses and clears old ones once the condition holds")
+        void statusImmunityRefusesAndRecovers() {
+            PokemonCard shield = TestBoard.card("Comfey", 70, Type.PSYCHIC)
+                    .withAbility(new com.tcgpocket.card.PassiveAbility("Flower Shield", "",
+                            new com.tcgpocket.card.StatusImmunity(new HasType(Type.PSYCHIC))));
+            board.bench(board.them, shield);
+            PokemonInPlay plain = board.active(board.them, SNORLAX);
+
+            assertEquals(EffectOutcome.APPLIED,
+                    new AddStatus(new PoisonStatus(), new OpponentActive()).apply(context));
+            board.them.recoverProtected();
+            assertFalse(plain.statuses().isEmpty(), "not covered, so it keeps its status");
+
+            PokemonInPlay psychic = board.bench(board.them, shield);
+            psychic.addStatus(new PoisonStatus());
+            board.them.recoverProtected();
+            assertTrue(psychic.statuses().isEmpty(), "covered, so it recovers");
+            assertTrue(board.them.protectsFromStatus(psychic));
+        }
+
+        @Test
+        @DisplayName("ChooseThen hands the one choice to an effect that names it twice")
+        void chooseThenReusesTheChoice() {
+            PokemonInPlay defender = board.active(board.them, SNORLAX);
+            defender.attachEnergy(Type.WATER, 2);
+
+            assertEquals(EffectOutcome.APPLIED, new ChooseThen(
+                    new com.tcgpocket.target.ChosenFrom(new OpponentAll(), new AttackerSide(), "pick"),
+                    new DealDamage(new Product(new Literal(20),
+                            new com.tcgpocket.number.EnergyOn(new com.tcgpocket.target.PlayTarget())),
+                            new com.tcgpocket.target.PlayTarget())).apply(context));
+            assertEquals(40, defender.damage());
+        }
     }
 
     @Nested
@@ -655,6 +731,18 @@ class IEffectTest {
         }
 
         @Test
+        @DisplayName("a random status skips the ones already there, and is a no-op once none are left")
+        void randomStatusSkipsExisting() {
+            active.addStatus(new PoisonStatus());
+            AddRandomStatus sleepOrPoison =
+                    new AddRandomStatus(List.of(new PoisonStatus(), new SleepStatus()), new OpponentActive());
+
+            assertEquals(EffectOutcome.APPLIED, sleepOrPoison.apply(context));
+            assertTrue(active.hasStatus(new SleepStatus()));
+            assertEquals(EffectOutcome.NO_OP, sleepOrPoison.apply(context));
+        }
+
+        @Test
         void toolsComeFromHandAndOnlyOneFits() {
             ToolCard cape = ToolCard.named("giant-cape", "Giant Cape");
             board.inHand(board.them, cape);
@@ -786,6 +874,34 @@ class IEffectTest {
 
             assertEquals(EffectOutcome.NO_OP,
                     new DiscardRandomFromHand(new OpponentSide(), new Literal(1)).apply(context));
+        }
+
+        @Test
+        @DisplayName("a filtered random hand discard only draws from matching cards")
+        void filteredRandomHandDiscard() {
+            CardInstance pikachu = board.inHand(board.them, PIKACHU);
+            board.inHand(board.them, com.tcgpocket.pool.PA.Trainers.POKE_BALL);
+            DiscardRandomFromHand discardItem =
+                    new DiscardRandomFromHand(new OpponentSide(), new Literal(1), Optional.of(new IsItem()));
+
+            assertEquals(EffectOutcome.APPLIED, discardItem.apply(context));
+            assertEquals(List.of(pikachu), board.them.hand());
+            assertEquals(EffectOutcome.NO_OP, discardItem.apply(context));
+        }
+
+        @Test
+        @DisplayName("a random hand shuffle moves one card into the deck, and an empty hand is a no-op")
+        void randomHandShuffle() {
+            board.inHand(board.them, PIKACHU);
+            board.inHand(board.them, SNORLAX);
+            ShuffleRandomFromHand astonish = new ShuffleRandomFromHand(new OpponentSide());
+
+            assertEquals(EffectOutcome.APPLIED, astonish.apply(context));
+            assertEquals(1, board.them.hand().size());
+            assertEquals(1, board.them.deck().size());
+
+            board.them.removeFromHand(board.them.hand().getFirst());
+            assertEquals(EffectOutcome.NO_OP, astonish.apply(context));
         }
     }
 

@@ -12,7 +12,8 @@ package com.tcgpocket.card;
  * board on every call, like {@code TriggerDispatcher.collect()}, so a rule can
  * never outlive its holder.
  *
- * <p>Each rule is read by exactly one place in the engine, named on the rule.
+ * <p>Each rule is read by exactly one place in the engine, named on the rule —
+ * except {@link StatusImmunity}, whose text says two things.
  */
-public sealed interface IRule permits EnergyBoost, EvolutionLock, HpBonus, NoRetreatCost, SupporterLock {
+public sealed interface IRule permits EnergyBoost, EvolutionLock, HpBonus, NoRetreatCost, StatusImmunity, SupporterLock {
 }

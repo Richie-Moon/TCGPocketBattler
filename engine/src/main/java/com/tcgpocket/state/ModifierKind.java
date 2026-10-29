@@ -12,6 +12,9 @@ public enum ModifierKind {
     /** Subtracts from damage this Pokemon takes. */
     REDUCE_DAMAGE_TAKEN,
 
+    /** Adds to damage this Pokemon takes. */
+    INCREASE_DAMAGE_TAKEN,
+
     /** Zeroes damage this Pokemon takes, whatever the arithmetic said. */
     PREVENT_DAMAGE,
 
@@ -47,5 +50,23 @@ public enum ModifierKind {
      * Subtracts from this Pokemon's retreat cost, never below zero. Read by
      * {@code RetreatAction}.
      */
-    REDUCE_RETREAT_COST
+    REDUCE_RETREAT_COST,
+
+    /**
+     * Adds to this Pokemon's retreat cost, as Colorless. Read by
+     * {@code RetreatAction}.
+     */
+    INCREASE_RETREAT_COST,
+
+    /**
+     * Adds Colorless to the cost of each of this Pokemon's attacks. Read by
+     * {@code Action.isLegal}.
+     */
+    INCREASE_ATTACK_COST,
+    /**
+     * Does its amount back to the Pokemon that damages this one with an
+     * attack. Read by {@code TriggerDispatcher}, which gives the Pokemon a
+     * retaliating trigger while it lasts.
+     */
+    COUNTER_DAMAGE
 }

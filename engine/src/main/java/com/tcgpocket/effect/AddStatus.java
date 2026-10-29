@@ -34,6 +34,9 @@ public record AddStatus(IStatus statusToAdd, ITarget target) implements IEffect 
         }
 
         PokemonInPlay pokemon = resolved.get();
+        if (pokemon.owner().protectsFromStatus(pokemon)) {
+            return EffectOutcome.PREVENTED;
+        }
         if (pokemon.hasStatus(statusToAdd)) {
             return EffectOutcome.NO_OP;
         }

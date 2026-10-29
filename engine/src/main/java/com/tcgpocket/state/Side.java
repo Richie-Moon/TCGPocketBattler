@@ -1,6 +1,7 @@
 package com.tcgpocket.state;
 
 import com.tcgpocket.card.IRule;
+import com.tcgpocket.card.StatusImmunity;
 import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.player.IPlayer;
@@ -53,7 +54,12 @@ public final class Side {
     private boolean energyAttachedThisTurn;
     private boolean supporterPlayedThisTurn;
     private int supportersLockedUntilTurn = -1;
+    private int itemsLockedUntilTurn = -1;
+    private int activeEnergyLockedUntilTurn = -1;
     private boolean retreatedThisTurn;
+    private boolean turnEnded;
+    /** Not a turn flag: set once, when this side's first turn ends, and never cleared. */
+    private boolean hasTakenATurn;
     private int knockedOutByAttackOnTurn = -1;
     private final List<AttackBonus> attackBonuses = new ArrayList<>();
     private final List<DamageReduction> damageReductions = new ArrayList<>();
@@ -84,9 +90,13 @@ public final class Side {
         return Optional.ofNullable(active);
     }
 
+    /** A Pokemon coming up from the Bench, by any route, is marked for the rest of the turn. */
     public void setActive(PokemonInPlay pokemon) {
         this.active = pokemon;
         if (pokemon != null) {
+            if (pokemon.zone() == Zone.BENCH) {
+                pokemon.markMovedToActive();
+            }
             pokemon.moveTo(Zone.ACTIVE);
         }
     }
@@ -405,6 +415,35 @@ public final class Side {
         supportersLockedUntilTurn = Math.max(supportersLockedUntilTurn, turn);
     }
 
+    /** Whether an opponent's effect has shut this side out of Items; a turn stamp, as {@link #supportersLocked} is. */
+    public boolean itemsLocked(int currentTurn) {
+        return currentTurn <= itemsLockedUntilTurn;
+    }
+
+    public void lockItemsUntil(int turn) {
+        itemsLockedUntilTurn = Math.max(itemsLockedUntilTurn, turn);
+    }
+
+    /** Whether an opponent's effect stops this side taking Energy from its Zone to its Active; Night Bind. */
+    public boolean activeEnergyLocked(int currentTurn) {
+        return currentTurn <= activeEnergyLockedUntilTurn;
+    }
+
+    public void lockActiveEnergyUntil(int turn) {
+        activeEnergyLockedUntilTurn = Math.max(activeEnergyLockedUntilTurn, turn);
+    }
+
+    /** Whether one of this side's {@link StatusImmunity} rules covers that Pokemon right now. */
+    public boolean protectsFromStatus(PokemonInPlay pokemon) {
+        return standingRules().stream()
+                .anyMatch(held -> held.rule() instanceof StatusImmunity immunity && immunity.protects().evaluate(pokemon));
+    }
+
+    /** Clears every status off the Pokemon a {@link StatusImmunity} now covers; see that rule. */
+    public void recoverProtected() {
+        inPlay().stream().filter(this::protectsFromStatus).forEach(PokemonInPlay::clearStatuses);
+    }
+
     /**
      * A damage bonus for this side's attacks — Giovanni, Blaine.
      *
@@ -473,10 +512,29 @@ public final class Side {
         retreatedThisTurn = true;
     }
 
+    /** Whether card text ended this side's turn early — Kiawe's "Your turn ends." */
+    public boolean turnEnded() {
+        return turnEnded;
+    }
+
+    public void endTurn() {
+        turnEnded = true;
+    }
+
+    /** Whether this side has finished a turn of its own — false throughout its first. */
+    public boolean hasTakenATurn() {
+        return hasTakenATurn;
+    }
+
+    public void markTurnTaken() {
+        hasTakenATurn = true;
+    }
+
     public void resetTurnFlags() {
         energyAttachedThisTurn = false;
         supporterPlayedThisTurn = false;
         retreatedThisTurn = false;
+        turnEnded = false;
         inPlay().forEach(PokemonInPlay::resetTurnFlags);
     }
 
