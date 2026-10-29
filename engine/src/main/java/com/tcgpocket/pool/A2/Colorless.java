@@ -274,10 +274,24 @@ public final class Colorless {
             )), CardRarity.RARE
     ).withWeakness(Type.FIGHTING);
 
+    /** A2-176 · Staraptor (alternate art of A2-134) */
+    public static final PokemonCard STARAPTOR_IR = STARAPTOR.withId("A2-176", CardRarity.ILLUSTRATION_RARE);
+    /** A2-177 · Bidoof (alternate art of A2-135) */
+    public static final PokemonCard BIDOOF_IR = BIDOOF.withId("A2-177", CardRarity.ILLUSTRATION_RARE);
+    /** A2-178 · Glameow (alternate art of A2-139) */
+    public static final PokemonCard GLAMEOW_IR = GLAMEOW.withId("A2-178", CardRarity.ILLUSTRATION_RARE);
+    /** A2-179 · Regigigas (alternate art of A2-143) */
+    public static final PokemonCard REGIGIGAS_IR = REGIGIGAS.withId("A2-179", CardRarity.ILLUSTRATION_RARE);
+    /** A2-189 · Lickilicky ex (alternate art of A2-125) */
+    public static final PokemonCard LICKILICKY_EX_UR = LICKILICKY_EX.withId("A2-189", CardRarity.ULTRA_RARE);
+    /** A2-203 · Lickilicky ex (alternate art of A2-125) */
+    public static final PokemonCard LICKILICKY_EX_SIR = LICKILICKY_EX.withId("A2-203", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             LICKITUNG, LICKILICKY_EX, EEVEE, PORYGON, PORYGON2, PORYGON_Z, AIPOM, AMBIPOM,
             STARLY, STARAVIA, STARAPTOR, BIDOOF, BIBAREL, BUNEARY, LOPUNNY, GLAMEOW, PURUGLY,
-            CHATOT, FAN_ROTOM, REGIGIGAS);
+            CHATOT, FAN_ROTOM, REGIGIGAS,
+            STARAPTOR_IR, BIDOOF_IR, GLAMEOW_IR, REGIGIGAS_IR, LICKILICKY_EX_UR, LICKILICKY_EX_SIR);
 
     private Colorless() {
     }
