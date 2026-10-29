@@ -171,9 +171,19 @@ public final class Lightning {
             )), CardRarity.COMMON
     ).withWeakness(Type.FIGHTING);
 
+    /** A2-163 · Shinx (alternate art of A2-058) */
+    public static final PokemonCard SHINX_IR = SHINX.withId("A2-163", CardRarity.ILLUSTRATION_RARE);
+    /** A2-164 · Rotom (alternate art of A2-062) */
+    public static final PokemonCard ROTOM_IR = ROTOM.withId("A2-164", CardRarity.ILLUSTRATION_RARE);
+    /** A2-183 · Pachirisu ex (alternate art of A2-061) */
+    public static final PokemonCard PACHIRISU_EX_UR = PACHIRISU_EX.withId("A2-183", CardRarity.ULTRA_RARE);
+    /** A2-198 · Pachirisu ex (alternate art of A2-061) */
+    public static final PokemonCard PACHIRISU_EX_SIR = PACHIRISU_EX.withId("A2-198", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             MAGNEMITE, MAGNETON, MAGNEZONE, VOLTORB, ELECTRODE, ELECTABUZZ, ELECTIVIRE,
-            SHINX, LUXIO, LUXRAY, PACHIRISU_EX, ROTOM);
+            SHINX, LUXIO, LUXRAY, PACHIRISU_EX, ROTOM,
+            SHINX_IR, ROTOM_IR, PACHIRISU_EX_UR, PACHIRISU_EX_SIR);
 
     private Lightning() {
     }

@@ -228,9 +228,21 @@ public final class Fighting {
             )), CardRarity.DOUBLE_RARE
     ).withWeakness(Type.PSYCHIC).withTags(CardTag.EX);
 
+    /** A2-169 · Rhyperior (alternate art of A2-082) */
+    public static final PokemonCard RHYPERIOR_IR = RHYPERIOR.withId("A2-169", CardRarity.ILLUSTRATION_RARE);
+    /** A2-170 · Lucario (alternate art of A2-092) */
+    public static final PokemonCard LUCARIO_IR = LUCARIO.withId("A2-170", CardRarity.ILLUSTRATION_RARE);
+    /** A2-171 · Hippopotas (alternate art of A2-093) */
+    public static final PokemonCard HIPPOPOTAS_IR = HIPPOPOTAS.withId("A2-171", CardRarity.ILLUSTRATION_RARE);
+    /** A2-185 · Gallade ex (alternate art of A2-095) */
+    public static final PokemonCard GALLADE_EX_UR = GALLADE_EX.withId("A2-185", CardRarity.ULTRA_RARE);
+    /** A2-200 · Gallade ex (alternate art of A2-095) */
+    public static final PokemonCard GALLADE_EX_SIR = GALLADE_EX.withId("A2-200", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             RHYHORN, RHYDON, RHYPERIOR, GLIGAR, GLISCOR, HITMONTOP, NOSEPASS, REGIROCK, CRANIDOS,
-            RAMPARDOS, WORMADAM, RIOLU, LUCARIO, HIPPOPOTAS, HIPPOWDON, GALLADE_EX);
+            RAMPARDOS, WORMADAM, RIOLU, LUCARIO, HIPPOPOTAS, HIPPOWDON, GALLADE_EX,
+            RHYPERIOR_IR, LUCARIO_IR, HIPPOPOTAS_IR, GALLADE_EX_UR, GALLADE_EX_SIR);
 
     private Fighting() {
     }

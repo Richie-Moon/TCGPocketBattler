@@ -118,8 +118,14 @@ public final class Fire {
             )), CardRarity.COMMON
     ).withWeakness(Type.WATER);
 
+    /** A2-181 · Infernape ex (alternate art of A2-029) */
+    public static final PokemonCard INFERNAPE_EX_UR = INFERNAPE_EX.withId("A2-181", CardRarity.ULTRA_RARE);
+    /** A2-197 · Infernape ex (alternate art of A2-029) */
+    public static final PokemonCard INFERNAPE_EX_SIR = INFERNAPE_EX.withId("A2-197", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            MAGMAR, MAGMORTAR, SLUGMA, MAGCARGO, CHIMCHAR, MONFERNO, INFERNAPE_EX, HEAT_ROTOM);
+            MAGMAR, MAGMORTAR, SLUGMA, MAGCARGO, CHIMCHAR, MONFERNO, INFERNAPE_EX, HEAT_ROTOM,
+            INFERNAPE_EX_UR, INFERNAPE_EX_SIR);
 
     private Fire() {
     }

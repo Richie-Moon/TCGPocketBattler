@@ -238,9 +238,23 @@ public final class Psychic {
             )), CardRarity.RARE
     ).withWeakness(Type.DARKNESS);
 
+    /** A2-165 · Drifloon (alternate art of A2-073) */
+    public static final PokemonCard DRIFLOON_IR = DRIFLOON.withId("A2-165", CardRarity.ILLUSTRATION_RARE);
+    /** A2-166 · Mesprit (alternate art of A2-076) */
+    public static final PokemonCard MESPRIT_IR = MESPRIT.withId("A2-166", CardRarity.ILLUSTRATION_RARE);
+    /** A2-167 · Giratina (alternate art of A2-078) */
+    public static final PokemonCard GIRATINA_IR = GIRATINA.withId("A2-167", CardRarity.ILLUSTRATION_RARE);
+    /** A2-168 · Cresselia (alternate art of A2-079) */
+    public static final PokemonCard CRESSELIA_IR = CRESSELIA.withId("A2-168", CardRarity.ILLUSTRATION_RARE);
+    /** A2-184 · Mismagius ex (alternate art of A2-067) */
+    public static final PokemonCard MISMAGIUS_EX_UR = MISMAGIUS_EX.withId("A2-184", CardRarity.ULTRA_RARE);
+    /** A2-199 · Mismagius ex (alternate art of A2-067) */
+    public static final PokemonCard MISMAGIUS_EX_SIR = MISMAGIUS_EX.withId("A2-199", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             TOGEPI, TOGETIC, TOGEKISS, MISDREAVUS, MISMAGIUS_EX, RALTS, KIRLIA, DUSKULL, DUSCLOPS,
-            DUSKNOIR, DRIFLOON, DRIFBLIM, UXIE, MESPRIT, AZELF, GIRATINA, CRESSELIA);
+            DUSKNOIR, DRIFLOON, DRIFBLIM, UXIE, MESPRIT, AZELF, GIRATINA, CRESSELIA,
+            DRIFLOON_IR, MESPRIT_IR, GIRATINA_IR, CRESSELIA_IR, MISMAGIUS_EX_UR, MISMAGIUS_EX_SIR);
 
     private Psychic() {
     }

@@ -172,9 +172,24 @@ public final class Trainers {
                             new ShuffleHandIntoDeck(new OpponentSide()),
                             new DrawCard(new Difference(new Literal(3), new Points(new OpponentSide())), new OpponentSide())))));
 
+    // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
+    /** A2-190 · Cyrus (alternate art of A2-150) */
+    public static final SupporterCard CYRUS_UR = CYRUS.withId("A2-190");
+    /** A2-191 · Team Galactic Grunt (alternate art of A2-151) */
+    public static final SupporterCard TEAM_GALACTIC_GRUNT_UR = TEAM_GALACTIC_GRUNT.withId("A2-191");
+    /** A2-192 · Cynthia (alternate art of A2-152) */
+    public static final SupporterCard CYNTHIA_UR = CYNTHIA.withId("A2-192");
+    /** A2-193 · Volkner (alternate art of A2-153) */
+    public static final SupporterCard VOLKNER_UR = VOLKNER.withId("A2-193");
+    /** A2-194 · Dawn (alternate art of A2-154) */
+    public static final SupporterCard DAWN_UR = DAWN.withId("A2-194");
+    /** A2-195 · Mars (alternate art of A2-155) */
+    public static final SupporterCard MARS_UR = MARS.withId("A2-195");
+
     static final List<ITrainerCard> CARDS = List.of(
             SKULL_FOSSIL, ARMOR_FOSSIL, POKEMON_COMMUNICATION, GIANT_CAPE, ROCKY_HELMET, LUM_BERRY,
-            CYRUS, TEAM_GALACTIC_GRUNT, CYNTHIA, VOLKNER, DAWN, MARS);
+            CYRUS, TEAM_GALACTIC_GRUNT, CYNTHIA, VOLKNER, DAWN, MARS,
+            CYRUS_UR, TEAM_GALACTIC_GRUNT_UR, CYNTHIA_UR, VOLKNER_UR, DAWN_UR, MARS_UR);
 
     private Trainers() {
     }

@@ -295,10 +295,25 @@ public final class Water {
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.LIGHTNING);
 
+    /** A2-160 · Mamoswine (alternate art of A2-033) */
+    public static final PokemonCard MAMOSWINE_IR = MAMOSWINE.withId("A2-160", CardRarity.ILLUSTRATION_RARE);
+    /** A2-161 · Gastrodon (alternate art of A2-041) */
+    public static final PokemonCard GASTRODON_IR = GASTRODON.withId("A2-161", CardRarity.ILLUSTRATION_RARE);
+    /** A2-162 · Manaphy (alternate art of A2-050) */
+    public static final PokemonCard MANAPHY_IR = MANAPHY.withId("A2-162", CardRarity.ILLUSTRATION_RARE);
+    /** A2-182 · Palkia ex (alternate art of A2-049) */
+    public static final PokemonCard PALKIA_EX_UR = PALKIA_EX.withId("A2-182", CardRarity.ULTRA_RARE);
+    /** A2-204 · Palkia ex (alternate art of A2-049) */
+    public static final PokemonCard PALKIA_EX_IM = PALKIA_EX.withId("A2-204", CardRarity.IMMERSIVE);
+    /** A2-206 · Palkia ex (alternate art of A2-049) */
+    public static final PokemonCard PALKIA_EX_HR = PALKIA_EX.withId("A2-206", CardRarity.HYPER_RARE);
+
+
     static final List<PokemonCard> CARDS = List.of(
             SWINUB, PILOSWINE, MAMOSWINE, REGICE, PIPLUP, PRINPLUP, EMPOLEON, BUIZEL, FLOATZEL,
             SHELLOS, GASTRODON, FINNEON, LUMINEON, SNOVER, ABOMASNOW, GLACEON, WASH_ROTOM,
-            FROST_ROTOM, PALKIA_EX, MANAPHY);
+            FROST_ROTOM, PALKIA_EX, MANAPHY,
+            MAMOSWINE_IR, GASTRODON_IR, MANAPHY_IR, PALKIA_EX_UR, PALKIA_EX_IM, PALKIA_EX_HR);
 
     private Water() {
     }

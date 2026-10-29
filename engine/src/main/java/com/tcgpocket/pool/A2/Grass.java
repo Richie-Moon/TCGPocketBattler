@@ -296,10 +296,24 @@ public final class Grass {
             new ForAny(new IsDamaged(), new AttackerAll())
     ));
 
+    /** A2-156 · Tangrowth (alternate art of A2-005) */
+    public static final PokemonCard TANGROWTH_IR = TANGROWTH.withId("A2-156", CardRarity.ILLUSTRATION_RARE);
+    /** A2-157 · Combee (alternate art of A2-017) */
+    public static final PokemonCard COMBEE_IR = COMBEE.withId("A2-157", CardRarity.ILLUSTRATION_RARE);
+    /** A2-158 · Carnivine (alternate art of A2-019) */
+    public static final PokemonCard CARNIVINE_IR = CARNIVINE.withId("A2-158", CardRarity.ILLUSTRATION_RARE);
+    /** A2-159 · Shaymin (alternate art of A2-022) */
+    public static final PokemonCard SHAYMIN_IR = SHAYMIN.withId("A2-159", CardRarity.ILLUSTRATION_RARE);
+    /** A2-180 · Yanmega ex (alternate art of A2-007) */
+    public static final PokemonCard YANMEGA_EX_UR = YANMEGA_EX.withId("A2-180", CardRarity.ULTRA_RARE);
+    /** A2-196 · Yanmega ex (alternate art of A2-007) */
+    public static final PokemonCard YANMEGA_EX_SIR = YANMEGA_EX.withId("A2-196", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             ODDISH, GLOOM, BELLOSSOM, TANGELA, TANGROWTH, YANMA, YANMEGA_EX, ROSELIA, ROSERADE,
             TURTWIG, GROTLE, TORTERRA, KRICKETOT, KRICKETUNE, BURMY, WORMADAM, COMBEE, VESPIQUEN,
-            CARNIVINE, LEAFEON, MOW_ROTOM, SHAYMIN);
+            CARNIVINE, LEAFEON, MOW_ROTOM, SHAYMIN,
+            TANGROWTH_IR, COMBEE_IR, CARNIVINE_IR, SHAYMIN_IR, YANMEGA_EX_UR, YANMEGA_EX_SIR);
 
     private Grass() {
     }

@@ -67,7 +67,10 @@ public final class Dragon {
             new GreaterThan(new CountCards(new AttackerSide(), Zone.HAND), new Literal(0))
     ));
 
-    static final List<PokemonCard> CARDS = List.of(GIBLE, GABITE, GARCHOMP);
+    /** A2-175 · Garchomp (alternate art of A2-123) */
+    public static final PokemonCard GARCHOMP_IR = GARCHOMP.withId("A2-175", CardRarity.ILLUSTRATION_RARE);
+
+    static final List<PokemonCard> CARDS = List.of(GIBLE, GABITE, GARCHOMP, GARCHOMP_IR);
 
     private Dragon() {
     }

@@ -221,9 +221,23 @@ public final class Darkness {
                     new Attempt(List.of(new PlaceDamage(new Literal(20), new OpponentActive())))))))
             .withWeakness(Type.GRASS).withTags(CardTag.EX);
 
+    /** A2-172 · Spiritomb (alternate art of A2-104) */
+    public static final PokemonCard SPIRITOMB_IR = SPIRITOMB.withId("A2-172", CardRarity.ILLUSTRATION_RARE);
+    /** A2-173 · Croagunk (alternate art of A2-107) */
+    public static final PokemonCard CROAGUNK_IR = CROAGUNK.withId("A2-173", CardRarity.ILLUSTRATION_RARE);
+    /** A2-186 · Weavile ex (alternate art of A2-099) */
+    public static final PokemonCard WEAVILE_EX_UR = WEAVILE_EX.withId("A2-186", CardRarity.ULTRA_RARE);
+    /** A2-187 · Darkrai ex (alternate art of A2-110) */
+    public static final PokemonCard DARKRAI_EX_UR = DARKRAI_EX.withId("A2-187", CardRarity.ULTRA_RARE);
+    /** A2-201 · Weavile ex (alternate art of A2-099) */
+    public static final PokemonCard WEAVILE_EX_SIR = WEAVILE_EX.withId("A2-201", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+    /** A2-202 · Darkrai ex (alternate art of A2-110) */
+    public static final PokemonCard DARKRAI_EX_SIR = DARKRAI_EX.withId("A2-202", CardRarity.SPECIAL_ILLUSTRATION_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             MURKROW, HONCHKROW, SNEASEL, WEAVILE_EX, POOCHYENA, MIGHTYENA, STUNKY, SKUNTANK,
-            SPIRITOMB, SKORUPI, DRAPION, CROAGUNK, TOXICROAK, DARKRAI, DARKRAI_EX);
+            SPIRITOMB, SKORUPI, DRAPION, CROAGUNK, TOXICROAK, DARKRAI, DARKRAI_EX,
+            SPIRITOMB_IR, CROAGUNK_IR, WEAVILE_EX_UR, DARKRAI_EX_UR, WEAVILE_EX_SIR, DARKRAI_EX_SIR);
 
     private Darkness() {
     }

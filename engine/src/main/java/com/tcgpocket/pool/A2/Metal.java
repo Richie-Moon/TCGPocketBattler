@@ -163,9 +163,20 @@ public final class Metal {
             )), CardRarity.RARE
     ).withWeakness(Type.FIRE);
 
+    /** A2-174 · Heatran (alternate art of A2-120) */
+    public static final PokemonCard HEATRAN_IR = HEATRAN.withId("A2-174", CardRarity.ILLUSTRATION_RARE);
+    /** A2-188 · Dialga ex (alternate art of A2-119) */
+    public static final PokemonCard DIALGA_EX_UR = DIALGA_EX.withId("A2-188", CardRarity.ULTRA_RARE);
+    /** A2-205 · Dialga ex (alternate art of A2-119) */
+    public static final PokemonCard DIALGA_EX_IM = DIALGA_EX.withId("A2-205", CardRarity.IMMERSIVE);
+    /** A2-207 · Dialga ex (alternate art of A2-119) */
+    public static final PokemonCard DIALGA_EX_HR = DIALGA_EX.withId("A2-207", CardRarity.HYPER_RARE);
+
+
     static final List<PokemonCard> CARDS = List.of(
             SKARMORY, REGISTEEL, SHIELDON, BASTIODON, WORMADAM, BRONZOR, BRONZONG, PROBOPASS,
-            DIALGA_EX, HEATRAN);
+            DIALGA_EX, HEATRAN,
+            HEATRAN_IR, DIALGA_EX_UR, DIALGA_EX_IM, DIALGA_EX_HR);
 
     private Metal() {
     }
