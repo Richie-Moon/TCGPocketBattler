@@ -21,6 +21,8 @@ import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.DrawCard;
 import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.effect.HealDamage;
+import com.tcgpocket.effect.IncreaseAttackCost;
+import com.tcgpocket.effect.IncreaseRetreatCost;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.effect.PreventAttack;
 import com.tcgpocket.effect.PreventRetreat;
@@ -83,6 +85,17 @@ class IActionTest {
             attacker.attachEnergy(Type.LIGHTNING, 2);
 
             assertTrue(thunderShock.isLegal(context));
+        }
+
+        @Test
+        @DisplayName("an attack-cost increase adds Colorless to the printed cost")
+        void anIncreaseRaisesTheCost() {
+            attacker.attachEnergy(Type.LIGHTNING, 2);
+            new IncreaseAttackCost(new Literal(1), new AttackerActive(), new Literal(0)).apply(context);
+            assertFalse(thunderShock.isLegal(context));
+
+            attacker.attachEnergy(Type.WATER, 1);
+            assertTrue(thunderShock.isLegal(context), "any type pays the extra Colorless");
         }
 
         @Test
@@ -348,6 +361,16 @@ class IActionTest {
             board.battle.switchSides();
             board.battle.switchSides();
             assertFalse(retreat.isLegal(context), "full cost again once the turn is over");
+        }
+
+        @Test
+        void anIncreaseRaisesTheCost() {
+            active.attachEnergy(Type.WATER, 1);
+            new IncreaseRetreatCost(new Literal(1), new AttackerActive(), new Literal(0)).apply(context);
+            assertFalse(retreat.isLegal(context), "Snorlax now costs 2");
+
+            active.attachEnergy(Type.WATER, 1);
+            assertTrue(retreat.isLegal(context));
         }
 
         @Test

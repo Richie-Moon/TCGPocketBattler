@@ -40,8 +40,9 @@ final class Damage {
                 .orElse(DamageCalculator.DEFAULT_WEAKNESS_BONUS);
 
         DamageEvent event = new DamageEvent(source, target, base, isAttackDamage, weaknessBonus);
-        if (isAttackDamage && DamageCalculator.calculate(event, context.battle().turn()) > 0) {
-            TriggerDispatcher.dispatch(context.battle(), new DamageIncoming(source, target));
+        int incoming = DamageCalculator.calculate(event, context.battle().turn());
+        if (isAttackDamage && incoming > 0) {
+            TriggerDispatcher.dispatch(context.battle(), new DamageIncoming(source, target, incoming));
         }
 
         int removed = apply(context, event);

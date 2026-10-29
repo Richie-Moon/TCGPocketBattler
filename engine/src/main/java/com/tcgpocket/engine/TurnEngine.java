@@ -235,12 +235,14 @@ public final class TurnEngine {
                     .orElse(false);
 
             chosen.execute(contextFor(side));
+            battle.attacker().recoverProtected();
+            battle.defender().recoverProtected();
             checkKnockouts(attacked ? attacker : Optional.empty());
             if (over) {
                 return;
             }
             // An attack ends the turn even when Confusion cancelled it.
-            turnOver = attacked || chosen instanceof EndTurnAction;
+            turnOver = attacked || chosen instanceof EndTurnAction || side.turnEnded();
         }
 
         TriggerDispatcher.dispatch(battle, new TurnEnd(side));
@@ -252,6 +254,7 @@ public final class TurnEngine {
         // A reveal lasts until the revealed side's own turn ends, so an attack that reveals (and so ends
         // the turn) is still seen.
         side.concealHand();
+        side.markTurnTaken();
         int nextTurn = battle.turn() + 1;
         for (Side each : List.of(battle.attacker(), battle.defender())) {
             each.inPlay().forEach(pokemon -> pokemon.expireModifiers(nextTurn));

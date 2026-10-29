@@ -41,7 +41,8 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
     /**
      * Legal when the attacking Pokemon is the active one, has the energy, and
      * is neither held down by a special condition nor under a
-     * {@code CANNOT_ATTACK} modifier.
+     * {@code CANNOT_ATTACK} modifier. Any {@code INCREASE_ATTACK_COST} adds
+     * Colorless to the printed cost.
      */
     @Override
     public boolean isLegal(ResolutionContext context) {
@@ -57,7 +58,9 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
 
         return !heldDown
                 && context.controller().active().filter(pokemon::equals).isPresent()
-                && new HasEnergy(cost).evaluate(pokemon);
+                && new HasEnergy(cost.plusColorless(
+                        pokemon.modifierTotal(ModifierKind.INCREASE_ATTACK_COST, context.battle().turn())))
+                .evaluate(pokemon);
     }
 
     /**

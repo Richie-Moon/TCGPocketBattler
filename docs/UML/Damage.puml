@@ -42,6 +42,7 @@ enum ModifierKind {
     ATTACK_NEEDS_HEADS
     CANNOT_RETREAT
     REDUCE_RETREAT_COST
+    COUNTER_DAMAGE
 }
 
 DamageCalculator ..> DamageEvent

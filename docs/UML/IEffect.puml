@@ -151,11 +151,31 @@ class ShuffleFromHand <<record>> implements IEffect {
     - side: ISideTarget
 }
 
-/' All of one Pokemon's damage onto another. Neither healing nor damage
-   dealt, so no Healed or DamageDealt event. '/
+/' ShuffleFromHand with nobody choosing: a random card, so no reveal. '/
+class ShuffleRandomFromHand <<record>> implements IEffect {
+    - side: ISideTarget
+}
+
+/' One Pokemon's damage onto another, all of it or up to upTo. Neither healing
+   nor damage dealt, so no Healed or DamageDealt event. '/
 class MoveDamage <<record>> implements IEffect {
     - from: ITarget
     - to: ITarget
+    - upTo: Optional<INumber>
+}
+
+/' Marks the controller's side; TurnEngine ends the turn after the action. '/
+class EndTurn <<record>> implements IEffect {}
+
+/' Rare Candy. Finds the Stage 1 by name in CardPool to reach the Basic. '/
+class EvolveSkippingStage1 <<record>> implements IEffect {
+    - onto: ITarget
+}
+
+/' A random matching card from a discard pile into its owner's hand. '/
+class RecoverFromDiscard <<record>> implements IEffect {
+    - side: ISideTarget
+    - matching: ICondition<CardInstance>
 }
 
 /' --- Energy --- '/
@@ -260,6 +280,13 @@ class ReduceRetreatCost <<record>> implements IDurationEffect {
     - target: ITarget
 }
 
+/' Rough Skin for a while: TriggerDispatcher gives the target a retaliating
+   DamageDealt trigger while the modifier lasts. Spike Armor. '/
+class CounterDamage <<record>> implements IDurationEffect {
+    - damageAmount: INumber
+    - target: ITarget
+}
+
 /' --- Board --- '/
 
 class SwitchActive <<record>> implements IEffect {
@@ -294,6 +321,9 @@ class RemoveStatus <<record>> implements IEffect {
     - target: ITarget
     - statusToRemove: IStatus
 }
+class RemoveRandomStatus <<record>> implements IEffect {
+    - target: ITarget
+}
 
 class AttachTool <<record>> implements IEffect {
     - target: ITarget
@@ -308,6 +338,13 @@ class AttachTool <<record>> implements IEffect {
 class ConditionalEffect <<record>> implements IEffect {
     - condition: ICondition<ResolutionContext>
     - effect: IEffect
+}
+
+/' Resolves its target once (a ChosenFrom asks) and runs the inner effect with
+   it as PlayTarget, for text that names the chosen Pokemon twice. Energy Arrow. '/
+class ChooseThen <<record>> implements IEffect {
+    - choice: ITarget
+    - then: IEffect
 }
 
 class RepeatEffect <<record>> implements IEffect {

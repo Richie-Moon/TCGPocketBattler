@@ -32,7 +32,7 @@ class PassiveAbility <<record>> implements IAbility {
   Passives that are read, not fired: they must hold at every moment, through
   benching, evolving and switching mid-turn. Side.standingRules walks the board on
   each call and pairs each rule with its holder (Side.HeldRule); each rule is
-  read by exactly one place in the engine.
+  read by exactly one place in the engine, except StatusImmunity's two.
 '/
 interface IRule <<sealed>>
 
@@ -55,6 +55,7 @@ note bottom of NoRetreatCost : read by RetreatAction; only the holder's own cost
 
 class HpBonus <<record>> implements IRule {
     - amount: int
+    - holder: ICondition<PokemonInPlay>
 }
 note bottom of HpBonus : carried by a ToolCard, read by PokemonInPlay.maxHp
 
@@ -62,6 +63,11 @@ class SupporterLock <<record>> implements IRule {
     - whileHolder: ICondition<PokemonInPlay>
 }
 note bottom of SupporterLock : read by PlayCardAction.isLegal; the condition is on the holder
+
+class StatusImmunity <<record>> implements IRule {
+    - protects: ICondition<PokemonInPlay>
+}
+note bottom of StatusImmunity : read by AddStatus (refuses) and Side.recoverProtected (clears, after each action)
 
 ActivatedAbility *-- IAction
 PassiveAbility *-- ITrigger

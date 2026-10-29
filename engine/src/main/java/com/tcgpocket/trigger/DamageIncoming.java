@@ -16,8 +16,11 @@ import java.util.Optional;
  * modifiers this exists to set, so there is nothing to react with.
  *
  * <p>The subject is the Pokemon about to take it, as for {@link DamageDealt}.
+ *
+ * @param amount what would land as things stand, before any trigger here
+ *               changes it — what Guts compares against remaining HP
  */
-public record DamageIncoming(Optional<PokemonInPlay> source, PokemonInPlay target) implements GameEvent {
+public record DamageIncoming(Optional<PokemonInPlay> source, PokemonInPlay target, int amount) implements GameEvent {
 
     public DamageIncoming {
         Objects.requireNonNull(source, "source");

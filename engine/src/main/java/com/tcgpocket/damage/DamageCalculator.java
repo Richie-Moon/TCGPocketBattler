@@ -15,7 +15,8 @@ import com.tcgpocket.state.Zone;
  *   <li>base
  *   <li>plus the source's INCREASE_DAMAGE_DEALT modifiers, minus its REDUCE_DAMAGE_DEALT ones
  *   <li>plus weakness, applied to the already-increased amount
- *   <li>minus the target's REDUCE_DAMAGE_TAKEN modifiers, and its side's reduction (Blue)
+ *   <li>minus the target's REDUCE_DAMAGE_TAKEN modifiers plus its INCREASE_DAMAGE_TAKEN ones,
+ *       and its side's reduction (Blue)
  *   <li>zero if the target has PREVENT_DAMAGE
  *   <li>floored at zero
  * </ol>
@@ -53,6 +54,7 @@ public final class DamageCalculator {
         }
 
         amount -= sumModifiers(event.target(), ModifierKind.REDUCE_DAMAGE_TAKEN, currentTurn);
+        amount += sumModifiers(event.target(), ModifierKind.INCREASE_DAMAGE_TAKEN, currentTurn);
         amount -= sideReduction(event, currentTurn);
 
         if (event.target().hasModifier(ModifierKind.PREVENT_DAMAGE, currentTurn)) {

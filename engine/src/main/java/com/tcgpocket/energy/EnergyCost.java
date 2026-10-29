@@ -42,6 +42,14 @@ public record EnergyCost(Map<Type, Integer> requirements) {
         return new EnergyCost(Map.of(type, count, secondType, secondCount, thirdType, thirdCount));
     }
 
+    /** This cost with {@code count} more Colorless, never below zero Colorless. */
+    public EnergyCost plusColorless(int count) {
+        Map<Type, Integer> adjusted = new EnumMap<>(Type.class);
+        adjusted.putAll(requirements);
+        adjusted.put(Type.COLORLESS, Math.max(0, requirementFor(Type.COLORLESS) + count));
+        return new EnergyCost(adjusted);
+    }
+
     /** Total energy needed, typed and colorless together. */
     public int total() {
         return requirements.values().stream().mapToInt(Integer::intValue).sum();

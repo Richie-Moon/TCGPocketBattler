@@ -1,6 +1,8 @@
 package com.tcgpocket.action;
 
 import com.tcgpocket.card.IPlayableCard;
+import com.tcgpocket.card.ItemCard;
+import com.tcgpocket.card.PlayableItemCard;
 import com.tcgpocket.card.SupporterCard;
 import com.tcgpocket.card.SupporterLock;
 import com.tcgpocket.card.ToolCard;
@@ -85,6 +87,11 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
             return false;
         }
 
+        if ((card.definition() instanceof ItemCard || card.definition() instanceof PlayableItemCard)
+                && side.itemsLocked(context.battle().turn())) {
+            return false;
+        }
+
         if (card.definition() instanceof IPlayableCard playable) {
             return onto.isEmpty() && playable.asPokemon().isBasic()
                     && benchSlot.isPresent() && side.emptyBenchSlots().contains(benchSlot.getAsInt());
@@ -148,7 +155,9 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
     }
 
     private static Optional<PlayedOnto> playedOnto(CardInstance card) {
+        // A WithPrecondition may guard the drag (Rare Candy); its condition is checked by isLegal.
         return card.definition().actions().stream()
+                .map(action -> action instanceof WithPrecondition guarded ? guarded.action() : action)
                 .filter(PlayedOnto.class::isInstance)
                 .map(PlayedOnto.class::cast)
                 .findFirst();

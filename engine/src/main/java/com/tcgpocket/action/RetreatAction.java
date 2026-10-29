@@ -9,7 +9,6 @@ import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
-import com.tcgpocket.state.ActiveModifier;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
@@ -17,9 +16,7 @@ import com.tcgpocket.target.ITarget;
 import com.tcgpocket.trigger.Retreated;
 import com.tcgpocket.trigger.TriggerDispatcher;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -87,8 +84,9 @@ public record RetreatAction(ITarget replacement) implements IAction {
      * worth going through the type that already knows the rule rather than
      * comparing totals.
      *
-     * <p>Less any live {@link ModifierKind#REDUCE_RETREAT_COST}, taken off the
-     * colorless part and never below zero. Every printed retreat cost is
+     * <p>Less any live {@link ModifierKind#REDUCE_RETREAT_COST} and plus any
+     * {@link ModifierKind#INCREASE_RETREAT_COST}, on the colorless part and
+     * never below zero. Every printed retreat cost is
      * colorless, so that is all of it. Nothing at all while the Pokemon holds
      * a {@link NoRetreatCost} whose condition it meets.
      */
@@ -100,14 +98,9 @@ public record RetreatAction(ITarget replacement) implements IAction {
             return EnergyCost.free();
         }
         int turn = context.battle().turn();
-        int reduction = retreating.modifiers().stream()
-                .filter(modifier -> modifier.kind() == ModifierKind.REDUCE_RETREAT_COST)
-                .filter(modifier -> modifier.isActiveOn(turn))
-                .mapToInt(ActiveModifier::amount)
-                .sum();
-        Map<Type, Integer> requirements = new HashMap<>(retreating.definition().retreatCost().requirements());
-        requirements.computeIfPresent(Type.COLORLESS, (type, count) -> Math.max(0, count - reduction));
-        return new EnergyCost(requirements);
+        return retreating.definition().retreatCost().plusColorless(
+                retreating.modifierTotal(ModifierKind.INCREASE_RETREAT_COST, turn)
+                        - retreating.modifierTotal(ModifierKind.REDUCE_RETREAT_COST, turn));
     }
 
     /**

@@ -2,29 +2,37 @@ package com.tcgpocket.trigger;
 
 import com.tcgpocket.ScriptedRandom;
 import com.tcgpocket.TestBoard;
+import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PassiveAbility;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.card.StadiumCard;
 import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.condition.Always;
+import com.tcgpocket.condition.And;
+import com.tcgpocket.condition.For;
+import com.tcgpocket.condition.HasTag;
 import com.tcgpocket.condition.EventConcerns;
 import com.tcgpocket.condition.EventSideIs;
 import com.tcgpocket.condition.ICondition;
 import com.tcgpocket.effect.Attempt;
 import com.tcgpocket.effect.AttemptResult;
+import com.tcgpocket.effect.CounterDamage;
 import com.tcgpocket.effect.DealDamage;
 import com.tcgpocket.effect.Fail;
 import com.tcgpocket.effect.HealDamage;
 import com.tcgpocket.effect.IEffect;
 import com.tcgpocket.effect.PlaceDamage;
+import com.tcgpocket.effect.PreventDamage;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.number.EventDamage;
 import com.tcgpocket.number.Literal;
+import com.tcgpocket.pool.CardPool;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.AttackerActive;
 import com.tcgpocket.target.AttackerSide;
+import com.tcgpocket.target.EventSource;
 import com.tcgpocket.target.OpponentActive;
 import com.tcgpocket.target.OpponentSide;
 import com.tcgpocket.target.Self;
@@ -257,6 +265,73 @@ class ITriggerTest {
 
             assertEquals(1, result.fired());
             assertTrue(result.vetoed());
+        }
+
+        @Test
+        @DisplayName("a counter-damage modifier hits back at an attacker, but not at poison")
+        void counterDamageAnswersOnlyAnAttacker() {
+            PokemonInPlay mine = board.active(board.you, PIKACHU);
+            PokemonInPlay theirs = board.active(board.them, BULBASAUR);
+            new CounterDamage(new Literal(40), new Self(), new Literal(1)).apply(board.contextFor(theirs));
+
+            TriggerDispatcher.dispatch(board.battle, new DamageDealt(Optional.empty(), theirs, 10));
+            assertEquals(0, mine.damage(), "no attacker to answer");
+
+            TriggerDispatcher.dispatch(board.battle, new DamageDealt(Optional.of(mine), theirs, 30));
+            assertEquals(40, mine.damage());
+        }
+
+        @Test
+        @DisplayName("EventSource names who is about to hit, so damage from an ex alone can be prevented")
+        void eventSourceReadsIncomingDamage() {
+            PokemonInPlay plain = board.active(board.you, PIKACHU);
+            PokemonInPlay theirs = board.active(board.them, BULBASAUR);
+            ToolCard safeguard = ToolCard.of("safeguard", "Safeguard",
+                    when(DamageIncoming.class,
+                            new And<>(new EventConcerns(new Self()), new For(new HasTag(CardTag.EX), new EventSource())),
+                            new PreventDamage(new Self(), new Literal(0))));
+            theirs.attachTool(board.loose(board.them, safeguard));
+
+            new DealDamage(new Literal(30), new OpponentActive()).apply(board.contextFor(plain));
+            assertEquals(30, theirs.damage(), "not an ex");
+
+            board.you.setActive(null);
+            PokemonInPlay ex = board.active(board.you, PokemonCard.basic("pikachu-ex", "Pikachu ex", 120, Type.LIGHTNING, 1)
+                    .withTags(CardTag.EX));
+            new DealDamage(new Literal(30), new OpponentActive()).apply(board.contextFor(ex));
+            assertEquals(30, theirs.damage(), "the ex's damage was prevented");
+        }
+
+        @Test
+        @DisplayName("EventDamage reads what is about to land, so Guts survives a knockout at 10 HP")
+        void eventDamageReadsIncomingDamage() {
+            TestBoard fixed = new TestBoard(ScriptedRandom.alwaysHeads());
+            PokemonInPlay mine = fixed.active(fixed.you, PIKACHU);
+            PokemonInPlay conkeldurr = fixed.active(fixed.them, (PokemonCard) CardPool.get("A3-096"));
+            conkeldurr.takeDamage(100);
+
+            new DealDamage(new Literal(30), new OpponentActive()).apply(fixed.contextFor(mine));
+            assertEquals(20, conkeldurr.currentHp(), "not lethal, so Guts stays out of it");
+
+            new DealDamage(new Literal(80), new OpponentActive()).apply(fixed.contextFor(mine));
+            assertEquals(10, conkeldurr.currentHp());
+        }
+
+        @Test
+        @DisplayName("EventSource is the Pokemon that dealt a knockout, and nobody for poison")
+        void eventSourceReadsTheKnockout() {
+            PokemonInPlay mine = board.active(board.you, PIKACHU);
+            PokemonInPlay theirs = board.active(board.them, BULBASAUR);
+            ToolCard innards = ToolCard.of("innards", "Innards Out",
+                    when(Knockout.class, new EventConcerns(new Self()),
+                            new PlaceDamage(new Literal(50), new EventSource())));
+            theirs.attachTool(board.loose(board.them, innards));
+
+            TriggerDispatcher.dispatch(board.battle, new Knockout(theirs, Optional.empty()));
+            assertEquals(0, mine.damage());
+
+            TriggerDispatcher.dispatch(board.battle, new Knockout(theirs, Optional.of(mine)));
+            assertEquals(50, mine.damage());
         }
 
         @Test

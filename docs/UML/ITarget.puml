@@ -30,6 +30,7 @@ class PlayTarget <<record>> implements ITarget {}
 
 /' Only while a trigger is resolving; reads ResolutionContext.event.
    Lets a card retaliate against whatever just hit it. '/
+/' Who dealt the DamageDealt, or the Knockout's `by`. Rough Skin, Innards Out. '/
 class EventSource <<record>> implements ITarget {}
 
 /' --- index-addressed: the caller already knows which one --- '/

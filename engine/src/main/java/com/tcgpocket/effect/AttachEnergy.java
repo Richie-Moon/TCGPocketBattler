@@ -39,6 +39,12 @@ public record AttachEnergy(Type energyType, INumber energyCount, ITarget target)
             return EffectOutcome.FAILED;
         }
 
+        PokemonInPlay pokemon = resolved.get();
+        if (pokemon.owner().active().filter(pokemon::equals).isPresent()
+                && pokemon.owner().activeEnergyLocked(context.battle().turn())) {
+            return EffectOutcome.FAILED;
+        }
+
         int count = energyCount.evaluate(context);
         if (count <= 0) {
             return EffectOutcome.NO_OP;
