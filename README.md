@@ -65,4 +65,5 @@ npm run dev    # then open http://localhost:5173 in two tabs
 ## Credits
 
 [TCGDex](https://github.com/tcgdex) for card data.  
+[Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Browse:TCG_Pocket) and [LimitlessTCG](https://pocket.limitlesstcg.com/cards) for assets.  
 [tcgp-deck-qr](https://github.com/KevinGutowski/tcgp-deck-qr) for deck QR code generation.
