@@ -49,9 +49,11 @@ class EvolutionLock <<record>> implements IRule {
 note bottom of EvolutionLock : read by EvolveAction.isLegal
 
 class NoRetreatCost <<record>> implements IRule {
+    - retreating: Optional<ICondition<? super PokemonInPlay>>
     - whileHolder: ICondition<PokemonInPlay>
 }
-note bottom of NoRetreatCost : read by RetreatAction; only the holder's own cost
+note bottom of NoRetreatCost : read by RetreatAction; the holder's own cost,
+or another's when retreating is set (Tatsugiri)
 
 class RetreatCostReduction <<record>> implements IRule {
     - amount: int

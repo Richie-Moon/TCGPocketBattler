@@ -8,11 +8,20 @@ import com.tcgpocket.target.ISideTarget;
 import java.util.List;
 import java.util.Objects;
 
-/** Puts a hand back into its deck and shuffles. */
-public record ShuffleHandIntoDeck(ISideTarget side) implements IEffect {
+/**
+ * Puts a hand back into its deck and shuffles.
+ *
+ * @param redraw then draws as many cards as went back — Iono's "then draws
+ *               that many cards", which no later effect could count
+ */
+public record ShuffleHandIntoDeck(ISideTarget side, boolean redraw) implements IEffect {
 
     public ShuffleHandIntoDeck {
         Objects.requireNonNull(side, "side");
+    }
+
+    public ShuffleHandIntoDeck(ISideTarget side) {
+        this(side, false);
     }
 
     @Override
@@ -28,6 +37,9 @@ public record ShuffleHandIntoDeck(ISideTarget side) implements IEffect {
             target.addToDeck(card);
         }
         target.shuffleDeck(context.battle().rng());
+        if (redraw) {
+            hand.forEach(card -> target.drawCard());
+        }
         return EffectOutcome.APPLIED;
     }
 }

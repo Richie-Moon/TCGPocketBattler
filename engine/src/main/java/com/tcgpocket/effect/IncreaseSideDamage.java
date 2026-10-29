@@ -23,26 +23,30 @@ import java.util.Optional;
  *
  * @param matching narrows which attackers benefit — Blaine's "your Ninetales,
  *                 Rapidash, or Magmar"; empty covers all of them
+ * @param against  narrows which defending Actives it hits harder — Red's
+ *                 "your opponent's Active Pokémon ex"; empty is any of them
  */
 public record IncreaseSideDamage(
         INumber increaseAmount,
         Optional<ICondition<? super PokemonInPlay>> matching,
+        Optional<ICondition<? super PokemonInPlay>> against,
         INumber duration) implements IDurationEffect {
 
     public IncreaseSideDamage {
         Objects.requireNonNull(increaseAmount, "increaseAmount");
         Objects.requireNonNull(matching, "matching");
+        Objects.requireNonNull(against, "against");
         Objects.requireNonNull(duration, "duration");
     }
 
     /** Every one of the controller's Pokemon. */
     public IncreaseSideDamage(INumber increaseAmount, INumber duration) {
-        this(increaseAmount, Optional.empty(), duration);
+        this(increaseAmount, Optional.empty(), Optional.empty(), duration);
     }
 
     /** Only the controller's Pokemon that match. */
     public IncreaseSideDamage(INumber increaseAmount, ICondition<? super PokemonInPlay> matching, INumber duration) {
-        this(increaseAmount, Optional.of(matching), duration);
+        this(increaseAmount, Optional.of(matching), Optional.empty(), duration);
     }
 
     @Override
@@ -55,6 +59,7 @@ public record IncreaseSideDamage(
         context.controller().addAttackBonus(
                 amount,
                 pokemon -> matching.map(condition -> condition.evaluate(pokemon)).orElse(true),
+                defender -> against.map(condition -> condition.evaluate(defender)).orElse(true),
                 expiry);
         return EffectOutcome.APPLIED;
     }

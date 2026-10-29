@@ -62,7 +62,7 @@ public final class Side {
     /** Not a turn flag: set once, when this side's first turn ends, and never cleared. */
     private boolean hasTakenATurn;
     private int knockedOutByAttackOnTurn = -1;
-    private final List<SideModifier> attackBonuses = new ArrayList<>();
+    private final List<AttackBonus> attackBonuses = new ArrayList<>();
     private final List<SideModifier> damageReductions = new ArrayList<>();
     private final List<SideModifier> attackCostReductions = new ArrayList<>();
 
@@ -487,13 +487,21 @@ public final class Side {
                 .sum();
     }
 
-    public void addAttackBonus(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {
-        attackBonuses.add(new SideModifier(amount, appliesTo, expiresOnTurn));
+    /** A {@link SideModifier} that also asks who is hit — Red's "your opponent's Active Pokémon ex". */
+    public record AttackBonus(SideModifier modifier, Predicate<PokemonInPlay> against) {
     }
 
-    /** The bonus one of this side's Pokemon attacks with this turn. */
-    public int attackBonusFor(PokemonInPlay attacker, int currentTurn) {
-        return total(attackBonuses, attacker, currentTurn);
+    public void addAttackBonus(
+            int amount, Predicate<PokemonInPlay> appliesTo, Predicate<PokemonInPlay> against, int expiresOnTurn) {
+        attackBonuses.add(new AttackBonus(new SideModifier(amount, appliesTo, expiresOnTurn), against));
+    }
+
+    /** The bonus one of this side's Pokemon attacks {@code defender} with this turn. */
+    public int attackBonusFor(PokemonInPlay attacker, PokemonInPlay defender, int currentTurn) {
+        return total(attackBonuses.stream()
+                .filter(bonus -> bonus.against().test(defender))
+                .map(AttackBonus::modifier)
+                .toList(), attacker, currentTurn);
     }
 
     public void addDamageReduction(int amount, Predicate<PokemonInPlay> appliesTo, int expiresOnTurn) {

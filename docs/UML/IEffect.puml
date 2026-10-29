@@ -52,6 +52,7 @@ class DrawCard <<record>> implements IEffect {
 
 class ShuffleHandIntoDeck <<record>> implements IEffect {
     - side: ISideTarget
+    - redraw: boolean
 }
 
 class RevealHand <<record>> implements IEffect {
@@ -258,6 +259,7 @@ class IncreaseDamage <<record>> implements IDurationEffect {
 class IncreaseSideDamage <<record>> implements IDurationEffect {
     - increaseAmount: INumber
     - matching: Optional<ICondition<? super PokemonInPlay>>
+    - against: Optional<ICondition<? super PokemonInPlay>>
 }
 
 /' Its defensive twin: less damage from the opponent's attacks for the
@@ -353,7 +355,7 @@ class ConditionalEffect <<record>> implements IEffect {
    it as PlayTarget, for text that names the chosen Pokemon twice. Energy Arrow. '/
 class ChooseThen <<record>> implements IEffect {
     - choice: ITarget
-    - then: IEffect
+    - then: List<IEffect>
 }
 
 class RepeatEffect <<record>> implements IEffect {

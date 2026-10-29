@@ -92,7 +92,7 @@ public final class DamageCalculator {
         if (target.zone() != Zone.ACTIVE || target.owner() == source.owner()) {
             return 0;
         }
-        return source.owner().attackBonusFor(source, currentTurn);
+        return source.owner().attackBonusFor(source, target, currentTurn);
     }
 
     /**
