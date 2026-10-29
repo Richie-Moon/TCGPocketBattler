@@ -125,10 +125,11 @@ public final class Water {
             new AttackCostReduction(1, Links.ARCEUS_IN_PLAY)));
 
     /**
-     * A2a-022 - Glaceon ex. Pokémon Checkup comes between every two turns, so
-     * Snowy Terrain is two triggers: "your opponent" is {@code OpponentActive}
-     * after its holder's own turn and {@code AttackerActive} after the
-     * opponent's, since targets are turn-relative.
+     * A2a-022 - Glaceon ex. Pokémon Checkup follows every turn, and both
+     * triggers hit the Active of Glaceon's opponent: that is
+     * {@code OpponentActive} after Glaceon's own turn and
+     * {@code AttackerActive} after the opponent's turn, because targets are
+     * turn-relative.
      */
     public static final PokemonCard GLACEON_EX = PokemonCard.evolution(
             "A2a-022", "Glaceon ex", "",

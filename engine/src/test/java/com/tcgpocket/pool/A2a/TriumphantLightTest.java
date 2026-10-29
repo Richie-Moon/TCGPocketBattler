@@ -142,9 +142,9 @@ class TriumphantLightTest {
         }
 
         @Test
-        @DisplayName("Snowy Terrain hits the opponent's Active at every Pokémon Checkup")
+        @DisplayName("Snowy Terrain hits Glaceon's opponent's Active at every Pokémon Checkup")
         void snowyTerrainEveryCheckup() {
-            board.active(board.you, Water.GLACEON_EX);
+            PokemonInPlay glaceon = board.active(board.you, Water.GLACEON_EX);
             PokemonInPlay wall = board.active(board.them, TestBoard.card("Wall", 200, Type.COLORLESS));
 
             TriggerDispatcher.dispatch(board.battle, new TurnEnd(board.you));
@@ -153,6 +153,7 @@ class TriumphantLightTest {
             board.battle.switchSides();
             TriggerDispatcher.dispatch(board.battle, new TurnEnd(board.them));
             assertEquals(20, wall.damage());
+            assertEquals(0, glaceon.damage());
         }
 
         @Test
