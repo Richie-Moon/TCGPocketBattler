@@ -152,8 +152,14 @@ public final class Colorless {
             "This Pokémon can't be affected by any Special Conditions.",
             new StatusImmunity(new IsSpecies("Arceus ex"))));
 
+    /** A2a-081 · Shaymin (alternate art of A2a-069) */
+    public static final PokemonCard SHAYMIN_IR = SHAYMIN.withId("A2a-081", CardRarity.ILLUSTRATION_RARE);
+    /** A2a-086 · Arceus ex (alternate art of A2a-071) */
+    public static final PokemonCard ARCEUS_EX_UR = ARCEUS_EX.withId("A2a-086", CardRarity.ULTRA_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            EEVEE, SNORLAX, HOOTHOOT, NOCTOWL, STARLY, STARAVIA, STARAPTOR, SHAYMIN, ARCEUS, ARCEUS_EX);
+            EEVEE, SNORLAX, HOOTHOOT, NOCTOWL, STARLY, STARAVIA, STARAPTOR, SHAYMIN, ARCEUS, ARCEUS_EX,
+            SHAYMIN_IR, ARCEUS_EX_UR);
 
     private Colorless() {
     }

@@ -122,7 +122,11 @@ public final class Psychic {
             )), CardRarity.RARE
     ).withWeakness(Type.DARKNESS).withAbility(Links.speedLink());
 
-    static final List<PokemonCard> CARDS = List.of(CLEFAIRY, CLEFABLE, GASTLY, HAUNTER, GENGAR, UNOWN, ROTOM);
+    /** A2a-078 · Unown (alternate art of A2a-034) */
+    public static final PokemonCard UNOWN_IR = UNOWN.withId("A2a-078", CardRarity.ILLUSTRATION_RARE);
+
+    static final List<PokemonCard> CARDS = List.of(CLEFAIRY, CLEFABLE, GASTLY, HAUNTER, GENGAR, UNOWN, ROTOM,
+            UNOWN_IR);
 
     private Psychic() {
     }

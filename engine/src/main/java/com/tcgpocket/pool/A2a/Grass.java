@@ -146,8 +146,12 @@ public final class Grass {
                             new AttackerAll(), new AttackerSide(), new IsType(Type.GRASS), "Choose a Grass Pokémon to attach a Grass Energy to"))))),
             true, new For(new IsActive(), new Self())));
 
+    /** A2a-082 · Leafeon ex (alternate art of A2a-010) */
+    public static final PokemonCard LEAFEON_EX_UR = LEAFEON_EX.withId("A2a-082", CardRarity.ULTRA_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
-            HERACROSS, BURMY, MOTHIM, COMBEE, VESPIQUEN, CHERUBI, CHERRIM, CHERRIM_SUNSHINE, CARNIVINE, LEAFEON_EX);
+            HERACROSS, BURMY, MOTHIM, COMBEE, VESPIQUEN, CHERUBI, CHERRIM, CHERRIM_SUNSHINE, CARNIVINE, LEAFEON_EX,
+            LEAFEON_EX_UR);
 
     private Grass() {
     }

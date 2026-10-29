@@ -58,7 +58,11 @@ public final class Fire {
             )), CardRarity.RARE
     ).withWeakness(Type.WATER).withAbility(Links.speedLink());
 
-    static final List<PokemonCard> CARDS = List.of(HOUNDOUR, HOUNDOOM, HEATRAN);
+    /** A2a-076 · Houndoom (alternate art of A2a-012) */
+    public static final PokemonCard HOUNDOOM_IR = HOUNDOOM.withId("A2a-076", CardRarity.ILLUSTRATION_RARE);
+
+    static final List<PokemonCard> CARDS = List.of(HOUNDOUR, HOUNDOOM, HEATRAN,
+            HOUNDOOM_IR);
 
     private Fire() {
     }

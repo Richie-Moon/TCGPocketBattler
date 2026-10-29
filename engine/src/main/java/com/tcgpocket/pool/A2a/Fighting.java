@@ -164,9 +164,15 @@ public final class Fighting {
             ), CardRarity.DOUBLE_RARE
     ).withWeakness(Type.GRASS).withTags(CardTag.EX);
 
+    /** A2a-079 · Sudowoodo (alternate art of A2a-036) */
+    public static final PokemonCard SUDOWOODO_IR = SUDOWOODO.withId("A2a-079", CardRarity.ILLUSTRATION_RARE);
+    /** A2a-084 · Garchomp ex (alternate art of A2a-047) */
+    public static final PokemonCard GARCHOMP_EX_UR = GARCHOMP_EX.withId("A2a-084", CardRarity.ULTRA_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             SUDOWOODO, PHANPY, DONPHAN, LARVITAR, PUPITAR, TYRANITAR, NOSEPASS, MEDITITE, MEDICHAM,
-            GIBLE, GABITE, GARCHOMP_EX);
+            GIBLE, GABITE, GARCHOMP_EX,
+            SUDOWOODO_IR, GARCHOMP_EX_UR);
 
     private Fighting() {
     }

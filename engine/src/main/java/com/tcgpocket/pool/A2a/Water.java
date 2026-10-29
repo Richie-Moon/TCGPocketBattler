@@ -174,9 +174,15 @@ public final class Water {
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.LIGHTNING);
 
+    /** A2a-077 · Marill (alternate art of A2a-014) */
+    public static final PokemonCard MARILL_IR = MARILL.withId("A2a-077", CardRarity.ILLUSTRATION_RARE);
+    /** A2a-083 · Glaceon ex (alternate art of A2a-022) */
+    public static final PokemonCard GLACEON_EX_UR = GLACEON_EX.withId("A2a-083", CardRarity.ULTRA_RARE);
+
     static final List<PokemonCard> CARDS = List.of(
             MARILL, AZUMARILL, BARBOACH, WHISCASH, SNORUNT, FROSLASS, SNOVER, ABOMASNOW, GLACEON_EX,
-            ORIGIN_FORME_PALKIA, PHIONE);
+            ORIGIN_FORME_PALKIA, PHIONE,
+            MARILL_IR, GLACEON_EX_UR);
 
     private Water() {
     }
