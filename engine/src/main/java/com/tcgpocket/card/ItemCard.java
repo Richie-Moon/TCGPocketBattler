@@ -21,6 +21,11 @@ public record ItemCard(
         actions = List.copyOf(actions);
     }
 
+    /** The same card under another id: an alternate art or a reprint. */
+    public ItemCard withId(String newId) {
+        return new ItemCard(newId, name, description, tags, actions);
+    }
+
     public static ItemCard of(String id, String name, IAction action) {
         return new ItemCard(id, name, "", Set.of(), List.of(action));
     }

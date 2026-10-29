@@ -4,6 +4,7 @@ import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.target.ITarget;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,14 +19,22 @@ import java.util.Optional;
  * it on the way a dragged-onto Trainer hands on its Pokemon, so the inner
  * effect reads it through {@code PlayTarget} with nobody asked again.
  *
+ * <p>{@code then} runs in order, like an {@code Attempt}'s effects — Pokémon
+ * Center Lady heals the chosen Pokemon and then cures it. A FAILED one stops
+ * the rest; otherwise APPLIED if any of them was.
+ *
  * <p>FAILED if the choice resolves to nobody, as any effect with an unresolved
  * target is.
  */
-public record ChooseThen(ITarget choice, IEffect then) implements IEffect {
+public record ChooseThen(ITarget choice, List<IEffect> then) implements IEffect {
 
     public ChooseThen {
         Objects.requireNonNull(choice, "choice");
-        Objects.requireNonNull(then, "then");
+        then = List.copyOf(then);
+    }
+
+    public ChooseThen(ITarget choice, IEffect then) {
+        this(choice, List.of(then));
     }
 
     @Override
@@ -34,6 +43,17 @@ public record ChooseThen(ITarget choice, IEffect then) implements IEffect {
         if (chosen.isEmpty()) {
             return EffectOutcome.FAILED;
         }
-        return then.apply(context.withPlayTarget(chosen));
+        ResolutionContext onChosen = context.withPlayTarget(chosen);
+        EffectOutcome result = EffectOutcome.NO_OP;
+        for (IEffect effect : then) {
+            EffectOutcome outcome = effect.apply(onChosen);
+            if (outcome.isFailure()) {
+                return outcome;
+            }
+            if (outcome == EffectOutcome.APPLIED || result == EffectOutcome.NO_OP) {
+                result = outcome;
+            }
+        }
+        return result;
     }
 }
