@@ -15,5 +15,6 @@ package com.tcgpocket.card;
  * <p>Each rule is read by exactly one place in the engine, named on the rule —
  * except {@link StatusImmunity}, whose text says two things.
  */
-public sealed interface IRule permits EnergyBoost, EvolutionLock, HpBonus, NoRetreatCost, StatusImmunity, SupporterLock {
+public sealed interface IRule permits AttackCostReduction, EnergyBoost, EvolutionLock, HpBonus, NoRetreatCost, RetreatCostReduction,
+        StatusImmunity, SupporterLock {
 }

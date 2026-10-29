@@ -43,7 +43,7 @@ public sealed interface ICondition<T> permits
         EventConcerns, EventSideIs, EnergyFromZone, CanSkipStage1,
         // subject: PokemonInPlay
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
-        IsActive, IsBenched, IsDamaged, HasTool, HasEnergy, MovedToActiveThisTurn, OwnersFirstTurn, HasAbility,
+        IsActive, IsBenched, IsDamaged, HasTool, HasEnergy, MovedToActiveThisTurn, OwnersFirstTurn, OwnerHasInPlay, HasAbility,
         // subject: CardInstance
         InZone, IsSpecies, EvolvesFrom, HasTag, IsType, IsBasic, IsStage, IsPokemon, IsItem {
 

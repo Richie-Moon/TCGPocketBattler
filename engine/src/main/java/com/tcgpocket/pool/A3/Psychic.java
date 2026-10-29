@@ -295,20 +295,8 @@ public final class Psychic {
     public static final PokemonCard LUNALA_EX_UR = LUNALA_EX.withId("A3-186", CardRarity.ULTRA_RARE);
     /** A3-204 · Lunala ex (alternate art of A3-087) */
     public static final PokemonCard LUNALA_EX_SIR = LUNALA_EX.withId("A3-204", CardRarity.SPECIAL_ILLUSTRATION_RARE);
-    /**
-     * A3-220 · Gastly (only printed as a shiny so far). The base card will be added
-     * later; when it is, refactor this into a {@code withId(...)} of it.
-     */
-    public static final PokemonCard GASTLY = PokemonCard.basic(
-            "A3-220", "Gastly", "It wraps its opponent in its gas-like body, slowly weakening its prey by poisoning it through the skin.",
-            50, Type.PSYCHIC, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
-                    "Astonish", "Flip a coin. If heads, your opponent reveals a random card from their hand and shuffles it into their deck.",
-                    EnergyCost.of(Type.COLORLESS, 1), new Attempt(List.of(
-                            new FlipN(new Literal(1)),
-                            new ConditionalEffect(new LastCoinTossHeads(),
-                                    new ShuffleRandomFromHand(new OpponentSide())))))
-            ), CardRarity.SHINY_RARE
-    ).withWeakness(Type.DARKNESS);
+    /** A3-220 · Gastly (shiny of A2a-031) */
+    public static final PokemonCard GASTLY_SR = com.tcgpocket.pool.A2a.Psychic.GASTLY.withId("A3-220", CardRarity.SHINY_RARE);
     /** A3-221 · Haunter (shiny of A1-121) */
     public static final PokemonCard HAUNTER_SR = com.tcgpocket.pool.A1.Psychic.HAUNTER.withId("A3-221", CardRarity.SHINY_RARE);
     /** A3-222 · Gengar (shiny of A1-122) */
@@ -323,7 +311,7 @@ public final class Psychic {
             CUTIEFLY, RIBOMBEE, COMFEY, SANDYGAST, PALOSSAND, MIMIKYU, TAPU_LELE, COSMOG, COSMOEM, LUNALA_EX,
             NECROZMA,
             CUTIEFLY_IR, COMFEY_IR, SANDYGAST_IR, TAPU_LELE_IR, COSMOG_IR, LUNALA_EX_UR, LUNALA_EX_SIR,
-            GASTLY, HAUNTER_SR, GENGAR_SR, GENGAR_EX_SUR, LUNALA_EX_HR);
+            GASTLY_SR, HAUNTER_SR, GENGAR_SR, GENGAR_EX_SUR, LUNALA_EX_HR);
 
     private Psychic() {
     }

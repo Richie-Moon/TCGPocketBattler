@@ -37,7 +37,7 @@ public record AddStatus(IStatus statusToAdd, ITarget target) implements IEffect 
         if (pokemon.owner().protectsFromStatus(pokemon)) {
             return EffectOutcome.PREVENTED;
         }
-        if (pokemon.hasStatus(statusToAdd)) {
+        if (pokemon.statuses().contains(statusToAdd)) {
             return EffectOutcome.NO_OP;
         }
 

@@ -12,11 +12,21 @@ import com.tcgpocket.trigger.TurnEnd;
 
 import java.util.List;
 
-/** Poisoned: 10 damage at the end of every turn, and it never wears off. */
-public record PoisonStatus() implements IStatus {
+/**
+ * Poisoned: {@code damage} at the end of every turn, and it never wears off.
+ *
+ * <p>Usually 10; Toxicroak's Toxic poisons for 20 "instead of the usual
+ * amount". Either way it is the one condition, Poisoned, so a Pokemon holds at
+ * most one and a new one replaces it; see {@code PokemonInPlay.addStatus}.
+ */
+public record PoisonStatus(int damage) implements IStatus {
 
-    /** Damage a poisoned Pokemon takes each turn. */
+    /** Damage a poisoned Pokemon usually takes each turn. */
     public static final int DAMAGE = 10;
+
+    public PoisonStatus() {
+        this(DAMAGE);
+    }
 
     @Override
     public StatusCategory category() {
@@ -30,6 +40,6 @@ public record PoisonStatus() implements IStatus {
                 // Conditions only ever sit on the Active Pokemon, but an effect
                 // can target the bench directly, and a tick there would be wrong.
                 new For(new IsActive(), new Self()),
-                new Attempt(List.of(new PlaceDamage(new Literal(DAMAGE), new Self())))));
+                new Attempt(List.of(new PlaceDamage(new Literal(damage), new Self())))));
     }
 }

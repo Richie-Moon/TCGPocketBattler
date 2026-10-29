@@ -61,6 +61,7 @@ class RevealHand <<record>> implements IEffect {
 class LookAtTopCards <<record>> implements IEffect {
     - cardCount: INumber
     - side: ISideTarget
+    - viewer: ISideTarget
 }
 
 /' Top card to the hand if it matches, else to the bottom. Mythical Slab. '/
@@ -259,10 +260,18 @@ class IncreaseSideDamage <<record>> implements IDurationEffect {
     - matching: Optional<ICondition<? super PokemonInPlay>>
 }
 
-/' Its defensive twin: less damage from the opponent's attacks for all of the
-   controller's Pokemon. Blue. '/
+/' Its defensive twin: less damage from the opponent's attacks for the
+   controller's matching Pokemon. Blue, Adaman. '/
 class ReduceSideDamageTaken <<record>> implements IDurationEffect {
     - reductionAmount: INumber
+    - matching: Optional<ICondition<? super PokemonInPlay>>
+}
+
+/' Cheaper attacks by Colorless for the controller's matching Pokemon, read by
+   Action.isLegal. Barry. '/
+class ReduceSideAttackCost <<record>> implements IDurationEffect {
+    - reductionAmount: INumber
+    - matching: Optional<ICondition<? super PokemonInPlay>>
 }
 
 class PreventDamage <<record>> implements IDurationEffect {
