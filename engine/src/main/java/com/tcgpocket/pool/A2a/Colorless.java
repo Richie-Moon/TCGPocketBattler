@@ -156,10 +156,14 @@ public final class Colorless {
     public static final PokemonCard SHAYMIN_IR = SHAYMIN.withId("A2a-081", CardRarity.ILLUSTRATION_RARE);
     /** A2a-086 · Arceus ex (alternate art of A2a-071) */
     public static final PokemonCard ARCEUS_EX_UR = ARCEUS_EX.withId("A2a-086", CardRarity.ULTRA_RARE);
+    /** A2a-095 · Arceus ex (alternate art of A2a-071) */
+    public static final PokemonCard ARCEUS_EX_IM = ARCEUS_EX.withId("A2a-095", CardRarity.IMMERSIVE);
+    /** A2a-096 · Arceus ex (alternate art of A2a-071) */
+    public static final PokemonCard ARCEUS_EX_HR = ARCEUS_EX.withId("A2a-096", CardRarity.HYPER_RARE);
 
     static final List<PokemonCard> CARDS = List.of(
             EEVEE, SNORLAX, HOOTHOOT, NOCTOWL, STARLY, STARAVIA, STARAPTOR, SHAYMIN, ARCEUS, ARCEUS_EX,
-            SHAYMIN_IR, ARCEUS_EX_UR);
+            SHAYMIN_IR, ARCEUS_EX_UR, ARCEUS_EX_IM, ARCEUS_EX_HR);
 
     private Colorless() {
     }

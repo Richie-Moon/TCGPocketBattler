@@ -123,10 +123,12 @@ public final class Metal {
     public static final PokemonCard MAGNEMITE_IR = MAGNEMITE.withId("A2a-080", CardRarity.ILLUSTRATION_RARE);
     /** A2a-085 · Probopass ex (alternate art of A2a-057) */
     public static final PokemonCard PROBOPASS_EX_UR = PROBOPASS_EX.withId("A2a-085", CardRarity.ULTRA_RARE);
+    /** A2a-094 · Probopass ex (alternate art of A2a-057) */
+    public static final PokemonCard PROBOPASS_EX_SIR = PROBOPASS_EX.withId("A2a-094", CardRarity.SPECIAL_ILLUSTRATION_RARE);
 
     static final List<PokemonCard> CARDS = List.of(
             MAGNEMITE, MAGNETON, MAGNEZONE, MAWILE, PROBOPASS_EX, BRONZOR, BRONZONG, ORIGIN_FORME_DIALGA,
-            MAGNEMITE_IR, PROBOPASS_EX_UR);
+            MAGNEMITE_IR, PROBOPASS_EX_UR, PROBOPASS_EX_SIR);
 
     private Metal() {
     }

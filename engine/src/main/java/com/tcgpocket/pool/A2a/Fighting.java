@@ -168,11 +168,13 @@ public final class Fighting {
     public static final PokemonCard SUDOWOODO_IR = SUDOWOODO.withId("A2a-079", CardRarity.ILLUSTRATION_RARE);
     /** A2a-084 · Garchomp ex (alternate art of A2a-047) */
     public static final PokemonCard GARCHOMP_EX_UR = GARCHOMP_EX.withId("A2a-084", CardRarity.ULTRA_RARE);
+    /** A2a-093 · Garchomp ex (alternate art of A2a-047) */
+    public static final PokemonCard GARCHOMP_EX_SIR = GARCHOMP_EX.withId("A2a-093", CardRarity.SPECIAL_ILLUSTRATION_RARE);
 
     static final List<PokemonCard> CARDS = List.of(
             SUDOWOODO, PHANPY, DONPHAN, LARVITAR, PUPITAR, TYRANITAR, NOSEPASS, MEDITITE, MEDICHAM,
             GIBLE, GABITE, GARCHOMP_EX,
-            SUDOWOODO_IR, GARCHOMP_EX_UR);
+            SUDOWOODO_IR, GARCHOMP_EX_UR, GARCHOMP_EX_SIR);
 
     private Fighting() {
     }

@@ -178,11 +178,13 @@ public final class Water {
     public static final PokemonCard MARILL_IR = MARILL.withId("A2a-077", CardRarity.ILLUSTRATION_RARE);
     /** A2a-083 · Glaceon ex (alternate art of A2a-022) */
     public static final PokemonCard GLACEON_EX_UR = GLACEON_EX.withId("A2a-083", CardRarity.ULTRA_RARE);
+    /** A2a-092 · Glaceon ex (alternate art of A2a-022) */
+    public static final PokemonCard GLACEON_EX_SIR = GLACEON_EX.withId("A2a-092", CardRarity.SPECIAL_ILLUSTRATION_RARE);
 
     static final List<PokemonCard> CARDS = List.of(
             MARILL, AZUMARILL, BARBOACH, WHISCASH, SNORUNT, FROSLASS, SNOVER, ABOMASNOW, GLACEON_EX,
             ORIGIN_FORME_PALKIA, PHIONE,
-            MARILL_IR, GLACEON_EX_UR);
+            MARILL_IR, GLACEON_EX_UR, GLACEON_EX_SIR);
 
     private Water() {
     }

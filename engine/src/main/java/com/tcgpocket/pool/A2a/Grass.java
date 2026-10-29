@@ -148,10 +148,12 @@ public final class Grass {
 
     /** A2a-082 · Leafeon ex (alternate art of A2a-010) */
     public static final PokemonCard LEAFEON_EX_UR = LEAFEON_EX.withId("A2a-082", CardRarity.ULTRA_RARE);
+    /** A2a-091 · Leafeon ex (alternate art of A2a-010) */
+    public static final PokemonCard LEAFEON_EX_SIR = LEAFEON_EX.withId("A2a-091", CardRarity.SPECIAL_ILLUSTRATION_RARE);
 
     static final List<PokemonCard> CARDS = List.of(
             HERACROSS, BURMY, MOTHIM, COMBEE, VESPIQUEN, CHERUBI, CHERRIM, CHERRIM_SUNSHINE, CARNIVINE, LEAFEON_EX,
-            LEAFEON_EX_UR);
+            LEAFEON_EX_UR, LEAFEON_EX_SIR);
 
     private Grass() {
     }
