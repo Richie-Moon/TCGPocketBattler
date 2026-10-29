@@ -45,7 +45,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
 
     /**
      * For the opponent, {@code hand} is only what was revealed; {@code handSize} is always the real count.
-     * {@code topCards} are the deck's top cards, top first, once its owner has looked at them (Porygon), and only for them.
+     * {@code topCards} are the deck's top cards, top first, once the viewer has looked at them (Porygon for your own deck, Unown for either).
      * {@code bench} is by slot, {@link Side#BENCH_LIMIT} of them, null where a slot is empty.
      */
     record SideView(String name, int points, List<CardView> hand, int handSize, int deckSize, List<CardView> topCards,
@@ -69,7 +69,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                 (own ? side.hand() : side.revealedHand()).stream().map(BoardView::card).toList(),
                 side.hand().size(),
                 side.deck().size(),
-                (own ? side.seenTopCards() : List.<CardInstance>of()).stream().map(BoardView::card).toList(),
+                (own ? side.seenTopCards() : side.topCardsSeenByOpponent()).stream().map(BoardView::card).toList(),
                 side.discardPile().stream().map(BoardView::card).toList(),
                 side.active().map(BoardView::pokemon).orElse(null),
                 IntStream.range(0, Side.BENCH_LIMIT).mapToObj(slot -> side.benchAt(slot).map(BoardView::pokemon).orElse(null)).toList(),

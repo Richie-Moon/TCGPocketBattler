@@ -40,6 +40,7 @@ public final class Side {
     private final List<CardInstance> discardPile = new ArrayList<>();
     private List<CardInstance> revealed = List.of();
     private List<CardInstance> seenTop = List.of();
+    private List<CardInstance> seenTopByOpponent = List.of();
     /** Energy is not a card, so its discard pile is a count per type. */
     private final Map<Type, Integer> discardedEnergy = new EnumMap<>(Type.class);
 
@@ -229,7 +230,12 @@ public final class Side {
 
     /** Shows this side's owner the top {@code count} cards of their deck; see {@link #seenTopCards()}. */
     public void lookAtTopCards(int count) {
-        seenTop = List.copyOf(deck.subList(0, Math.min(count, deck.size())));
+        seenTop = top(count);
+    }
+
+    /** Shows the opponent the top {@code count} cards of this deck; see {@link #topCardsSeenByOpponent()}. */
+    public void showTopCardsToOpponent(int count) {
+        seenTopByOpponent = top(count);
     }
 
     /**
@@ -238,7 +244,20 @@ public final class Side {
      * forgets them all.
      */
     public List<CardInstance> seenTopCards() {
-        List<CardInstance> still = seenTop.stream().filter(deck::contains).toList();
+        return stillOnTop(seenTop);
+    }
+
+    /** As {@link #seenTopCards()}, for what the opponent has looked at (Unown's CHECK). */
+    public List<CardInstance> topCardsSeenByOpponent() {
+        return stillOnTop(seenTopByOpponent);
+    }
+
+    private List<CardInstance> top(int count) {
+        return List.copyOf(deck.subList(0, Math.min(count, deck.size())));
+    }
+
+    private List<CardInstance> stillOnTop(List<CardInstance> seen) {
+        List<CardInstance> still = seen.stream().filter(deck::contains).toList();
         return deck.subList(0, still.size()).equals(still) ? still : List.of();
     }
 
@@ -279,6 +298,7 @@ public final class Side {
         rng.shuffle(deck);
         // A shuffle that happens to leave the same card on top must not tell the owner so.
         seenTop = List.of();
+        seenTopByOpponent = List.of();
     }
 
     /**

@@ -1,10 +1,14 @@
 package com.tcgpocket.pool.A2a;
 
 import com.tcgpocket.action.Action;
+import com.tcgpocket.action.ChoiceAction;
+import com.tcgpocket.action.IAction;
 import com.tcgpocket.action.PlainAction;
+import com.tcgpocket.action.WithPrecondition;
 import com.tcgpocket.card.ActivatedAbility;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.condition.Always;
 import com.tcgpocket.condition.GreaterThan;
 import com.tcgpocket.condition.LastCoinTossHeads;
 import com.tcgpocket.effect.*;
@@ -85,13 +89,8 @@ public final class Psychic {
     ).withWeakness(Type.DARKNESS);
 
     /**
-     * A2a-034 - Unown (CHECK).
-     *
-     * <p><b>Narrowed.</b> "You may choose either player" is cut to your own
-     * deck: {@link LookAtTopCards} shows a deck only to its owner, so looking
-     * at the opponent's would show it to them instead. A viewer on
-     * {@code LookAtTopCards} (an {@code ISideTarget} for who sees it) would
-     * fix it, with a {@code ChoiceAction} over the two decks.
+     * A2a-034 - Unown. CHECK is a {@link ChoiceAction} over the two decks;
+     * each branch needs that deck to have a card.
      */
     public static final PokemonCard UNOWN = PokemonCard.basic(
             "A2a-034", "Unown", "Its flat, thin body is always stuck on walls. Its shape appears to have some meaning.",
@@ -101,9 +100,15 @@ public final class Psychic {
             )), CardRarity.UNCOMMON
     ).withWeakness(Type.DARKNESS).withAbility(new ActivatedAbility("CHECK",
             "Once during your turn, you may choose either player. Look at the top card of that player's deck.",
-            new PlainAction("", new Attempt(List.of(
-                    new LookAtTopCards(new Literal(1), new AttackerSide())))),
-            true, new GreaterThan(new CountCards(new AttackerSide(), Zone.DECK), new Literal(0))));
+            new ChoiceAction(List.of(lookAtTopOf(new AttackerSide(), "Your deck."), lookAtTopOf(new OpponentSide(), "Your opponent's deck.")),
+                    new AttackerSide(), "Look at the top card of which player's deck?"),
+            true, new Always<>()));
+
+    private static IAction lookAtTopOf(ISideTarget deck, String label) {
+        return new WithPrecondition(
+                new GreaterThan(new CountCards(deck, Zone.DECK), new Literal(0)),
+                new PlainAction(label, new Attempt(List.of(new LookAtTopCards(new Literal(1), deck, new AttackerSide())))));
+    }
 
     /**
      * A2a-035 - Rotom

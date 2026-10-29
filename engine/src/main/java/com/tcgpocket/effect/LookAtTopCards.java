@@ -8,17 +8,25 @@ import com.tcgpocket.target.ISideTarget;
 import java.util.Objects;
 
 /**
- * Shows the top cards of a deck to that deck's owner — Porygon's Data Scan.
+ * Shows the top cards of a deck to {@code viewer}: Porygon's Data Scan, or
+ * Unown's CHECK, which can look at either player's deck.
  *
  * <p>Like {@link RevealHand} this only records what was seen
- * ({@link Side#seenTopCards()}); showing it is the server's job. A deck
- * shorter than {@code cardCount} shows what it has.
+ * ({@link Side#seenTopCards()}, {@link Side#topCardsSeenByOpponent()});
+ * showing it is the server's job. A deck shorter than {@code cardCount}
+ * shows what it has.
  */
-public record LookAtTopCards(INumber cardCount, ISideTarget side) implements IEffect {
+public record LookAtTopCards(INumber cardCount, ISideTarget side, ISideTarget viewer) implements IEffect {
 
     public LookAtTopCards {
         Objects.requireNonNull(cardCount, "cardCount");
         Objects.requireNonNull(side, "side");
+        Objects.requireNonNull(viewer, "viewer");
+    }
+
+    /** The deck's owner looks at their own deck. */
+    public LookAtTopCards(INumber cardCount, ISideTarget side) {
+        this(cardCount, side, side);
     }
 
     @Override
@@ -28,7 +36,11 @@ public record LookAtTopCards(INumber cardCount, ISideTarget side) implements IEf
         if (count <= 0 || target.deck().isEmpty()) {
             return EffectOutcome.NO_OP;
         }
-        target.lookAtTopCards(count);
+        if (viewer.resolve(context) == target) {
+            target.lookAtTopCards(count);
+        } else {
+            target.showTopCardsToOpponent(count);
+        }
         return EffectOutcome.APPLIED;
     }
 }

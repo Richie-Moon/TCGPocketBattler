@@ -14,6 +14,8 @@ import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.condition.IsPoisoned;
 import com.tcgpocket.effect.RemoveStatus;
 import com.tcgpocket.energy.Type;
+import com.tcgpocket.player.ScriptedPlayer;
+import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.status.PoisonStatus;
@@ -22,6 +24,7 @@ import com.tcgpocket.target.OpponentActive;
 import com.tcgpocket.trigger.TriggerDispatcher;
 import com.tcgpocket.trigger.TurnEnd;
 
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
@@ -184,6 +187,20 @@ class TriumphantLightTest {
 
             attack(Darkness.TOXICROAK).execute(board.contextFor(board.you.active().orElseThrow()));
             assertTrue(arceus.statuses().isEmpty());
+        }
+
+        @Test
+        @DisplayName("CHECK shows you the top of the deck you choose, even your opponent's")
+        void unownChecksEitherDeck() {
+            TestBoard scripted = new TestBoard(new ScriptedPlayer("you", 1), new ScriptedPlayer("them"));
+            PokemonInPlay unown = scripted.active(scripted.you, Psychic.UNOWN);
+            scripted.inDeck(scripted.you, Colorless.SNORLAX);
+            CardInstance theirTop = scripted.inDeck(scripted.them, Colorless.EEVEE);
+            UseAbilityAction check = new UseAbilityAction(unown, Psychic.UNOWN.ability().orElseThrow());
+
+            assertTrue(check.execute(scripted.contextWithoutSource()).succeeded());
+            assertEquals(List.of(theirTop), scripted.them.topCardsSeenByOpponent());
+            assertEquals(List.of(), scripted.them.seenTopCards(), "not shown to its owner");
         }
 
         @Test
