@@ -126,10 +126,10 @@ export function useGame(bot = false) {
   function choose(option: number) {
     if (!decision) return
     const answer: Answer = { decision: decision.id, option }
-    const { shown, card } = decision.options[option]
+    const { shown, card, kind, label } = decision.options[option]
     if (shown) queue.current = queue.current.then(() => show(shown, card))
     socket.current?.send(JSON.stringify(answer))
-    setLog((log) => [...log, { kind: 'you', text: decision.options[option].label }])
+    setLog((log) => [...log, { kind: 'you', text: kind === 'answer' ? `${decision.prompt} ${label}` : label }])
     setDecision(null)
   }
 

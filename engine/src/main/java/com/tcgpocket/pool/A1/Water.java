@@ -441,7 +441,7 @@ public final class Water {
                             ))), new Action(
                             "Blizzard", "This attack also does 10 damage to each of your opponent's Benched Pokémon.", EnergyCost.of(Type.WATER, 3),
                             new Attempt(List.of(
-                                    new DealDamage(new Literal(100), new OpponentActive()),
+                                    new DealDamage(new Literal(80), new OpponentActive()),
                                     new DamageEach(new Literal(10), new OpponentBench()))
                             ))), CardRarity.DOUBLE_RARE)
             .withWeakness(Type.LIGHTNING).withTags(CardTag.EX);

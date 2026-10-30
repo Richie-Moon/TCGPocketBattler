@@ -62,6 +62,7 @@ public final class Side {
     /** Not a turn flag: set once, when this side's first turn ends, and never cleared. */
     private boolean hasTakenATurn;
     private int knockedOutByAttackOnTurn = -1;
+    private final List<UsedAttack> usedAttacks = new ArrayList<>();
     private final List<AttackBonus> attackBonuses = new ArrayList<>();
     private final List<SideModifier> damageReductions = new ArrayList<>();
     private final List<SideModifier> attackCostReductions = new ArrayList<>();
@@ -408,6 +409,22 @@ public final class Side {
 
     public void markEnergyAttached() {
         energyAttachedThisTurn = true;
+    }
+
+    /** One attack this side's Pokemon used; kept for the whole game, for Sweets Relay and Sweets Overload. */
+    private record UsedAttack(String name, int turn) {
+    }
+
+    public void recordAttack(String name, int turn) {
+        usedAttacks.add(new UsedAttack(name, turn));
+    }
+
+    public boolean usedAttackOn(String name, int turn) {
+        return usedAttacks.contains(new UsedAttack(name, turn));
+    }
+
+    public int timesUsed(String name) {
+        return (int) usedAttacks.stream().filter(used -> used.name().equals(name)).count();
     }
 
     public boolean supporterPlayedThisTurn() {

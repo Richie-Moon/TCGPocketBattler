@@ -154,7 +154,7 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
         return last;
     }
 
-    private static Optional<PlayedOnto> playedOnto(CardInstance card) {
+    public static Optional<PlayedOnto> playedOnto(CardInstance card) {
         // A WithPrecondition may guard the drag (Rare Candy); its condition is checked by isLegal.
         return card.definition().actions().stream()
                 .map(action -> action instanceof WithPrecondition guarded ? guarded.action() : action)

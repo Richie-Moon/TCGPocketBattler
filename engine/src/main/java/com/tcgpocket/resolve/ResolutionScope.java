@@ -1,5 +1,7 @@
 package com.tcgpocket.resolve;
 
+import com.tcgpocket.state.CardInstance;
+
 import java.util.Optional;
 
 /**
@@ -18,6 +20,7 @@ public final class ResolutionScope {
     private FlipResult lastFlip;
     private int damageDealtThisResolution;
     private boolean attack;
+    private CardInstance pickedCard;
 
     /** Whether this resolution is an attack, as opposed to a Trainer, an Ability or a trigger. */
     public boolean isAttack() {
@@ -26,6 +29,15 @@ public final class ResolutionScope {
 
     public void markAttack() {
         this.attack = true;
+    }
+
+    /** The card a {@code LookAtRandomCard} picked, for the {@code UsePickedCard} after it. */
+    public Optional<CardInstance> pickedCard() {
+        return Optional.ofNullable(pickedCard);
+    }
+
+    public void recordPickedCard(CardInstance card) {
+        this.pickedCard = card;
     }
 
     public Optional<FlipResult> lastFlip() {

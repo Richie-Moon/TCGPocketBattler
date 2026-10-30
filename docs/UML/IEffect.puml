@@ -391,4 +391,20 @@ note bottom of NoEffect
   serves heal amounts and draw counts. See INumber.puml.
 end note
 
+/' Shows the controller a random card from a deck and keeps it in the
+   ResolutionScope for UsePickedCard: Penny. '/
+class LookAtRandomCard <<record>> implements IEffect {
+    - side: ISideTarget
+    - matching: ICondition<CardInstance>
+}
+
+/' Uses the effect of the card LookAtRandomCard picked as this card's own. '/
+class UsePickedCard <<record>> implements IEffect {}
+
+/' Asks the controller whether to apply an effect: Sylveon ex's "you may". '/
+class YouMay <<record>> implements IEffect {
+    - prompt: String
+    - effect: IEffect
+}
+
 @enduml

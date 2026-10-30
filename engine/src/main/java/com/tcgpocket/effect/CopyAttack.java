@@ -45,7 +45,7 @@ public record CopyAttack(IMultiTarget from, boolean needsEnergy) implements IEff
                 .filter(Action.class::isInstance)
                 .map(Action.class::cast)
                 .filter(attack -> !(attack.attempt() instanceof Attempt(List<IEffect> effects)
-                        && effects.stream().anyMatch(CopyAttack.class::isInstance)))
+                        && effects.stream().anyMatch(CopyAttack::copies)))
                 .toList();
         if (attacks.isEmpty()) {
             return EffectOutcome.NO_OP;
@@ -57,6 +57,9 @@ public record CopyAttack(IMultiTarget from, boolean needsEnergy) implements IEff
             return EffectOutcome.NO_OP;
         }
 
+        // "Use it as this attack" counts as using it, for Sweets Relay.
+        context.controller().recordAttack(chosen.name(), context.battle().turn());
+
         // A copied attempt that failed after changing the board still changed
         // it, so it reports APPLIED rather than break the all-or-nothing rule.
         AttemptResult result = chosen.attempt().execute(context);
@@ -64,5 +67,11 @@ public record CopyAttack(IMultiTarget from, boolean needsEnergy) implements IEff
             return EffectOutcome.APPLIED;
         }
         return result.failed() ? EffectOutcome.FAILED : EffectOutcome.NO_OP;
+    }
+
+    /** Whether this effect copies, directly or behind a coin flip as Mimikyu's Try to Imitate does. */
+    private static boolean copies(IEffect effect) {
+        return effect instanceof CopyAttack
+                || effect instanceof ConditionalEffect(var condition, IEffect then) && copies(then);
     }
 }

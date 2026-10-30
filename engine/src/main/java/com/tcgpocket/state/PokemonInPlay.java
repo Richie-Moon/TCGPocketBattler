@@ -48,6 +48,7 @@ public final class PokemonInPlay extends CardInstance {
     private int turnPlayed;
     private boolean abilityUsedThisTurn;
     private boolean movedToActiveThisTurn;
+    private boolean evolvedThisTurn;
 
     /**
      * @param definition the card put into play: a Basic Pokemon, or a Fossil,
@@ -106,6 +107,7 @@ public final class PokemonInPlay extends CardInstance {
         }
         evolutions.add(evolution);
         turnPlayed = currentTurn;
+        evolvedThisTurn = true;
         statuses.clear();
         modifiers.clear();
     }
@@ -128,9 +130,15 @@ public final class PokemonInPlay extends CardInstance {
         movedToActiveThisTurn = true;
     }
 
+    /** Whether this Pokemon evolved this turn — Jolteon's Beginning Bolt. */
+    public boolean evolvedThisTurn() {
+        return evolvedThisTurn;
+    }
+
     public void resetTurnFlags() {
         abilityUsedThisTurn = false;
         movedToActiveThisTurn = false;
+        evolvedThisTurn = false;
     }
 
     /** The printed HP, plus any {@link HpBonus} on the held Tool that applies to this holder. */

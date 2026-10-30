@@ -1,6 +1,7 @@
 package com.tcgpocket.action;
 
 import com.tcgpocket.card.EvolutionLock;
+import com.tcgpocket.card.EvolvesAs;
 import com.tcgpocket.card.PokemonCard;
 import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
@@ -47,13 +48,19 @@ public record EvolveAction(CardInstance evolution, ITarget onto) implements IAct
 
         PokemonInPlay pokemon = target.get();
         boolean rightSpecies = evolving.evolvesFrom()
-                .map(species -> species.equals(pokemon.definition().name()))
+                .map(species -> species.equals(pokemon.definition().name()) || evolvesAs(pokemon, species, context))
                 .orElse(false);
 
         boolean locked = context.opponent().standingRules().stream()
                 .anyMatch(held -> held.rule() instanceof EvolutionLock lock && lock.appliesTo().evaluate(pokemon));
 
         return rightSpecies && !locked && pokemon.turnPlayed() < context.battle().turn();
+    }
+
+    private static boolean evolvesAs(PokemonInPlay pokemon, String species, ResolutionContext context) {
+        return context.controller().standingRules().stream()
+                .anyMatch(held -> held.holder() == pokemon
+                        && held.rule() instanceof EvolvesAs rule && rule.species().equals(species));
     }
 
     @Override

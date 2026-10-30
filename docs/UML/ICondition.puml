@@ -182,4 +182,12 @@ note bottom of GreaterThan
   not an INumber handed to it. Re-homed under ResolutionContext.
 end note
 
+class AttackUsedLastTurn <<record>> implements IConditionCtx {
+    - attackName: String
+}
+
+class EvolvedThisTurn <<record>> implements IConditionPokemon {}
+
+class IsSupporter <<record>> implements IConditionCard {}
+
 @enduml
