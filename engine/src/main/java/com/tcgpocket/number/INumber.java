@@ -26,7 +26,7 @@ import com.tcgpocket.resolve.ResolutionContext;
 public sealed interface INumber permits
         Literal, Sum, Difference, Product, Quotient, Branch,
         MaxHP, CurrentHP, DamageOn, Stage, EnergyOn, CountCards,
-        NumberHeads, EventDamage, DamageDone, Points {
+        NumberHeads, EventDamage, DamageDone, Points, TimesAttackUsed, EnergyAmong, EnergyInDiscard {
 
     int evaluate(ResolutionContext context);
 }

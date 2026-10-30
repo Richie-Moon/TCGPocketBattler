@@ -100,4 +100,17 @@ note bottom of Branch
   20 / 50 / 90 depending on how many heads, where the steps are irregular.
 end note
 
+class TimesAttackUsed <<record>> implements INumber {
+    - attackName: String
+}
+
+class EnergyAmong <<record>> implements INumber {
+    - targets: IMultiTarget
+}
+
+class EnergyInDiscard <<record>> implements INumber {
+    - side: ISideTarget
+    - energyType: Type
+}
+
 @enduml

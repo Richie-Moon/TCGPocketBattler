@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
  * client can turn "dragged card 31 onto Pokemon 12" into this option's index.
  * The browser still answers with the index, never with the ids.
  *
- * @param kind   attack, endTurn, attach, retreat, evolve, play, ability, pokemon, card, setup, none or other
+ * @param kind   attack, endTurn, attach, retreat, evolve, play, ability, pokemon, card, setup, none, answer or other.
+ *               An answer (a bare "Yes") means nothing in a log without its question; see {@link #logText}
  * @param card   the card being played, evolved with or used (for an attack, the attacking Pokemon; for
  *               setup, the Active), or null
  * @param target the Pokemon it lands on or brings up, or null
@@ -80,6 +81,7 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
                                     .map(card -> card.definition().name()).collect(Collectors.joining(", "))),
                     "setup", id(opening.active()), null,
                     opening.bench().stream().map(slot -> slot.map(OptionView::id).orElse(null)).toList(), null, null);
+            case String answer -> new OptionView(answer, "answer", null, null);
             case PlainAction plain -> other(plain.description());
             case PlayedOnto played -> other(played.description());
             case WithPrecondition guarded -> of(guarded.action(), decision);
@@ -94,6 +96,11 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
                     .collect(Collectors.joining(", ")));
             default -> other(option.toString());
         };
+    }
+
+    /** What the log says about choosing this; the browser does the same for your own choices. */
+    String logText(String prompt) {
+        return kind.equals("answer") ? prompt + " " + label : label;
     }
 
     private static String shown(ICard card) {

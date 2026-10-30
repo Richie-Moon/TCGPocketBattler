@@ -80,6 +80,7 @@ export interface OptionView {
     | 'setup'
     | 'none'
     | 'other'
+    | 'answer'
   /** The card played, evolved with or used; for an attack, the attacking Pokemon; for setup, the Active. */
   card: number | null
   /** The Pokemon it lands on or brings up. */

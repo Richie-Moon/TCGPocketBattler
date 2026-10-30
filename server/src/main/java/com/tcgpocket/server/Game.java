@@ -267,7 +267,7 @@ final class Game {
             boolean hidden = view.kind().equals("card");
             if (!view.kind().equals("setup")) {
                 seat.send().accept(new LogMessage(battle.turn(), battle.attacker() == seat.side(),
-                        hidden ? "Chose a card" : view.label(), view.kind(), hidden ? null : view.card(), view.target(),
+                        hidden ? "Chose a card" : view.logText(decision.prompt()), view.kind(), hidden ? null : view.card(), view.target(),
                         view.shown()));
             }
         }

@@ -105,4 +105,9 @@ note bottom of PassiveAbility
   ability is evaluated with the holder as the source.
 end note
 
+class EvolvesAs <<record>> implements IRule {
+    - species: String
+}
+note bottom of EvolvesAs : read by EvolveAction.isLegal
+
 @enduml

@@ -108,6 +108,7 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
             }
         }
 
+        context.controller().recordAttack(name, context.battle().turn());
         context.scope().markAttack();
         return attempt.execute(context);
     }
