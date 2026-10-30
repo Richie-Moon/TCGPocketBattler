@@ -31,7 +31,7 @@ public record HealEach(INumber healAmount, IMultiTarget targets) implements IEff
     public EffectOutcome apply(ResolutionContext context) {
         List<PokemonInPlay> resolved = targets.resolve(context);
         int amount = healAmount.evaluate(context);
-        if (resolved.isEmpty() || amount <= 0) {
+        if (resolved.isEmpty() || amount <= 0 || context.healingBlocked()) {
             return EffectOutcome.NO_OP;
         }
 

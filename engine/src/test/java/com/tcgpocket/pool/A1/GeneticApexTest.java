@@ -1113,7 +1113,7 @@ class GeneticApexTest {
         private final TestBoard board = new TestBoard();
 
         @Test
-        @DisplayName("90 to them, 20 to itself")
+        @DisplayName("100 to them, 20 to itself")
         void hurtsItself() {
             PokemonInPlay arcanine = board.active(board.you, Fire.ARCANINE);
             PokemonInPlay wall = board.active(board.them, WALL);
@@ -1122,7 +1122,7 @@ class GeneticApexTest {
                     attack(Fire.ARCANINE, "Heat Tackle").execute(board.contextFor(arcanine));
 
             assertTrue(result.succeeded(), "hurting yourself is not a failure");
-            assertEquals(90, wall.damage());
+            assertEquals(100, wall.damage());
             assertEquals(20, arcanine.damage());
         }
 

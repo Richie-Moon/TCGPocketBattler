@@ -32,7 +32,7 @@ public record HealDamage(INumber healAmount, ITarget target) implements IEffect 
 
         PokemonInPlay pokemon = resolved.get();
         int amount = healAmount.evaluate(context);
-        if (amount <= 0 || pokemon.damage() == 0) {
+        if (amount <= 0 || pokemon.damage() == 0 || context.healingBlocked()) {
             return EffectOutcome.NO_OP;
         }
 

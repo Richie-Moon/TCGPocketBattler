@@ -139,6 +139,11 @@ class AttachFromDiscard <<record>> implements IEffect {
     - target: ITarget
 }
 
+class AttachRandomFromDiscard <<record>> implements IEffect {
+    - amount: INumber
+    - target: ITarget
+}
+
 class SwapFromDeck <<record>> implements IEffect {
     - side: ISideTarget
     - matching: ICondition<CardInstance>
@@ -238,6 +243,12 @@ class MoveTypeEnergy <<record>> implements IEffect {
 }
 
 /' --- Buffs / debuffs --- '/
+
+class PreventNamedAttack <<record>> implements IDurationEffect {
+    - attackName: String
+    - target: ITarget
+    - duration: INumber
+}
 
 class ReduceDamageTaken <<record>> implements IDurationEffect {
     - reductionAmount: INumber

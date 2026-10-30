@@ -79,6 +79,16 @@ class SupporterLock <<record>> implements IRule {
 }
 note bottom of SupporterLock : read by PlayCardAction.isLegal; the condition is on the holder
 
+class AttackCostIncrease <<record>> implements IRule {
+    - colorless: int
+    - whileHolder: ICondition<PokemonInPlay>
+}
+note bottom of AttackCostIncrease : read by Action.isLegal; the condition is on the holder
+
+class HealBlock <<record>> implements IRule {
+}
+note bottom of HealBlock : read by ResolutionContext.healingBlocked; covers both sides
+
 class StatusImmunity <<record>> implements IRule {
     - protects: ICondition<? super PokemonInPlay>
 }
