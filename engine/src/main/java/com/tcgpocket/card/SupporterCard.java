@@ -17,21 +17,23 @@ public record SupporterCard(
         String name,
         String description,
         Set<CardTag> tags,
-        List<IAction> actions) implements ITrainerCard {
+        List<IAction> actions,
+        CardRarity rarity) implements ITrainerCard {
 
     public SupporterCard {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(rarity, "rarity");
         tags = Set.copyOf(tags);
         actions = List.copyOf(actions);
     }
 
     /** The same card under another id: an alternate art or a reprint. */
-    public SupporterCard withId(String newId) {
-        return new SupporterCard(newId, name, description, tags, actions);
+    public SupporterCard withId(String newId, CardRarity newRarity) {
+        return new SupporterCard(newId, name, description, tags, actions, newRarity);
     }
 
     public static SupporterCard of(String id, String name, IAction action) {
-        return new SupporterCard(id, name, "", Set.of(), List.of(action));
+        return new SupporterCard(id, name, "", Set.of(), List.of(action), CardRarity.UNCOMMON);
     }
 }

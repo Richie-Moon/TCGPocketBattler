@@ -21,17 +21,19 @@ public record StadiumCard(
         String description,
         Set<CardTag> tags,
         List<IAction> actions,
-        List<ITrigger> triggers) implements ITrainerCard {
+        List<ITrigger> triggers,
+        CardRarity rarity) implements ITrainerCard {
 
     public StadiumCard {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(rarity, "rarity");
         tags = Set.copyOf(tags);
         actions = List.copyOf(actions);
         triggers = List.copyOf(triggers);
     }
 
     public static StadiumCard of(String id, String name, ITrigger... triggers) {
-        return new StadiumCard(id, name, "", Set.of(), List.of(), List.of(triggers));
+        return new StadiumCard(id, name, "", Set.of(), List.of(), List.of(triggers), CardRarity.UNCOMMON);
     }
 }

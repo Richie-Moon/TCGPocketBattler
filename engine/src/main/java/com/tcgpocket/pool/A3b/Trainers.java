@@ -2,6 +2,7 @@ package com.tcgpocket.pool.A3b;
 
 import com.tcgpocket.action.ChoiceAction;
 import com.tcgpocket.action.PlainAction;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.ItemCard;
 import com.tcgpocket.card.SupporterCard;
@@ -92,12 +93,12 @@ public final class Trainers {
                             new UsePickedCard()))));
 
     /** A3b-085 · Hau (alternate art of A3b-068) */
-    public static final SupporterCard HAU_UR = HAU.withId("A3b-085");
+    public static final SupporterCard HAU_UR = HAU.withId("A3b-085", CardRarity.ULTRA_RARE);
     /** A3b-086 · Penny (alternate art of A3b-069) */
-    public static final SupporterCard PENNY_UR = PENNY.withId("A3b-086");
+    public static final SupporterCard PENNY_UR = PENNY.withId("A3b-086", CardRarity.ULTRA_RARE);
 
     /** A3b-107 · Eevee Bag (alternate art of A3b-066) */
-    public static final ItemCard EEVEE_BAG_HR = EEVEE_BAG.withId("A3b-107");
+    public static final ItemCard EEVEE_BAG_HR = EEVEE_BAG.withId("A3b-107", CardRarity.HYPER_RARE);
 
     static final List<ITrainerCard> CARDS = List.of(
             EEVEE_BAG, LEFTOVERS, HAU, PENNY,

@@ -23,6 +23,8 @@ public sealed interface ICard permits IPlayableCard, ITrainerCard {
 
     Set<CardTag> tags();
 
+    CardRarity rarity();
+
     /**
      * What this card can do: a Pokemon's attacks, a Trainer's single effect.
      *

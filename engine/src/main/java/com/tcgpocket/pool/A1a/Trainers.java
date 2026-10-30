@@ -2,6 +2,7 @@ package com.tcgpocket.pool.A1a;
 
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.ItemCard;
 import com.tcgpocket.card.PlayableItemCard;
@@ -87,11 +88,11 @@ public final class Trainers {
 
     // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
     /** A1a-080 · Budding Expeditioner (alternate art of A1a-066) */
-    public static final SupporterCard BUDDING_EXPEDITIONER_UR = BUDDING_EXPEDITIONER.withId("A1a-080");
+    public static final SupporterCard BUDDING_EXPEDITIONER_UR = BUDDING_EXPEDITIONER.withId("A1a-080", CardRarity.ULTRA_RARE);
     /** A1a-081 · Blue (alternate art of A1a-067) */
-    public static final SupporterCard BLUE_UR = BLUE.withId("A1a-081");
+    public static final SupporterCard BLUE_UR = BLUE.withId("A1a-081", CardRarity.ULTRA_RARE);
     /** A1a-082 · Leaf (alternate art of A1a-068) */
-    public static final SupporterCard LEAF_UR = LEAF.withId("A1a-082");
+    public static final SupporterCard LEAF_UR = LEAF.withId("A1a-082", CardRarity.ULTRA_RARE);
 
     static final List<ITrainerCard> CARDS = List.of(
             OLD_AMBER, POKEMON_FLUTE, MYTHICAL_SLAB, BUDDING_EXPEDITIONER, BLUE, LEAF,

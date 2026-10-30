@@ -58,6 +58,16 @@ class EeveeGroveTest {
     }
 
     @Test
+    @DisplayName("Trainers are Uncommon unless a rarer printing says otherwise")
+    void trainerRarities() {
+        assertEquals(CardRarity.UNCOMMON, CardPool.get("A3b-066").rarity());
+        assertEquals(CardRarity.UNCOMMON, CardPool.get("A3b-067").rarity());
+        assertEquals(CardRarity.ULTRA_RARE, CardPool.get("A3b-085").rarity());
+        assertEquals(CardRarity.HYPER_RARE, CardPool.get("A3b-107").rarity());
+        assertEquals(CardRarity.HYPER_RARE, CardPool.get("A2b-111").rarity());
+    }
+
+    @Test
     @DisplayName("Sweets Relay hits harder only if one of yours used it on your last turn")
     void sweetsRelayReadsYourLastTurn() {
         PokemonInPlay appletun = board.active(board.you, Grass.APPLETUN);
