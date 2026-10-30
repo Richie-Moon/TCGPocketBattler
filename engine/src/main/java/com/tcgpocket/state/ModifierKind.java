@@ -34,6 +34,12 @@ public enum ModifierKind {
     CANNOT_ATTACK,
 
     /**
+     * Forbids this Pokemon declaring the one attack the modifier names, leaving
+     * any other it has. Read by {@code Action.isLegal}.
+     */
+    CANNOT_USE_ATTACK,
+
+    /**
      * This Pokemon's attacks happen only on heads. Read by
      * {@code TriggerDispatcher}, which gives the Pokemon Confusion's
      * flip-on-attack trigger while it lasts.

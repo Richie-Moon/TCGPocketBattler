@@ -96,6 +96,9 @@ class CanSkipStage1 <<record>> implements IConditionCtx {
     - target: ITarget
 }
 
+class SupporterPlayedThisTurn <<record>> implements IConditionCtx {
+}
+
 class StadiumInPlay <<record>> implements IConditionCtx {
     - cardId: String
 }
@@ -159,6 +162,9 @@ class IsBasic <<record>> implements IConditionCard {
 }
 class IsStage <<record>> implements IConditionCard {
     - stage: int
+}
+
+class IsTool <<record>> implements IConditionCard {
 }
 
 class IsPokemon <<record>> implements IConditionCard {

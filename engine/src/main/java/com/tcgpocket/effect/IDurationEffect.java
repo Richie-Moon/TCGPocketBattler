@@ -13,7 +13,7 @@ import com.tcgpocket.number.INumber;
  * phrasing — it lasts through the turn it is applied on and the one after.
  */
 public sealed interface IDurationEffect extends IEffect
-        permits ReduceDamageTaken, IncreaseDamageTaken, ReduceSideDamageTaken,ReduceDamageDealt, IncreaseDamage, IncreaseSideDamage, PreventDamage, PreventEffects, PreventAttack, HinderAttack, PreventRetreat, PreventSupporter, ReduceRetreatCost, IncreaseRetreatCost, IncreaseAttackCost, ReduceSideAttackCost, CounterDamage, PreventItem, PreventActiveEnergy {
+        permits ReduceDamageTaken, IncreaseDamageTaken, ReduceSideDamageTaken,ReduceDamageDealt, IncreaseDamage, IncreaseSideDamage, PreventDamage, PreventEffects, PreventAttack, PreventNamedAttack, HinderAttack, PreventRetreat, PreventSupporter, ReduceRetreatCost, IncreaseRetreatCost, IncreaseAttackCost, ReduceSideAttackCost, CounterDamage, PreventItem, PreventActiveEnergy {
 
     INumber duration();
 }

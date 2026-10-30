@@ -1,5 +1,6 @@
 package com.tcgpocket.resolve;
 
+import com.tcgpocket.card.HealBlock;
 import com.tcgpocket.state.Battle;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
@@ -8,6 +9,7 @@ import com.tcgpocket.trigger.GameEvent;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Everything a node of card text is evaluated against.
@@ -67,6 +69,13 @@ public record ResolutionContext(
     /** The side opposing whoever controls the resolving card. */
     public Side opponent() {
         return battle.opponentOf(controller);
+    }
+
+    /** Whether a {@link HealBlock} is in play on either side. */
+    public boolean healingBlocked() {
+        return Stream.of(controller, opponent())
+                .flatMap(side -> side.standingRules().stream())
+                .anyMatch(held -> held.rule() instanceof HealBlock);
     }
 
     /**

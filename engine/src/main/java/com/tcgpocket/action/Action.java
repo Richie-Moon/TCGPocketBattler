@@ -1,5 +1,6 @@
 package com.tcgpocket.action;
 
+import com.tcgpocket.card.AttackCostIncrease;
 import com.tcgpocket.card.AttackCostReduction;
 import com.tcgpocket.condition.HasEnergy;
 import com.tcgpocket.condition.IsAsleep;
@@ -55,7 +56,10 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
         PokemonInPlay pokemon = attacker.get();
         boolean heldDown = new IsAsleep().evaluate(pokemon)
                 || new IsParalyzed().evaluate(pokemon)
-                || pokemon.hasModifier(ModifierKind.CANNOT_ATTACK, context.battle().turn());
+                || pokemon.hasModifier(ModifierKind.CANNOT_ATTACK, context.battle().turn())
+                || pokemon.modifiers().stream().anyMatch(modifier -> modifier.kind() == ModifierKind.CANNOT_USE_ATTACK
+                        && modifier.isActiveOn(context.battle().turn())
+                        && modifier.attackName().filter(name::equals).isPresent());
 
         return !heldDown
                 && context.controller().active().filter(pokemon::equals).isPresent()
@@ -63,7 +67,8 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
     }
 
     /**
-     * Colorless added to the printed cost: any {@code INCREASE_ATTACK_COST},
+     * Colorless added to the printed cost: any {@code INCREASE_ATTACK_COST} and
+     * the opponent's {@link AttackCostIncrease} (Guard Dog Visage),
      * less the side's {@code ReduceSideAttackCost} (Barry) and the attacker's
      * own {@link AttackCostReduction} (Vigor Link).
      */
@@ -74,7 +79,12 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
                         && held.rule() instanceof AttackCostReduction rule && rule.whileHolder().evaluate(pokemon))
                 .mapToInt(held -> ((AttackCostReduction) held.rule()).colorless())
                 .sum();
+        int ruleIncrease = context.opponent().standingRules().stream()
+                .filter(held -> held.rule() instanceof AttackCostIncrease rule && rule.whileHolder().evaluate(held.holder()))
+                .mapToInt(held -> ((AttackCostIncrease) held.rule()).colorless())
+                .sum();
         return pokemon.modifierTotal(ModifierKind.INCREASE_ATTACK_COST, turn)
+                + ruleIncrease
                 - pokemon.owner().attackCostReductionFor(pokemon, turn)
                 - ruleReduction;
     }

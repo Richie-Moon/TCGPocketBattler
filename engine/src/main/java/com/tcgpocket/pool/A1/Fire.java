@@ -117,7 +117,7 @@ public final class Fire {
                     1, "Growlithe", 130, Type.FIRE, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
                             "Heat Tackle", "This Pokémon also does 20 damage to itself.", EnergyCost.of(Type.FIRE, 2, Type.COLORLESS, 1),
                             new Attempt(List.of(
-                                    new DealDamage(new Literal(90), new OpponentActive()),
+                                    new DealDamage(new Literal(100), new OpponentActive()),
                                     new DealDamage(new Literal(20), new Self())
                             )))), CardRarity.RARE)
             .withWeakness(Type.WATER);
@@ -128,7 +128,7 @@ public final class Fire {
     public static final PokemonCard ARCANINE_EX = PokemonCard.evolution(
                     "A1-041", "Arcanine ex", "",
                     1, "Growlithe", 150, Type.FIRE, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
-                            "Inferno Onrush", "", EnergyCost.of(Type.FIRE, 2, Type.COLORLESS, 1),
+                            "Inferno Onrush", "This Pokémon also does 20 damage to itself.", EnergyCost.of(Type.FIRE, 2, Type.COLORLESS, 1),
                             new Attempt(List.of(
                                     new DealDamage(new Literal(120), new OpponentActive()),
                                     new DealDamage(new Literal(20), new Self())

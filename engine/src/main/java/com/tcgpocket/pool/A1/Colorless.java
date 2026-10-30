@@ -64,7 +64,7 @@ public final class Colorless {
                                     new DealDamage(new Literal(70), new OpponentActive())
                             )))), CardRarity.RARE)
             .withAbility(new ActivatedAbility("Drive Off",
-                    "Once during your turn, you may switch out your opponent's Active Pokémon to the bench. (You opponent chooses the new Active Pokémon.)",
+                    "Once during your turn, you may switch out your opponent's Active Pokémon to the Bench. (Your opponent chooses the new Active Pokémon.)",
                     new PlainAction("", new Attempt(List.of(
                             new SwitchActive(new OpponentSide())
                     ))), true, new Always<>()))
