@@ -4,6 +4,11 @@ Guidance for Claude Code (claude.ai/code) in this repository.
 
 If you have any questions about the task or request, ask 1-3 clarifying questions. 
 
+## Git Workflow
+
+- `main` is the release branch
+- After merging a PR, delete the completed feature branch, both locally and on GitHub. `git branch -d <branch-name>` deletes the local branch; `git push origin --delete <branch-name>` deletes the remote branch.
+
 ## Build & test
 
 Maven, Java 25 (sealed interfaces, records and pattern-matching switch are load-bearing),
