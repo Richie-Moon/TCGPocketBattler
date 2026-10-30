@@ -26,15 +26,23 @@ public record ToolCard(
         Set<CardTag> tags,
         List<IAction> actions,
         List<ITrigger> triggers,
-        List<IRule> rules) implements ITrainerCard {
+        List<IRule> rules,
+        CardRarity rarity) implements ITrainerCard {
 
     public ToolCard {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(rarity, "rarity");
         tags = Set.copyOf(tags);
         actions = List.copyOf(actions);
         triggers = List.copyOf(triggers);
         rules = List.copyOf(rules);
+    }
+
+    /** A Tool of the usual Trainer rarity, {@link CardRarity#UNCOMMON}. */
+    public ToolCard(String id, String name, String description, Set<CardTag> tags, List<IAction> actions,
+            List<ITrigger> triggers, List<IRule> rules) {
+        this(id, name, description, tags, actions, triggers, rules, CardRarity.UNCOMMON);
     }
 
     /** A Tool that does nothing yet — useful for testing attachment itself. */

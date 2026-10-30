@@ -2,6 +2,7 @@ package com.tcgpocket.pool.A2a;
 
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.SupporterCard;
 import com.tcgpocket.condition.*;
@@ -74,13 +75,13 @@ public final class Trainers {
 
     // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
     /** A2a-087 · Irida (alternate art of A2a-072) */
-    public static final SupporterCard IRIDA_UR = IRIDA.withId("A2a-087");
+    public static final SupporterCard IRIDA_UR = IRIDA.withId("A2a-087", CardRarity.ULTRA_RARE);
     /** A2a-088 · Celestic Town Elder (alternate art of A2a-073) */
-    public static final SupporterCard CELESTIC_TOWN_ELDER_UR = CELESTIC_TOWN_ELDER.withId("A2a-088");
+    public static final SupporterCard CELESTIC_TOWN_ELDER_UR = CELESTIC_TOWN_ELDER.withId("A2a-088", CardRarity.ULTRA_RARE);
     /** A2a-089 · Barry (alternate art of A2a-074) */
-    public static final SupporterCard BARRY_UR = BARRY.withId("A2a-089");
+    public static final SupporterCard BARRY_UR = BARRY.withId("A2a-089", CardRarity.ULTRA_RARE);
     /** A2a-090 · Adaman (alternate art of A2a-075) */
-    public static final SupporterCard ADAMAN_UR = ADAMAN.withId("A2a-090");
+    public static final SupporterCard ADAMAN_UR = ADAMAN.withId("A2a-090", CardRarity.ULTRA_RARE);
 
     private static ICondition<CardInstance> species(String... names) {
         return new Any<>(Arrays.stream(names).<ICondition<CardInstance>>map(IsSpecies::new).toList());

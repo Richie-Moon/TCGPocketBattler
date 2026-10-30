@@ -3,6 +3,7 @@ package com.tcgpocket.pool.A3a;
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.PlayedOnto;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.ItemCard;
@@ -161,11 +162,11 @@ public final class Trainers {
                                     new AttachRandomFromDiscard(new Literal(2), new PlayTarget()))))));
 
     /** A3a-081 · Gladion (alternate art of A3a-067) */
-    public static final SupporterCard GLADION_UR = GLADION.withId("A3a-081");
+    public static final SupporterCard GLADION_UR = GLADION.withId("A3a-081", CardRarity.ULTRA_RARE);
     /** A3a-082 · Looker (alternate art of A3a-068) */
-    public static final SupporterCard LOOKER_UR = LOOKER.withId("A3a-082");
+    public static final SupporterCard LOOKER_UR = LOOKER.withId("A3a-082", CardRarity.ULTRA_RARE);
     /** A3a-083 · Lusamine (alternate art of A3a-069) */
-    public static final SupporterCard LUSAMINE_UR = LUSAMINE.withId("A3a-083");
+    public static final SupporterCard LUSAMINE_UR = LUSAMINE.withId("A3a-083", CardRarity.ULTRA_RARE);
 
     static final List<ITrainerCard> CARDS = List.of(
             BEAST_WALL, REPEL, ELECTRICAL_CORD, BEASTITE, GLADION, LOOKER,

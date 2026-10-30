@@ -5,6 +5,7 @@ import com.tcgpocket.action.MultiAttempt;
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.PlayedOnto;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.HpBonus;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.ItemCard;
@@ -204,26 +205,26 @@ public final class Trainers {
 
     // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
     /** A3-190 · Acerola (alternate art of A3-148) */
-    public static final SupporterCard ACEROLA_UR = ACEROLA.withId("A3-190");
+    public static final SupporterCard ACEROLA_UR = ACEROLA.withId("A3-190", CardRarity.ULTRA_RARE);
     /** A3-191 · Ilima (alternate art of A3-149) */
-    public static final SupporterCard ILIMA_UR = ILIMA.withId("A3-191");
+    public static final SupporterCard ILIMA_UR = ILIMA.withId("A3-191", CardRarity.ULTRA_RARE);
     /** A3-192 · Kiawe (alternate art of A3-150) */
-    public static final SupporterCard KIAWE_UR = KIAWE.withId("A3-192");
+    public static final SupporterCard KIAWE_UR = KIAWE.withId("A3-192", CardRarity.ULTRA_RARE);
     /** A3-193 · Guzma (alternate art of A3-151) */
-    public static final SupporterCard GUZMA_UR = GUZMA.withId("A3-193");
+    public static final SupporterCard GUZMA_UR = GUZMA.withId("A3-193", CardRarity.ULTRA_RARE);
     /** A3-194 · Lana (alternate art of A3-152) */
-    public static final SupporterCard LANA_UR = LANA.withId("A3-194");
+    public static final SupporterCard LANA_UR = LANA.withId("A3-194", CardRarity.ULTRA_RARE);
     /** A3-195 · Sophocles (alternate art of A3-153) */
-    public static final SupporterCard SOPHOCLES_UR = SOPHOCLES.withId("A3-195");
+    public static final SupporterCard SOPHOCLES_UR = SOPHOCLES.withId("A3-195", CardRarity.ULTRA_RARE);
     /** A3-196 · Mallow (alternate art of A3-154) */
-    public static final SupporterCard MALLOW_UR = MALLOW.withId("A3-196");
+    public static final SupporterCard MALLOW_UR = MALLOW.withId("A3-196", CardRarity.ULTRA_RARE);
     /** A3-197 · Lillie (alternate art of A3-155) */
-    public static final SupporterCard LILLIE_UR = LILLIE.withId("A3-197");
+    public static final SupporterCard LILLIE_UR = LILLIE.withId("A3-197", CardRarity.ULTRA_RARE);
     // Immersive alternate arts.
     /** A3-208 · Guzma (alternate art of A3-151) */
-    public static final SupporterCard GUZMA_IM = GUZMA.withId("A3-208");
+    public static final SupporterCard GUZMA_IM = GUZMA.withId("A3-208", CardRarity.IMMERSIVE);
     /** A3-209 · Lillie (alternate art of A3-155) */
-    public static final SupporterCard LILLIE_IM = LILLIE.withId("A3-209");
+    public static final SupporterCard LILLIE_IM = LILLIE.withId("A3-209", CardRarity.IMMERSIVE);
 
     static final List<ITrainerCard> CARDS = List.of(
             BIG_MALASADA, FISHING_NET, RARE_CANDY, ROTOM_DEX, POISON_BARB, LEAF_CAPE,

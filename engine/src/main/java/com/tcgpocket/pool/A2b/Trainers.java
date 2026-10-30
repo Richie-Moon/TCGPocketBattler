@@ -2,6 +2,7 @@ package com.tcgpocket.pool.A2b;
 
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.ItemCard;
@@ -87,16 +88,16 @@ public final class Trainers {
                                     new DiscardRandomEnergy(new Literal(1), new OpponentActive())))))));
 
     /** A2b-088 · Iono (alternate art of A2b-069) */
-    public static final SupporterCard IONO_UR = IONO.withId("A2b-088");
+    public static final SupporterCard IONO_UR = IONO.withId("A2b-088", CardRarity.ULTRA_RARE);
     /** A2b-089 · Pokémon Center Lady (alternate art of A2b-070) */
-    public static final SupporterCard POKEMON_CENTER_LADY_UR = POKEMON_CENTER_LADY.withId("A2b-089");
+    public static final SupporterCard POKEMON_CENTER_LADY_UR = POKEMON_CENTER_LADY.withId("A2b-089", CardRarity.ULTRA_RARE);
     /** A2b-090 · Red (alternate art of A2b-071) */
-    public static final SupporterCard RED_UR = RED.withId("A2b-090");
+    public static final SupporterCard RED_UR = RED.withId("A2b-090", CardRarity.ULTRA_RARE);
     /** A2b-091 · Team Rocket Grunt (alternate art of A2b-072) */
-    public static final SupporterCard TEAM_ROCKET_GRUNT_UR = TEAM_ROCKET_GRUNT.withId("A2b-091");
+    public static final SupporterCard TEAM_ROCKET_GRUNT_UR = TEAM_ROCKET_GRUNT.withId("A2b-091", CardRarity.ULTRA_RARE);
 
     /** A2b-111 · Poké Ball (reprint of P-A-005) */
-    public static final ItemCard POKE_BALL_HR = com.tcgpocket.pool.PA.Trainers.POKE_BALL.withId("A2b-111");
+    public static final ItemCard POKE_BALL_HR = com.tcgpocket.pool.PA.Trainers.POKE_BALL.withId("A2b-111", CardRarity.HYPER_RARE);
 
     static final List<ITrainerCard> CARDS = List.of(
             IONO, POKEMON_CENTER_LADY, RED, TEAM_ROCKET_GRUNT,

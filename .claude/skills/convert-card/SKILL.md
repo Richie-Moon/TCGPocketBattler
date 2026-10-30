@@ -45,7 +45,7 @@ That API will return a JSON object in the format of:
 Then, take this JSON data and write Java code to convert it into the object-oriented model for this project.
 Sometimes, the damage field will have extra characters other than numbers. Ignore the extra characters and use the number as the base damage and the description to figure out how to model.
 Sometimes, move descriptions will include references to energy as `{G}` or `{W}`. Replace these with full type names, e.g. `Grass` or `Water`.  
-Sometimes, the text on the card will be corrupted/incorrect. Correct any mistakes as required. Any reference to the work "Pokémon" should include the accented "é".  
+Sometimes, the text on the card will be corrupted/incorrect. Correct any mistakes as required. Any reference to the words "Pokémon", "Pokéball" or similar should include the accented "é".  
 For the example above:
 
 ```java
@@ -61,5 +61,7 @@ public static final PokemonCard BULBASAUR = PokemonCard.basic(
         .withWeakness(Type.FIRE);
 ```
 Note that there are two different variants of the "2 Star" rarity. They can be `CardRarity.ULTRA_RARE` or `CardRarity.SPECIAL_ILLUSTRATION_RARE`. Ask the user which is the correct one when converting, if they have not already specified. 
+
+Trainer cards are `CardRarity.UNCOMMON` by default (`ItemCard.of`, `SupporterCard.of`, `new ToolCard(...)`), and their 2 Star printings are always `CardRarity.ULTRA_RARE`: `HAU.withId("A3b-085", CardRarity.ULTRA_RARE)`.
 
 In the event of an API failure, report the error to the user and do not write any Java code. 

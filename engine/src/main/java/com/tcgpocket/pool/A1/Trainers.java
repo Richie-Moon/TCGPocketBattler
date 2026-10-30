@@ -3,6 +3,7 @@ package com.tcgpocket.pool.A1;
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.PlayedOnto;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.PlayableItemCard;
 import com.tcgpocket.card.SupporterCard;
@@ -129,21 +130,21 @@ public final class Trainers {
 
     // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
     /** A1-266 · Erika (alternate art of A1-219) */
-    public static final SupporterCard ERIKA_UR = ERIKA.withId("A1-266");
+    public static final SupporterCard ERIKA_UR = ERIKA.withId("A1-266", CardRarity.ULTRA_RARE);
     /** A1-267 · Misty (alternate art of A1-220) */
-    public static final SupporterCard MISTY_UR = MISTY.withId("A1-267");
+    public static final SupporterCard MISTY_UR = MISTY.withId("A1-267", CardRarity.ULTRA_RARE);
     /** A1-268 · Blaine (alternate art of A1-221) */
-    public static final SupporterCard BLAINE_UR = BLAINE.withId("A1-268");
+    public static final SupporterCard BLAINE_UR = BLAINE.withId("A1-268", CardRarity.ULTRA_RARE);
     /** A1-269 · Koga (alternate art of A1-222) */
-    public static final SupporterCard KOGA_UR = KOGA.withId("A1-269");
+    public static final SupporterCard KOGA_UR = KOGA.withId("A1-269", CardRarity.ULTRA_RARE);
     /** A1-270 · Giovanni (alternate art of A1-223) */
-    public static final SupporterCard GIOVANNI_UR = GIOVANNI.withId("A1-270");
+    public static final SupporterCard GIOVANNI_UR = GIOVANNI.withId("A1-270", CardRarity.ULTRA_RARE);
     /** A1-271 · Brock (alternate art of A1-224) */
-    public static final SupporterCard BROCK_UR = BROCK.withId("A1-271");
+    public static final SupporterCard BROCK_UR = BROCK.withId("A1-271", CardRarity.ULTRA_RARE);
     /** A1-272 · Sabrina (alternate art of A1-225) */
-    public static final SupporterCard SABRINA_UR = SABRINA.withId("A1-272");
+    public static final SupporterCard SABRINA_UR = SABRINA.withId("A1-272", CardRarity.ULTRA_RARE);
     /** A1-273 · Lt. Surge (alternate art of A1-226) */
-    public static final SupporterCard LT_SURGE_UR = LT_SURGE.withId("A1-273");
+    public static final SupporterCard LT_SURGE_UR = LT_SURGE.withId("A1-273", CardRarity.ULTRA_RARE);
 
     static final List<ITrainerCard> CARDS = List.of(
             HELIX_FOSSIL, DOME_FOSSIL, OLD_AMBER,

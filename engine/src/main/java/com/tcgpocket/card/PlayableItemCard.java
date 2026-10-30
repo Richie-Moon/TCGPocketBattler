@@ -37,11 +37,13 @@ public record PlayableItemCard(
         String description,
         Set<CardTag> tags,
         List<IAction> actions,
-        int maxHp) implements IPlayableCard, ITrainerCard {
+        int maxHp,
+        CardRarity rarity) implements IPlayableCard, ITrainerCard {
 
     public PlayableItemCard {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(rarity, "rarity");
         tags = Set.copyOf(tags);
         actions = List.copyOf(actions);
         if (maxHp <= 0) {
@@ -60,16 +62,16 @@ public record PlayableItemCard(
                 : Optional.of(new ActivatedAbility(name, description, actions.getFirst(), false, new Always<>()));
         return new PokemonCard(id, name, description, tags, List.of(), maxHp, 0, Set.of(Type.COLORLESS),
                 Optional.empty(), EnergyCost.free(), Optional.empty(), Optional.empty(), discard,
-                CardRarity.COMMON);
+                rarity);
     }
 
     /** The same card under another id: a reprint in a later set. */
     public PlayableItemCard withId(String id) {
-        return new PlayableItemCard(id, name, description, tags, actions, maxHp);
+        return new PlayableItemCard(id, name, description, tags, actions, maxHp, rarity);
     }
 
     /** A Fossil of the given HP, tagged {@link CardTag#FOSSIL}. */
     public static PlayableItemCard fossil(String id, String name, int maxHp, IAction action) {
-        return new PlayableItemCard(id, name, "", Set.of(CardTag.FOSSIL), List.of(action), maxHp);
+        return new PlayableItemCard(id, name, "", Set.of(CardTag.FOSSIL), List.of(action), maxHp, CardRarity.UNCOMMON);
     }
 }

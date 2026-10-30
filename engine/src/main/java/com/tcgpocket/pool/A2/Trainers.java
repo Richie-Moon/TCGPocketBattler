@@ -3,6 +3,7 @@ package com.tcgpocket.pool.A2;
 import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.action.PlayedOnto;
 import com.tcgpocket.action.WithPrecondition;
+import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.HpBonus;
 import com.tcgpocket.card.ITrainerCard;
 import com.tcgpocket.card.ItemCard;
@@ -174,17 +175,17 @@ public final class Trainers {
 
     // Ultra Rare alternate arts. Trainers carry no rarity yet, so only the id differs.
     /** A2-190 · Cyrus (alternate art of A2-150) */
-    public static final SupporterCard CYRUS_UR = CYRUS.withId("A2-190");
+    public static final SupporterCard CYRUS_UR = CYRUS.withId("A2-190", CardRarity.ULTRA_RARE);
     /** A2-191 · Team Galactic Grunt (alternate art of A2-151) */
-    public static final SupporterCard TEAM_GALACTIC_GRUNT_UR = TEAM_GALACTIC_GRUNT.withId("A2-191");
+    public static final SupporterCard TEAM_GALACTIC_GRUNT_UR = TEAM_GALACTIC_GRUNT.withId("A2-191", CardRarity.ULTRA_RARE);
     /** A2-192 · Cynthia (alternate art of A2-152) */
-    public static final SupporterCard CYNTHIA_UR = CYNTHIA.withId("A2-192");
+    public static final SupporterCard CYNTHIA_UR = CYNTHIA.withId("A2-192", CardRarity.ULTRA_RARE);
     /** A2-193 · Volkner (alternate art of A2-153) */
-    public static final SupporterCard VOLKNER_UR = VOLKNER.withId("A2-193");
+    public static final SupporterCard VOLKNER_UR = VOLKNER.withId("A2-193", CardRarity.ULTRA_RARE);
     /** A2-194 · Dawn (alternate art of A2-154) */
-    public static final SupporterCard DAWN_UR = DAWN.withId("A2-194");
+    public static final SupporterCard DAWN_UR = DAWN.withId("A2-194", CardRarity.ULTRA_RARE);
     /** A2-195 · Mars (alternate art of A2-155) */
-    public static final SupporterCard MARS_UR = MARS.withId("A2-195");
+    public static final SupporterCard MARS_UR = MARS.withId("A2-195", CardRarity.ULTRA_RARE);
 
     static final List<ITrainerCard> CARDS = List.of(
             SKULL_FOSSIL, ARMOR_FOSSIL, POKEMON_COMMUNICATION, GIANT_CAPE, ROCKY_HELMET, LUM_BERRY,
