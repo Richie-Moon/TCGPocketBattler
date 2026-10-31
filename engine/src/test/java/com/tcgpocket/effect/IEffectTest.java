@@ -566,7 +566,7 @@ class IEffectTest {
             psychic.addStatus(new PoisonStatus());
             board.them.recoverProtected();
             assertTrue(psychic.statuses().isEmpty(), "covered, so it recovers");
-            assertTrue(board.them.protectsFromStatus(psychic));
+            assertTrue(board.them.protectsFromStatus(psychic, new PoisonStatus()));
         }
 
         @Test

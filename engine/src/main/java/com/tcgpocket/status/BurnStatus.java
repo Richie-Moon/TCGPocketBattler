@@ -40,7 +40,7 @@ public record BurnStatus() implements IStatus {
                 new For(new IsActive(), new Self()),
                 new Attempt(List.of(
                         new PlaceDamage(new Literal(DAMAGE), new Self()),
-                        new FlipN(new Literal(1)),
+                        FlipN.forSpecialCondition(),
                         new ConditionalEffect(
                                 new LastCoinTossHeads(),
                                 new RemoveStatus(new Self(), new BurnStatus()))))));

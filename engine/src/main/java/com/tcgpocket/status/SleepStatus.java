@@ -36,7 +36,7 @@ public record SleepStatus() implements IStatus {
                 TurnEnd.class,
                 new For(new IsActive(), new Self()),
                 new Attempt(List.of(
-                        new FlipN(new Literal(1)),
+                        FlipN.forSpecialCondition(),
                         new ConditionalEffect(
                                 new LastCoinTossHeads(),
                                 new RemoveStatus(new Self(), new SleepStatus()))))));

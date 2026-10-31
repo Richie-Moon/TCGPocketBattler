@@ -14,6 +14,8 @@ import com.tcgpocket.action.WithPrecondition;
 import com.tcgpocket.card.ICard;
 import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.ToolCard;
+import com.tcgpocket.effect.DistributeMixedEnergy;
+import com.tcgpocket.energy.Type;
 import com.tcgpocket.engine.OpeningPlacement;
 import com.tcgpocket.player.Decision;
 import com.tcgpocket.state.CardInstance;
@@ -90,6 +92,9 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
             case CardInstance card -> new OptionView(card.definition().name(), "card", id(card), null);
             case Optional<?> maybe -> maybe.map(inner -> of(inner, decision))
                     .orElse(new OptionView("None", "none", null, null));
+            case DistributeMixedEnergy.EnergyPlacement placement -> other(
+                    energyName(placement.energy()) + " on " + label(placement.pokemon(), decision));
+            case List<?> none when none.isEmpty() -> new OptionView("None", "none", null, null);
             // ponytail: a list (DistributeEnergy's placements) is only text; give it ids once a UI drags energy.
             case List<?> many -> other(many.stream()
                     .map(each -> of(each, decision).label())
@@ -101,6 +106,10 @@ record OptionView(String label, String kind, Integer card, Integer target, List<
     /** What the log says about choosing this; the browser does the same for your own choices. */
     String logText(String prompt) {
         return kind.equals("answer") ? prompt + " " + label : label;
+    }
+
+    private static String energyName(Type type) {
+        return type.name().charAt(0) + type.name().substring(1).toLowerCase();
     }
 
     private static String shown(ICard card) {

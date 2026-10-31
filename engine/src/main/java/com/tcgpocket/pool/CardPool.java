@@ -9,6 +9,7 @@ import com.tcgpocket.pool.A2b.ShiningRevelry;
 import com.tcgpocket.pool.A3.CelestialGuardians;
 import com.tcgpocket.pool.A3a.ExtradimensionalCrisis;
 import com.tcgpocket.pool.A3b.EeveeGrove;
+import com.tcgpocket.pool.A4.WisdomOfSeaAndSky;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -36,7 +37,7 @@ import java.util.stream.Stream;
 public final class CardPool {
 
     private static final Map<String, ICard> BY_ID = index(Stream.of(
-            GeneticApex.CARDS, MythicalIsland.CARDS, SpaceTimeSmackdown.CARDS, TriumphantLight.CARDS, ShiningRevelry.CARDS, CelestialGuardians.CARDS, ExtradimensionalCrisis.CARDS, EeveeGrove.CARDS, com.tcgpocket.pool.PA.Trainers.CARDS)
+            GeneticApex.CARDS, MythicalIsland.CARDS, SpaceTimeSmackdown.CARDS, TriumphantLight.CARDS, ShiningRevelry.CARDS, CelestialGuardians.CARDS, ExtradimensionalCrisis.CARDS, EeveeGrove.CARDS, WisdomOfSeaAndSky.CARDS, com.tcgpocket.pool.PA.Trainers.CARDS)
             .flatMap(List::stream).toList());
 
     private CardPool() {

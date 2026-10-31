@@ -21,7 +21,7 @@ public record FlipUntilTails() implements IFlipStrategy {
     public FlipResult flip(ResolutionContext context) {
         List<Boolean> results = new ArrayList<>();
         while (results.size() < SAFETY_LIMIT) {
-            boolean heads = context.battle().rng().nextBoolean();
+            boolean heads = coin(context);
             results.add(heads);
             if (!heads) {
                 break;

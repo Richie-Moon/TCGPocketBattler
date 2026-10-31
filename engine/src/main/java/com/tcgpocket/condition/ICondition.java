@@ -40,10 +40,10 @@ public sealed interface ICondition<T> permits
         // subject: ResolutionContext
         GreaterThan, LessThan, EqualTo, Probability, For, ForAny,
         LastCoinTossHeads, AllFlipsHeads, StadiumInPlay, KnockedOutLastTurn,
-        EventConcerns, EventSideIs, EnergyFromZone, CanSkipStage1, SupporterPlayedThisTurn, AttackUsedLastTurn,
+        EventConcerns, EventSideIs, EnergyFromZone, CanSkipStage1, SupporterPlayedThisTurn, AttackUsedLastTurn, DamagedWhileActiveLastTurn,
         // subject: PokemonInPlay
         HasType, IsPoisoned, IsBurned, IsAsleep, IsParalyzed, IsConfused,
-        IsActive, IsBenched, IsDamaged, HasTool, HasEnergy, MovedToActiveThisTurn, EvolvedThisTurn, OwnersFirstTurn, OwnerHasInPlay, HasAbility,
+        IsActive, IsBenched, IsDamaged, HasTool, HasEnergy, MovedToActiveThisTurn, EvolvedThisTurn, OwnersFirstTurn, OwnerHasInPlay, HasAbility, HasAbilityNamed,
         // subject: CardInstance
         InZone, IsSpecies, EvolvesFrom, HasTag, IsType, IsBasic, IsStage, IsPokemon, IsItem, IsTool, IsSupporter {
 

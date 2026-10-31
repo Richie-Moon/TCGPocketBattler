@@ -215,6 +215,12 @@ final class Game {
         }
 
         @Override
+        public synchronized boolean guaranteedHeads() {
+            since.add(true);
+            return true;
+        }
+
+        @Override
         public void shuffle(List<?> list) {
             rng.shuffle(list);
         }

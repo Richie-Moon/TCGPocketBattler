@@ -18,5 +18,10 @@ public interface RandomSource {
     /** A coin flip, {@code true} for heads, and never anything else: the server shows the players every call as a coin. */
     boolean nextBoolean();
 
+    /** A coin that card text has already decided is heads, drawing no randomness; a server still shows it as a coin. */
+    default boolean guaranteedHeads() {
+        return true;
+    }
+
     void shuffle(List<?> list);
 }

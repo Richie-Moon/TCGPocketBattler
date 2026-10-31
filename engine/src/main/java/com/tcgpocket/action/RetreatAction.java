@@ -92,7 +92,7 @@ public record RetreatAction(ITarget replacement) implements IAction {
      * on its side that covers it. Nothing at all while the Pokemon holds
      * a {@link NoRetreatCost} whose condition it meets.
      */
-    private static EnergyCost retreatCostOf(ResolutionContext context, PokemonInPlay retreating) {
+    public static EnergyCost retreatCostOf(ResolutionContext context, PokemonInPlay retreating) {
         boolean free = retreating.owner().standingRules().stream()
                 .anyMatch(held -> held.rule() instanceof NoRetreatCost rule && rule.frees(held.holder(), retreating));
         if (free) {

@@ -9,6 +9,8 @@ import com.tcgpocket.action.RetreatAction;
 import com.tcgpocket.action.UseAbilityAction;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.card.ReturnToHandWhenKnockedOut;
+import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.player.Decision;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.resolve.ResolutionScope;
@@ -334,7 +336,7 @@ public final class TurnEngine {
                     pokemon.owner().markKnockedOutByAttack(battle.turn());
                 }
                 TriggerDispatcher.dispatch(battle, new Knockout(pokemon, by));
-                leavePlay(pokemon);
+                leavePlay(pokemon, by);
             }
             knockedOut = knockedOut();
         }
@@ -369,14 +371,17 @@ public final class TurnEngine {
     }
 
     /** Attached energy is not a card, so it goes to the discard pile as a count. */
-    private static void leavePlay(PokemonInPlay pokemon) {
+    private static void leavePlay(PokemonInPlay pokemon, Optional<PokemonInPlay> by) {
         Side owner = pokemon.owner();
         if (owner.active().filter(pokemon::equals).isPresent()) {
             owner.setActive(null);
         } else {
             owner.removeFromBench(pokemon);
         }
-        pokemon.cards().forEach(owner::addToDiscard);
+        boolean rescued = by.filter(attacker -> attacker.owner() != owner).isPresent()
+                && pokemon.tool().map(CardInstance::definition).orElse(null) instanceof ToolCard tool
+                && tool.rules().stream().anyMatch(ReturnToHandWhenKnockedOut.class::isInstance);
+        pokemon.cards().forEach(rescued ? owner::addToHand : owner::addToDiscard);
         pokemon.removeTool().ifPresent(owner::addToDiscard);
         pokemon.discardAllEnergy();
     }

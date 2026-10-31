@@ -104,6 +104,14 @@ class TimesAttackUsed <<record>> implements INumber {
     - attackName: String
 }
 
+/' Grass Knot: the current cost, through RetreatAction. '/
+class RetreatCost <<record>> implements INumber {
+    - target: ITarget
+}
+
+/' Wild Swing: read from the scope, after a DiscardAnyFromPlay. '/
+class PokemonDiscarded <<record>> implements INumber {}
+
 class EnergyAmong <<record>> implements INumber {
     - targets: IMultiTarget
 }

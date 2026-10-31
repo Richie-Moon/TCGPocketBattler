@@ -49,6 +49,7 @@ public final class PokemonInPlay extends CardInstance {
     private boolean abilityUsedThisTurn;
     private boolean movedToActiveThisTurn;
     private boolean evolvedThisTurn;
+    private int damagedByAttackWhileActiveOnTurn = -1;
 
     /**
      * @param definition the card put into play: a Basic Pokemon, or a Fossil,
@@ -119,6 +120,15 @@ public final class PokemonInPlay extends CardInstance {
 
     public void markAbilityUsed() {
         abilityUsedThisTurn = true;
+    }
+
+    /** Whether an attack damaged this Pokemon in the Active Spot on that turn — Wobbuffet's Reply Strongly. */
+    public boolean damagedByAttackWhileActiveOn(int turn) {
+        return damagedByAttackWhileActiveOnTurn == turn;
+    }
+
+    public void markDamagedByAttackWhileActive(int turn) {
+        damagedByAttackWhileActiveOnTurn = turn;
     }
 
     /** Whether this Pokemon moved from the Bench to the Active Spot this turn — Golisopod's First Impression. */

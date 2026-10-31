@@ -21,6 +21,7 @@ public final class ResolutionScope {
     private int damageDealtThisResolution;
     private boolean attack;
     private CardInstance pickedCard;
+    private int pokemonDiscarded;
 
     /** Whether this resolution is an attack, as opposed to a Trainer, an Ability or a trigger. */
     public boolean isAttack() {
@@ -38,6 +39,15 @@ public final class ResolutionScope {
 
     public void recordPickedCard(CardInstance card) {
         this.pickedCard = card;
+    }
+
+    /** How many Pokemon a {@code DiscardAnyFromPlay} discarded, for the {@code PokemonDiscarded} after it. */
+    public int pokemonDiscarded() {
+        return pokemonDiscarded;
+    }
+
+    public void recordPokemonDiscarded(int count) {
+        this.pokemonDiscarded = count;
     }
 
     public Optional<FlipResult> lastFlip() {

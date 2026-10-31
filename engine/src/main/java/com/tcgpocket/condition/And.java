@@ -8,7 +8,7 @@ import java.util.Objects;
  *
  * @param <T> what both conditions examine
  */
-public record And<T>(ICondition<T> left, ICondition<T> right) implements ICondition<T> {
+public record And<T>(ICondition<? super T> left, ICondition<? super T> right) implements ICondition<T> {
 
     public And {
         Objects.requireNonNull(left, "left");
