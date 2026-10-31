@@ -30,6 +30,7 @@ mvn -Dtest=IEffectTest#unresolvedTargetFails test   # one method
 java -jar server/target/server-0.1.0-SNAPSHOT.jar   # after mvn package; serves /play on 8080
 cd web && npm install && npm run dev      # play at localhost:5173 in two tabs (needs the server)
 # localhost:5173/?demo plays a bot in one tab, signed in or not (server's /play?bot)
+# localhost:5173/?sandbox is the owner's test board (needs the db profile and SANDBOX_OWNER_SUBJECT)
 cd web && npm run build && npm run lint   # type-check + bundle, oxlint
 ```
 
@@ -119,9 +120,12 @@ Details are in `server/CLAUDE.md`. These rules hold everywhere:
 
 - **The browser only ever sends `{"decision": id, "option": index}`** — an index into a list the
   engine already made legal, plus the decision's id so a stale answer can't land on the next
-  question. Never accept a move the client describes itself.
+  question. Never accept a move the client describes itself. The one exception is the owner-only
+  `/sandbox` socket (see `server/CLAUDE.md`), which also takes edits; it must never share code paths
+  that would let them reach `/play`.
 - **`BoardView` is the only board state that leaves the server.** Never serialize `Battle`,
-  `Decision` or engine objects: the opponent's hand, deck order and RNG seed are hidden.
+  `Decision` or engine objects: the opponent's hand, deck order and RNG seed are hidden. Only
+  `BoardView.sandbox` shows them, to the sandbox's owner.
 - Never commit the DB wallet.
 - CSRF tokens are off because the session cookie is `SameSite=Lax`; keep it that way if you add POSTs.
 

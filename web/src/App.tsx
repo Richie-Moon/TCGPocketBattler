@@ -4,18 +4,23 @@ import { DeckEditor } from './DeckEditor'
 import { Decks } from './Decks'
 import { Home, type Page } from './Home'
 import { Landing } from './Landing'
+import type { GameMode } from './useGame'
 
 /**
  * Home, then the game once they queue, only for a signed-in user; the landing page otherwise, including when the
- * server has no sign-in (no db profile). `?demo` skips all of that and plays a bot, signed in or not.
+ * server has no sign-in (no db profile). `?demo` skips all of that and plays a bot, signed in or not. `?sandbox`
+ * opens the owner's sandbox, which nothing links to; the server refuses anyone else's connection.
  */
 function App() {
   const [me, setMe] = useState<{ name: string; elo: number; profileIcon: string; emblems: string[] } | 'signed-out' | null>(null)
-  const [playing, setPlaying] = useState<'queue' | 'bot' | null>(
-    new URLSearchParams(location.search).has('demo') ? 'bot' : null,
-  )
+  const [playing, setPlaying] = useState<GameMode | null>(() => {
+    const params = new URLSearchParams(location.search)
+    return params.has('sandbox') ? 'sandbox' : params.has('demo') ? 'bot' : null
+  })
   const [page, setPage] = useState<Page>('Home')
   const [editing, setEditing] = useState<number | 'new' | null>(null)
+  // Bumped to remount the sandbox: a new socket is a new, empty game.
+  const [run, setRun] = useState(0)
   useEffect(() => {
     fetch('/api/me')
       .then((response) => (response.ok ? response.json() : 'signed-out'))
@@ -26,7 +31,7 @@ function App() {
       history.replaceState(null, '', location.pathname)
       setPlaying(null)
     }
-    return <Battle bot={playing === 'bot'} me={me === 'signed-out' ? null : me} onLeave={leave} />
+    return <Battle key={run} mode={playing} me={me === 'signed-out' ? null : me} onLeave={leave} onReset={() => setRun(run + 1)} />
   }
   if (me === null) return null
   if (me === 'signed-out') return <Landing />

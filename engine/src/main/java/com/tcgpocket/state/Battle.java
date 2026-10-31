@@ -71,6 +71,11 @@ public final class Battle {
         return turn;
     }
 
+    /** Outside the rules, for the sandbox; a game only ever advances through {@link #switchSides}. */
+    public void setTurn(int turn) {
+        this.turn = turn;
+    }
+
     public Side opponentOf(Side side) {
         if (side == attacker) {
             return defender;

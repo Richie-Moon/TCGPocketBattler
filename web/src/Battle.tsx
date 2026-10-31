@@ -15,7 +15,8 @@ import send from './assets/battle/send.svg'
 import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
 import { Icon } from './Home'
 import type { BoardView, CardView, OptionView, PokemonView, SideView } from './protocol'
-import { useGame, type LogEntry } from './useGame'
+import { SandboxPanel } from './SandboxPanel'
+import { useGame, type GameMode, type LogEntry } from './useGame'
 
 /** What a turn option starts from: a card in hand or in play (by instance id), or the Energy Zone. */
 type Source = number | 'energy'
@@ -33,6 +34,7 @@ const NO_SIDE: SideView = {
   energy: null,
   nextEnergy: null,
   cosmetics: { coin: '', sleeve: '', playmat: '' },
+  sandbox: null,
 }
 
 function sourceOf(option: OptionView, activeId: number | undefined): Source | null {
@@ -60,17 +62,23 @@ function sourceOf(option: OptionView, activeId: number | undefined): Source | nu
  * its usable attacks, Ability and Retreat to tap on the art. Any other question lists its options, with its
  * Pokemon tappable too. Long-press (or right-click) any card to see it large. Every gesture
  * still answers with an option index the server offered.
+ *
+ * In the sandbox you answer for both sides from this one view: `actor` is whichever side the question is for, the
+ * opponent's hand is face up, and an opponent's move starts from a tap there.
  */
 export function Battle({
-  bot,
+  mode,
   me,
   onLeave,
+  onReset,
 }: {
-  bot: boolean
+  mode: GameMode
   me: { name: string; profileIcon: string } | null
   onLeave: () => void
+  onReset?: () => void
 }) {
-  const { connection, board, flips, move, flash, decision, result, error, log, choose } = useGame(bot)
+  const { connection, board, flips, move, flash, decision, result, error, log, choose, edit } = useGame(mode)
+  const sandbox = mode === 'sandbox'
   // Picks are tagged with the decision they were made for, so a new question starts with nothing picked.
   const [pick, setPick] = useState<{ decision: number; source: Source } | null>(null)
   // The Pokemon in play whose card is open to pick an attack, Ability or Retreat from.
@@ -99,11 +107,12 @@ export function Battle({
 
   const you = board?.you ?? NO_SIDE
   const opponent = board?.opponent ?? NO_SIDE
+  const actor = decision?.opponent ? opponent : you
   const options = decision?.options.map((option, index) => ({ option, index })) ?? []
   const isSetup = options[0]?.option.kind === 'setup'
   const isTurn = options.some(({ option }) => option.kind === 'endTurn')
   const selected = pick && pick.decision === decision?.id ? pick.source : null
-  const sourced = options.map((o) => ({ ...o, source: isTurn ? sourceOf(o.option, you.active?.id) : null }))
+  const sourced = options.map((o) => ({ ...o, source: isTurn ? sourceOf(o.option, actor.active?.id) : null }))
   const sources = new Set(sourced.map((o) => o.source).filter((source) => source !== null))
   const forSelected = sourced.filter((o) => selected !== null && o.source === selected)
   // Your Pokemon with an Ability they can use now.
@@ -147,7 +156,7 @@ export function Battle({
     setSetup({ decision: decision.id, ...board })
   }
   const setupBasics = new Set(options.map(({ option }) => option.card))
-  const byId = new Map(you.hand.map((card) => [card.id, card]))
+  const byId = new Map(actor.hand.map((card) => [card.id, card]))
   const shownActive = isSetup && picks.active !== null ? asPokemon(byId.get(picks.active)) : you.active
   const shownBench = isSetup ? picks.bench.map((id) => (id === null ? null : asPokemon(byId.get(id)))) : you.bench
   // A card you just played leaves your hand while it flashes, before the board that takes it arrives.
@@ -166,7 +175,7 @@ export function Battle({
       setPreview({ decision: decision.id, id })
     }
   }
-  const previewed = preview && preview.decision === decision?.id ? [you.active, ...you.bench].find((p) => p?.id === preview.id) : null
+  const previewed = preview && preview.decision === decision?.id ? [actor.active, ...actor.bench].find((p) => p?.id === preview.id) : null
   function clickHand(id: number) {
     const answer = handPicks.get(id)
     if (isSetup) toggleSetup(id)
@@ -181,7 +190,7 @@ export function Battle({
     if (decision && isTurn) setPick({ decision: decision.id, source })
   }
   function drop(source: Source, at: Element | null, y: number) {
-    const slot = Number(at?.closest('.your-bench [data-slot]')?.getAttribute('data-slot') ?? NaN)
+    const slot = Number(at?.closest(`${decision?.opponent ? '.opp-bench' : '.your-bench'} [data-slot]`)?.getAttribute('data-slot') ?? NaN)
     if (isSetup) {
       if (typeof source === 'number') placeSetup(source, at?.closest('.your-active') ? 'active' : Number.isNaN(slot) ? null : slot)
       return
@@ -206,7 +215,7 @@ export function Battle({
   else if (connection === 'connecting') status = 'Connecting…'
   else if (connection === 'waiting') status = 'Waiting for an opponent…'
   else if (connection === 'closed') status = 'Disconnected'
-  else if (board && !board.you.active) status = decision ? 'Set up your board' : 'Waiting for your opponent'
+  else if (board && !board.you.active && !sandbox) status = decision ? 'Set up your board' : 'Waiting for your opponent'
   else if (board) status = `Turn ${board.turn} · ${board.yourTurn ? 'Your turn' : "Opponent's turn"}`
   else status = 'Starting…'
 
@@ -231,7 +240,7 @@ export function Battle({
 
   function nameOf(source: Source) {
     if (source === 'energy') return 'Energy'
-    const pokemon = [you.active, ...you.bench].find((p) => p?.id === source)
+    const pokemon = [actor.active, ...actor.bench].find((p) => p?.id === source)
     return pokemon?.name ?? byId.get(source)?.name ?? ''
   }
 
@@ -259,8 +268,10 @@ export function Battle({
     setSeen(log.length)
     setLogOpen(!logOpen)
   }
+  const energyState = (forOpponent: boolean) =>
+    !!decision?.opponent !== forOpponent ? undefined : selected === 'energy' ? 'selected' : sources.has('energy') ? 'can' : undefined
   function concede() {
-    if (over || confirm('Concede this game?')) onLeave()
+    if (over || sandbox || confirm('Concede this game?')) onLeave()
   }
 
   return (
@@ -279,13 +290,22 @@ export function Battle({
               pokemon={opponent.bench}
               state={pokemonState}
               onClick={clickPokemon}
+              abilities={abilities}
+              open={(i) => !!decision?.opponent && benchPlays.has(i)}
+              onSlot={(i) => choose(benchPlays.get(i)!)}
               leaving={(i) => leavingAt('opponent', i)}
             />
-            <EnergyZone className="opp-energy" side={opponent} />
+            <EnergyZone className="opp-energy" side={opponent} state={energyState(true)} onClick={() => select('energy')} />
             <Slot className="active opp-active">
               {leavingAt('opponent', 'active')}
               {opponent.active && (
-                <Pokemon key={opponent.active.id} pokemon={opponent.active} state={pokemonState(opponent.active.id)} onClick={clickPokemon} />
+                <Pokemon
+                  key={opponent.active.id}
+                  pokemon={opponent.active}
+                  state={pokemonState(opponent.active.id)}
+                  ability={abilities.has(opponent.active.id)}
+                  onClick={clickPokemon}
+                />
               )}
             </Slot>
             <Zones className="opp-zones" side={opponent} deckFirst={false} />
@@ -340,14 +360,14 @@ export function Battle({
               state={isSetup ? () => 'selected' : pokemonState}
               onClick={isSetup ? toggleSetup : clickPokemon}
               abilities={abilities}
-              open={(i) => (setupDrop && !shownBench[i]) || benchPlays.has(i)}
+              open={(i) => (setupDrop && !shownBench[i]) || (!decision?.opponent && benchPlays.has(i))}
               onSlot={isSetup ? undefined : (i) => choose(benchPlays.get(i)!)}
               leaving={(i) => leavingAt('you', i)}
             />
             <EnergyZone
               className="your-energy"
               side={you}
-              state={selected === 'energy' ? 'selected' : sources.has('energy') ? 'can' : undefined}
+              state={energyState(false)}
               onClick={() => select('energy')}
             />
 
@@ -370,7 +390,12 @@ export function Battle({
             )}
           </div>
 
-          <OpponentHand side={opponent} />
+          <OpponentHand
+            side={opponent}
+            playable={sandbox ? (id) => handPicks.has(id) || sources.has(id) : undefined}
+            selected={selected}
+            onClick={clickHand}
+          />
           <div className="hand" ref={handRow}>
             {hand.map((card, i) => {
               const can = isSetup ? setupBasics.has(card.id) : handPicks.has(card.id) || sources.has(card.id)
@@ -398,7 +423,7 @@ export function Battle({
         {previewed && (
           <MovePreview
             pokemon={previewed}
-            active={previewed.id === you.active?.id}
+            active={previewed.id === actor.active?.id}
             options={sourced.filter((o) => o.source === previewed.id)}
             onChoose={(index) => {
               setPreview(null)
@@ -420,10 +445,11 @@ export function Battle({
 
       <button type="button" className="scrim" aria-label="Close the battle log" onClick={toggleLog} />
       {ghost}
+      {sandbox && <SandboxPanel board={board} decision={decision} edit={edit} onReset={onReset} />}
       <LogPanel
         log={log}
         subtitle={`Standard · ${me?.name ?? (you.name || 'You')} vs ${theirName}`}
-        concedeLabel={over ? 'Leave' : 'Concede'}
+        concedeLabel={over || sandbox ? 'Leave' : 'Concede'}
         onConcede={concede}
       />
     </div>
@@ -889,15 +915,40 @@ function EnergyZone({
   )
 }
 
-/** Face down, except any cards the opponent has had to reveal. */
-function OpponentHand({ side }: { side: SideView }) {
+/** Face down, except any cards the opponent has had to reveal. In the sandbox, `playable` makes its cards tappable. */
+function OpponentHand({
+  side,
+  playable,
+  selected,
+  onClick,
+}: {
+  side: SideView
+  playable?: (id: number) => boolean
+  selected: Source | null
+  onClick: (id: number) => void
+}) {
   return (
     <div className="opp-hand" aria-label={`Opponent's hand: ${side.handSize} cards`}>
-      {Array.from({ length: side.handSize }, (_, i) => (
-        <span key={i} className="opp-card" style={fan(i, side.handSize, 5)}>
-          {i < side.hand.length ? <Card card={side.hand[i]} /> : <Back sleeve={side.cosmetics.sleeve} />}
-        </span>
-      ))}
+      {Array.from({ length: side.handSize }, (_, i) => {
+        const card = side.hand[i]
+        const can = card && playable?.(card.id)
+        return playable && card ? (
+          <button
+            key={card.id}
+            type="button"
+            className={selected === card.id ? 'opp-card selected' : can ? 'opp-card can' : 'opp-card'}
+            style={fan(i, side.handSize, 5)}
+            aria-disabled={!can}
+            onClick={() => can && onClick(card.id)}
+          >
+            <Card card={card} />
+          </button>
+        ) : (
+          <span key={i} className="opp-card" style={fan(i, side.handSize, 5)}>
+            {card ? <Card card={card} /> : <Back sleeve={side.cosmetics.sleeve} />}
+          </span>
+        )
+      })}
     </div>
   )
 }

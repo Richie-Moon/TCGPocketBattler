@@ -3424,3 +3424,177 @@ p {
   .battle *,
   .battle *::after { animation: none !important; transition: none !important; }
 }
+
+/* The owner's sandbox panel, between the board and the log. Not laid out for a phone: it is a desktop testing tool. */
+.battle .sandbox {
+  flex: 0 0 340px;
+  box-sizing: border-box;
+  padding: 16px;
+  overflow-y: auto;
+  border-left: 1px solid var(--color-mat-zone);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.battle .sandbox-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Narrower than a real game's log, to leave the board room beside the panel. */
+.battle .sandbox ~ .log {
+  flex: 0 0 260px;
+  min-width: 0;
+}
+
+.battle .sandbox ~ .log .log-head {
+  padding: 12px;
+  gap: 8px;
+}
+
+.battle .sandbox ~ .log .log-title h2 {
+  font-size: 16px;
+}
+
+.battle .sandbox ~ .log .log-title p {
+  font-size: 12px;
+}
+
+.battle .sandbox ~ .log .concede {
+  padding: 4px 10px;
+  border-width: 1px;
+  font-size: 12px;
+}
+
+.battle .sandbox ~ .log .log-filter {
+  padding: 8px 12px 0;
+}
+
+.battle .sandbox ~ .log .segmented button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.battle .sandbox ~ .log .feed {
+  gap: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.battle .sandbox ~ .log .say {
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.battle .sandbox ~ .log .say input {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.battle .sandbox ~ .log .say button {
+  width: 30px;
+  height: 30px;
+}
+
+.battle .sandbox fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.battle .sandbox section,
+.battle .sandbox details {
+  margin-top: 12px;
+}
+
+.battle .sandbox summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.battle .sandbox h4 {
+  margin: 12px 0 4px;
+  font-size: 13px;
+}
+
+.battle .sandbox .pokemon-editor {
+  padding-left: 8px;
+  border-left: 2px solid var(--color-mat-zone);
+}
+
+.battle .sandbox .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 6px;
+}
+
+.battle .sandbox label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.battle .sandbox input:not([type='checkbox']),
+.battle .sandbox select,
+.battle .sandbox button {
+  box-sizing: border-box;
+  padding: 3px 6px;
+  border: 1px solid var(--color-text-muted);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.battle .sandbox button:disabled {
+  opacity: 0.5;
+}
+
+.battle .sandbox input[type='number'] {
+  width: 56px;
+}
+
+.battle .sandbox input[list] {
+  width: 150px;
+}
+
+.battle .sandbox .energy-counts {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 4px;
+  justify-content: start;
+  margin-top: 6px;
+}
+
+.battle .sandbox .pile-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.battle .sandbox .pile-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.battle .sandbox .pile-list li .row {
+  margin: 0;
+  margin-left: auto;
+}
+
+.battle .opp-card.can {
+  cursor: pointer;
+  outline: 2px solid var(--color-accent);
+}
+
+.battle .opp-card.selected {
+  outline: 3px solid var(--color-accent);
+  translate: 0 10px;
+}

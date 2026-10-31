@@ -1,5 +1,5 @@
-// Mirrors server/src/main/java/com/tcgpocket/server: BoardView, and the messages GameSocket, Game and
-// RemotePlayer send. Change both sides in the same commit.
+// Mirrors server/src/main/java/com/tcgpocket/server: BoardView, the messages GameSocket, Game, RemotePlayer and
+// SandboxGame send, and SandboxCommand. Change both sides in the same commit.
 
 /** `id` is this copy's instance id; `card` is the printed card, such as "A1-094". */
 export interface CardView {
@@ -51,6 +51,8 @@ export interface SideView {
   energy: string | null
   nextEnergy: string | null
   cosmetics: Cosmetics
+  /** Null except in the sandbox, where nothing is hidden. */
+  sandbox: { deck: CardView[]; energyTypes: string[] } | null
 }
 
 export interface BoardView {
@@ -98,6 +100,12 @@ export interface DecisionMessage {
   id: number
   prompt: string
   options: OptionView[]
+  /** Sandbox only: the question is for the opponent's side. */
+  opponent?: boolean
+  /** Sandbox only: whether board edits are open, which is only at the "Your move" question. */
+  editable?: boolean
+  /** Sandbox only: how the next coins will land, in order, true for heads. */
+  coins?: boolean[]
 }
 
 export type ServerMessage =
@@ -125,8 +133,35 @@ export interface LogMessage {
   shown: string | null
 }
 
-/** The only thing the browser ever sends. */
+/** The only thing the browser ever sends to /play. */
 export interface Answer {
   decision: number
   option: number
 }
+
+export type SandboxZone = 'HAND' | 'DECK' | 'DISCARD' | 'ACTIVE' | 'BENCH'
+
+/**
+ * An edit /sandbox also takes. `opponent` picks the side; a string `card` is a printed id and a numeric `card` or
+ * `pokemon` an instance id. `position` is a deck index (0 the top, null the bottom) or a Bench slot (null the first empty).
+ */
+export type SandboxCommand =
+  | { command: 'addCard'; opponent: boolean; card: string; zone: SandboxZone; position: number | null }
+  | { command: 'move'; card: number; zone: SandboxZone; position: number | null }
+  | { command: 'remove'; card: number }
+  | { command: 'shuffle'; opponent: boolean }
+  | { command: 'setDamage'; pokemon: number; damage: number }
+  | { command: 'setEnergy'; pokemon: number; type: string; count: number }
+  | { command: 'addStatus'; pokemon: number; status: string }
+  | { command: 'removeStatus'; pokemon: number; status: string }
+  | { command: 'attachTool'; pokemon: number; card: string }
+  | { command: 'removeTool'; pokemon: number }
+  | { command: 'evolve'; pokemon: number; card: string }
+  | { command: 'setPlayedThisTurn'; pokemon: number; played: boolean }
+  | { command: 'setPoints'; opponent: boolean; points: number }
+  | { command: 'setEnergyZone'; opponent: boolean; current: string | null; next: string | null; types: string[] }
+  | { command: 'resetTurn'; opponent: boolean }
+  | { command: 'setTurn'; turn: number }
+  | { command: 'setStadium'; card: string | null }
+  | { command: 'queueCoins'; coins: boolean[] }
+  | { command: 'clearCoins' }

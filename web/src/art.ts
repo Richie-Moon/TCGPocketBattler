@@ -27,3 +27,6 @@ export function listArt(base: string): Promise<string[]> {
     .then((response) => response.json())
     .then((body: { objects: { name: string }[] }) => body.objects.map((object) => object.name.slice(base.length - cut)))
 }
+
+/** The Energy Zone types: every {@code Type} but Dragon and Colorless, which have no Energy. */
+export const ENERGY = ['GRASS', 'FIRE', 'WATER', 'LIGHTNING', 'PSYCHIC', 'FIGHTING', 'DARKNESS', 'METAL']

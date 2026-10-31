@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Answer, BoardView, DecisionMessage, LogMessage, ServerMessage } from './protocol'
+import type { Answer, BoardView, DecisionMessage, LogMessage, SandboxCommand, ServerMessage } from './protocol'
+
+/** Which game to join: the queue, a bot at once, or the owner's sandbox. */
+export type GameMode = 'queue' | 'bot' | 'sandbox'
+
+const ENDPOINTS: Record<GameMode, string> = { queue: '/play', bot: '/play?bot', sandbox: '/sandbox' }
 
 /** One line of the battle log. `turn` lines are the dividers; `point` lines are knockouts. */
 export interface LogEntry {
@@ -8,10 +13,10 @@ export interface LogEntry {
 }
 
 /**
- * One connection to /play (or /play?bot, which starts at once against a bot): the latest board, the open
- * question if any, a way to answer it, and a log of what this page saw happen.
+ * One connection to /play (or /play?bot, which starts at once against a bot, or /sandbox): the latest board, the
+ * open question if any, a way to answer it, and a log of what this page saw happen.
  */
-export function useGame(bot = false) {
+export function useGame(mode: GameMode) {
   const socket = useRef<WebSocket | null>(null)
   const [connection, setConnection] = useState<'connecting' | 'waiting' | 'playing' | 'closed'>('connecting')
   const [board, setBoard] = useState<BoardView | null>(null)
@@ -76,7 +81,7 @@ export function useGame(bot = false) {
     }
 
     function connect() {
-      ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/play${bot ? '?bot' : ''}`)
+      ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}${ENDPOINTS[mode]}`)
       socket.current = ws
 
       ws.onmessage = (event) => {
@@ -121,7 +126,7 @@ export function useGame(bot = false) {
         }
       }
     }
-  }, [bot])
+  }, [mode])
 
   function choose(option: number) {
     if (!decision) return
@@ -129,8 +134,14 @@ export function useGame(bot = false) {
     const { shown, card, kind, label } = decision.options[option]
     if (shown) queue.current = queue.current.then(() => show(shown, card))
     socket.current?.send(JSON.stringify(answer))
-    setLog((log) => [...log, { kind: 'you', text: kind === 'answer' ? `${decision.prompt} ${label}` : label }])
+    const text = kind === 'answer' ? `${decision.prompt} ${label}` : label
+    setLog((log) => [...log, { kind: decision.opponent ? 'them' : 'you', text: decision.opponent ? `Opponent: ${text}` : text }])
     setDecision(null)
+  }
+
+  /** A sandbox edit; the server answers with a fresh board and question, or an error. */
+  function edit(command: SandboxCommand) {
+    socket.current?.send(JSON.stringify(command))
   }
 
   function show(shown: string, card: number | null) {
@@ -138,7 +149,7 @@ export function useGame(bot = false) {
     return wait(FLASH_MS).then(() => setFlash(null))
   }
 
-  return { connection, board, flips, move, flash, decision, result, error, log, choose }
+  return { connection, board, flips, move, flash, decision, result, error, log, choose, edit }
 }
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
