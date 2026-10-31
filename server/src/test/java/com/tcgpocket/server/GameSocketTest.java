@@ -45,7 +45,7 @@ class GameSocketTest {
 
         String result = cheater.over.get(60, TimeUnit.SECONDS);
         assertEquals(result, honest.over.get(60, TimeUnit.SECONDS));
-        assertTrue(result.matches("Player [12] wins|Tie"), result);
+        assertTrue(result.matches("Winner: Player [12]|Tie"), result);
 
         assertEquals(List.of("is not open", "is out of range"), cheater.errors);
         assertEquals(List.of(), honest.errors);
@@ -70,7 +70,7 @@ class GameSocketTest {
         Client client = connect(new Client(new Random(3), false), "/play?bot");
 
         String result = client.over.get(60, TimeUnit.SECONDS);
-        assertTrue(result.matches("Player 1 wins|Bot wins|Tie"), result);
+        assertTrue(result.matches("Winner: (Player 1|Bot)|Tie"), result);
         assertEquals(List.of(), client.errors);
         assertEquals(List.of(), client.badIds);
         assertEquals("setup", client.firstDecisionKind);

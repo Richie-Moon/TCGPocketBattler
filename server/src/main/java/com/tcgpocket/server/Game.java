@@ -128,7 +128,7 @@ final class Game {
             engine.dealOpeningHands();
             placeTogether(engine);
             Optional<Side> winner = engine.playOut();
-            result = winner.map(side -> side.name() + " wins").orElse("Tie");
+            result = winner.map(side -> "Winner: " + side.name()).orElse("Tie");
             score = OptionalDouble.of(winner.map(side -> side == seats.getFirst().side() ? 1.0 : 0.0).orElse(0.5));
         } catch (RemotePlayer.Left e) {
             result = "A player left";
