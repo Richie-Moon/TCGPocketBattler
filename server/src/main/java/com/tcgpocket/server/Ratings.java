@@ -57,6 +57,13 @@ class Ratings {
         save(second, b.get(), a.get(), 1 - score, now);
     }
 
+    Optional<String> name(String subject) {
+        return db.sql("SELECT display_name FROM users WHERE provider = 'google' AND subject = ?")
+                .param(subject)
+                .query(String.class)
+                .optional();
+    }
+
     private Optional<Player> load(String subject) {
         return db.sql("SELECT elo, glicko, glicko_rd, rated_at FROM users WHERE provider = 'google' AND subject = ?")
                 .param(subject)
