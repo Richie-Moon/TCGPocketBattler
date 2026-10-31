@@ -85,19 +85,20 @@ final class Game {
     }
 
     /** Decks are not checked here; {@code TurnEngine.dealOpeningHands} rejects an illegal one. */
-    Game(Consumer<Object> sendFirst, Deal firstDeck, Consumer<Object> sendSecond, Deal secondDeck, RandomSource rng) {
-        this(sendFirst, firstDeck, sendSecond, secondDeck, null, rng);
+    Game(String firstName, Consumer<Object> sendFirst, Deal firstDeck,
+         String secondName, Consumer<Object> sendSecond, Deal secondDeck, RandomSource rng) {
+        this(firstName, sendFirst, firstDeck, secondName, sendSecond, secondDeck, null, rng);
     }
 
     /** One browser, playing {@code deck}, against {@code bot} with {@link Deal#FIRE}; the bot is sent nothing. */
-    Game(Consumer<Object> send, Deal deck, IPlayer bot, RandomSource rng) {
-        this(send, deck, message -> { }, Deal.FIRE, bot, rng);
+    Game(String name, Consumer<Object> send, Deal deck, IPlayer bot, RandomSource rng) {
+        this(name, send, deck, null, message -> { }, Deal.FIRE, bot, rng);
     }
 
-    private Game(Consumer<Object> sendFirst, Deal firstDeck, Consumer<Object> sendSecond, Deal secondDeck,
-                 IPlayer bot, RandomSource rng) {
-        RemotePlayer first = new RemotePlayer("Player 1", sendFirst, this::broadcast);
-        IPlayer second = bot != null ? bot : new RemotePlayer("Player 2", sendSecond, this::broadcast);
+    private Game(String firstName, Consumer<Object> sendFirst, Deal firstDeck,
+                 String secondName, Consumer<Object> sendSecond, Deal secondDeck, IPlayer bot, RandomSource rng) {
+        RemotePlayer first = new RemotePlayer(firstName, sendFirst, this::broadcast);
+        IPlayer second = bot != null ? bot : new RemotePlayer(secondName, sendSecond, this::broadcast);
         Side firstSide = deal(new Side(first.name(), new Logged(first)), firstDeck);
         Side secondSide = deal(new Side(second.name(), new Logged(second)), secondDeck);
 

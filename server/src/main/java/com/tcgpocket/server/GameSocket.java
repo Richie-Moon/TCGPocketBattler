@@ -93,8 +93,8 @@ final class GameSocket extends TextWebSocketHandler {
     private void start(WebSocketSession first, WebSocketSession second) {
         // The seed stays on the server: whoever knows it can predict every flip and shuffle.
         Game game = new Game(
-                message -> send(first, message), deckOf(first, Game.Deal.LIGHTNING),
-                message -> send(second, message), deckOf(second, Game.Deal.FIRE),
+                nameOf(first, "Player 1"), message -> send(first, message), deckOf(first, Game.Deal.LIGHTNING),
+                nameOf(second, "Player 2"), message -> send(second, message), deckOf(second, Game.Deal.FIRE),
                 new SeededRandom(seeds.nextLong()));
         seats.put(first.getId(), new Seat(game, game.players().get(0)));
         seats.put(second.getId(), new Seat(game, game.players().get(1)));
@@ -109,7 +109,7 @@ final class GameSocket extends TextWebSocketHandler {
 
     private void startAgainstBot(WebSocketSession session) {
         Game game = new Game(
-                message -> send(session, message), deckOf(session, Game.Deal.LIGHTNING),
+                nameOf(session, "Player 1"), message -> send(session, message), deckOf(session, Game.Deal.LIGHTNING),
                 new RandomPlayer("Bot", new SeededRandom(seeds.nextLong())),
                 new SeededRandom(seeds.nextLong()));
         seats.put(session.getId(), new Seat(game, game.players().getFirst()));
@@ -117,6 +117,12 @@ final class GameSocket extends TextWebSocketHandler {
             game.run();
             close(session);
         });
+    }
+
+    /** The player's display name, or {@code fallback} when signed out or without the db profile. */
+    private String nameOf(WebSocketSession session, String fallback) {
+        String subject = subject(session);
+        return ratings.filter(r -> subject != null).flatMap(r -> r.name(subject)).orElse(fallback);
     }
 
     /** The player's selected deck, or {@code fallback} when signed out, without the db profile, or none is selected. */

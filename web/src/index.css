@@ -2973,7 +2973,7 @@ p {
   gap: 6px;
 }
 
-.battle .point {
+.battle .points .point {
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -3260,7 +3260,7 @@ p {
   .battle .player-info .who { flex-direction: row; align-items: center; gap: 8px; }
   .battle .player-info .name { font-size: 11px; }
   .battle .points { gap: 4px; }
-  .battle .point { width: 10px; height: 10px; }
+  .battle .points .point { width: 10px; height: 10px; }
 
   .battle .log {
     position: fixed;
