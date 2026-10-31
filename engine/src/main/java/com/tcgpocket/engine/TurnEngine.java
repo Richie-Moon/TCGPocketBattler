@@ -229,7 +229,8 @@ public final class TurnEngine {
 
         boolean turnOver = false;
         while (!turnOver) {
-            IAction chosen = choose(side, "Your move", legalActions());
+            // Always asked, even with only End Turn left: ending the turn is the player's act.
+            IAction chosen = side.player().choose(new Decision<>("Your move", legalActions(), side, contextFor(side)));
 
             Optional<PokemonInPlay> attacker = side.active();
             boolean attacked = attacker

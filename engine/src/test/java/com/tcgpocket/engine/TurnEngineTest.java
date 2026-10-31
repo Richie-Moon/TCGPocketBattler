@@ -365,6 +365,32 @@ class TurnEngineTest {
         }
 
         @Test
+        @DisplayName("asks the player even when ending the turn is the only move left")
+        void loneEndTurnIsStillAsked() {
+            List<Decision<?>> asked = new ArrayList<>();
+            IPlayer recording = new IPlayer() {
+                @Override
+                public String name() {
+                    return "recording";
+                }
+
+                @Override
+                public <T> T choose(Decision<T> decision) {
+                    asked.add(decision);
+                    return decision.options().getLast();
+                }
+            };
+            TestBoard lone = new TestBoard(recording, new Passive());
+            lone.active(lone.you, SNORLAX);
+            lone.active(lone.them, PIKACHU);
+
+            new TurnEngine(lone.battle).playTurn();
+
+            assertEquals(1, asked.size());
+            assertInstanceOf(EndTurnAction.class, asked.getFirst().options().getFirst());
+        }
+
+        @Test
         @DisplayName("TurnEnd is announced, so Poison ticks and can knock out between turns")
         void poisonKnocksOutAtTurnEnd() {
             board.bench(board.them, SNORLAX);
