@@ -15,4 +15,11 @@ import com.tcgpocket.resolve.ResolutionContext;
 public sealed interface IFlipStrategy extends IEffect permits FlipN, FlipUntilTails {
 
     FlipResult flip(ResolutionContext context);
+
+    /** One coin for an attack, Ability or Trainer card, which is the one that spends {@link GuaranteeNextHeads}. */
+    default boolean coin(ResolutionContext context) {
+        return context.controller().takeGuaranteedHeads(context.battle().turn())
+                ? context.battle().rng().guaranteedHeads()
+                : context.battle().rng().nextBoolean();
+    }
 }

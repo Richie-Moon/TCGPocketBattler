@@ -50,6 +50,14 @@ public record EnergyCost(Map<Type, Integer> requirements) {
         return new EnergyCost(adjusted);
     }
 
+    /** This cost with {@code count} less of one type, never below zero of it. */
+    public EnergyCost minus(Type type, int count) {
+        Map<Type, Integer> adjusted = new EnumMap<>(Type.class);
+        adjusted.putAll(requirements);
+        adjusted.put(type, Math.max(0, requirementFor(type) - count));
+        return new EnergyCost(adjusted);
+    }
+
     /** Total energy needed, typed and colorless together. */
     public int total() {
         return requirements.values().stream().mapToInt(Integer::intValue).sum();

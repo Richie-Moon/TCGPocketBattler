@@ -85,6 +85,9 @@ class ForAny <<record>> implements IConditionCtx {
 }
 
 class LastCoinTossHeads <<record>> implements IConditionCtx {}
+class DamagedWhileActiveLastTurn <<record>> implements IConditionCtx {
+  +target : ITarget
+}
 /' The event is that type of Energy attached from the Energy Zone, not moved. '/
 class EnergyFromZone <<record>> implements IConditionCtx {
     - type: Type
@@ -120,6 +123,9 @@ class IsPoisoned <<record>> implements IConditionPokemon {}
 class IsActive <<record>> implements IConditionPokemon {}
 class IsBenched <<record>> implements IConditionPokemon {}
 class IsDamaged <<record>> implements IConditionPokemon {}
+class HasAbilityNamed <<record>> implements IConditionPokemon {
+  +name : String
+}
 class HasTool <<record>> implements IConditionPokemon {}
 /' Turn facts read off the instance and its owner: Side.setActive stamps the
    first, TurnEngine marks the owner's first turn over. '/

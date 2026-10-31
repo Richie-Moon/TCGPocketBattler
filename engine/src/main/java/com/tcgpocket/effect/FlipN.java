@@ -1,6 +1,7 @@
 package com.tcgpocket.effect;
 
 import com.tcgpocket.number.INumber;
+import com.tcgpocket.number.Literal;
 import com.tcgpocket.resolve.FlipResult;
 import com.tcgpocket.resolve.ResolutionContext;
 
@@ -8,11 +9,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Flips a fixed number of coins. */
-public record FlipN(INumber n) implements IFlipStrategy {
+/**
+ * Flips a fixed number of coins.
+ *
+ * @param forCardEffect false for a Special Condition's own flip, which
+ *                      {@link GuaranteeNextHeads} does not reach
+ */
+public record FlipN(INumber n, boolean forCardEffect) implements IFlipStrategy {
 
     public FlipN {
         Objects.requireNonNull(n, "n");
+    }
+
+    public FlipN(INumber n) {
+        this(n, true);
+    }
+
+    /** The one coin a Special Condition flips. */
+    public static FlipN forSpecialCondition() {
+        return new FlipN(new Literal(1), false);
     }
 
     @Override
@@ -20,7 +35,7 @@ public record FlipN(INumber n) implements IFlipStrategy {
         int count = Math.max(0, n.evaluate(context));
         List<Boolean> results = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            results.add(context.battle().rng().nextBoolean());
+            results.add(forCardEffect ? coin(context) : context.battle().rng().nextBoolean());
         }
         return new FlipResult(results);
     }

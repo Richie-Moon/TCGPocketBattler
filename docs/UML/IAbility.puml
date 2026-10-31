@@ -66,7 +66,7 @@ class AttackCostReduction <<record>> implements IRule {
     - colorless: int
     - whileHolder: ICondition<PokemonInPlay>
 }
-note bottom of AttackCostReduction : read by Action.isLegal; only the holder's own attacks. Vigor Link
+note bottom of AttackCostReduction : read by Action.isLegal; only the holder's own attacks. Vigor Link (Colorless), En-fruits-iastic (Grass)
 
 class HpBonus <<record>> implements IRule {
     - amount: int
@@ -89,6 +89,8 @@ class HealBlock <<record>> implements IRule {
 }
 note bottom of HealBlock : read by ResolutionContext.healingBlocked; covers both sides
 
+class ReturnToHandWhenKnockedOut <<record>> implements IRule {}
+note bottom of ReturnToHandWhenKnockedOut : carried by a ToolCard, read by TurnEngine.leavePlay
 class StatusImmunity <<record>> implements IRule {
     - protects: ICondition<? super PokemonInPlay>
 }

@@ -4,6 +4,7 @@ import com.tcgpocket.damage.DamageCalculator;
 import com.tcgpocket.damage.DamageEvent;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.state.Zone;
 import com.tcgpocket.trigger.DamageDealt;
 import com.tcgpocket.trigger.DamageIncoming;
 import com.tcgpocket.trigger.TriggerDispatcher;
@@ -47,6 +48,9 @@ final class Damage {
 
         int removed = apply(context, event);
         context.scope().recordDamageDealt(removed);
+        if (isAttackDamage && removed > 0 && target.zone() == Zone.ACTIVE) {
+            target.markDamagedByAttackWhileActive(context.battle().turn());
+        }
     }
 
     /**

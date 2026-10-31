@@ -9,9 +9,11 @@ import com.tcgpocket.effect.AttemptResult;
 import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.effect.IAttempt;
 import com.tcgpocket.energy.EnergyCost;
+import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
+import com.tcgpocket.state.Side;
 import com.tcgpocket.trigger.AttackDeclared;
 import com.tcgpocket.trigger.DispatchResult;
 import com.tcgpocket.trigger.TriggerDispatcher;
@@ -63,7 +65,19 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
 
         return !heldDown
                 && context.controller().active().filter(pokemon::equals).isPresent()
-                && new HasEnergy(cost.plusColorless(colorlessAdjustment(context, pokemon))).evaluate(pokemon);
+                && new HasEnergy(typedCost(pokemon).plusColorless(colorlessAdjustment(context, pokemon))).evaluate(pokemon);
+    }
+
+    /** The printed cost less the attacker's own typed {@link AttackCostReduction} (En-fruits-iastic). */
+    private EnergyCost typedCost(PokemonInPlay pokemon) {
+        EnergyCost reduced = cost;
+        for (Side.HeldRule held : pokemon.owner().standingRules()) {
+            if (held.holder() == pokemon && held.rule() instanceof AttackCostReduction rule
+                    && rule.type() != Type.COLORLESS && rule.whileHolder().evaluate(pokemon)) {
+                reduced = reduced.minus(rule.type(), rule.amount());
+            }
+        }
+        return reduced;
     }
 
     /**
@@ -76,8 +90,9 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
         int turn = context.battle().turn();
         int ruleReduction = pokemon.owner().standingRules().stream()
                 .filter(held -> held.holder() == pokemon
-                        && held.rule() instanceof AttackCostReduction rule && rule.whileHolder().evaluate(pokemon))
-                .mapToInt(held -> ((AttackCostReduction) held.rule()).colorless())
+                        && held.rule() instanceof AttackCostReduction rule
+                        && rule.type() == Type.COLORLESS && rule.whileHolder().evaluate(pokemon))
+                .mapToInt(held -> ((AttackCostReduction) held.rule()).amount())
                 .sum();
         int ruleIncrease = context.opponent().standingRules().stream()
                 .filter(held -> held.rule() instanceof AttackCostIncrease rule && rule.whileHolder().evaluate(held.holder()))

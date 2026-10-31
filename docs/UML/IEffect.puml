@@ -149,6 +149,25 @@ class SwapFromDeck <<record>> implements IEffect {
     - matching: ICondition<CardInstance>
 }
 
+class ChangeRandomEnergy <<record>> implements IEffect {
+  +target : ITarget
+  +types : List<Type>
+}
+class EvolveFromDeck <<record>> implements IEffect {
+  +onto : ITarget
+}
+class MoveEnergyOfTypes <<record>> implements IEffect {
+  +types : List<Type>
+  +from : ITarget
+  +to : ITarget
+}
+class GuaranteeNextHeads <<record>> implements IEffect {
+  +side : ISideTarget
+}
+class ArrangeTopCards <<record>> implements IEffect {
+  +cardCount : INumber
+  +side : ISideTarget
+}
 class ChangeNextEnergy <<record>> implements IEffect {
     - side: ISideTarget
     - types: List<Type>
@@ -210,6 +229,27 @@ class DistributeEnergy <<record>> implements IEffect {
     - among: IMultiTarget
     - prompt: String
     - distinct: boolean
+}
+
+/' Phoenix Turbo: DistributeEnergy with the types told apart, so an option is a
+   list of EnergyPlacement (which Energy goes where). '/
+class DistributeMixedEnergy <<record>> implements IEffect {
+    - energies: List<Type>
+    - among: IMultiTarget
+    - prompt: String
+}
+
+/' Feathery Cyclone: every Energy, types kept, with no question per unit. '/
+class MoveAllEnergy <<record>> implements IEffect {
+    - from: ITarget
+    - to: ITarget
+}
+
+/' Wild Swing: one Decision over every subset; the count lands on the scope
+   for PokemonDiscarded. '/
+class DiscardAnyFromPlay <<record>> implements IEffect {
+    - among: IMultiTarget
+    - prompt: String
 }
 
 class DiscardRandomEnergy <<record>> implements IEffect {

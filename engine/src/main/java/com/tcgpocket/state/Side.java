@@ -3,10 +3,12 @@ package com.tcgpocket.state;
 import com.tcgpocket.card.IRule;
 import com.tcgpocket.card.StatusImmunity;
 import com.tcgpocket.card.PassiveAbility;
+import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.player.IPlayer;
 import com.tcgpocket.resolve.RandomSource;
 
+import com.tcgpocket.status.IStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * One player's half of the board.
@@ -62,6 +65,7 @@ public final class Side {
     /** Not a turn flag: set once, when this side's first turn ends, and never cleared. */
     private boolean hasTakenATurn;
     private int knockedOutByAttackOnTurn = -1;
+    private int guaranteedHeadsOnTurn = -1;
     private final List<UsedAttack> usedAttacks = new ArrayList<>();
     private final List<AttackBonus> attackBonuses = new ArrayList<>();
     private final List<SideModifier> damageReductions = new ArrayList<>();
@@ -251,6 +255,12 @@ public final class Side {
     /** As {@link #seenTopCards()}, for what the opponent has looked at (Unown's CHECK). */
     public List<CardInstance> topCardsSeenByOpponent() {
         return stillOnTop(seenTopByOpponent);
+    }
+
+    /** Puts the top {@code cards.size()} cards of the deck back in this order, top first. */
+    public void replaceTopOfDeck(List<CardInstance> cards) {
+        deck.subList(0, cards.size()).clear();
+        deck.addAll(0, cards);
     }
 
     private List<CardInstance> top(int count) {
@@ -471,15 +481,37 @@ public final class Side {
         activeEnergyLockedUntilTurn = Math.max(activeEnergyLockedUntilTurn, turn);
     }
 
-    /** Whether one of this side's {@link StatusImmunity} rules covers that Pokemon right now. */
-    public boolean protectsFromStatus(PokemonInPlay pokemon) {
-        return standingRules().stream()
-                .anyMatch(held -> held.rule() instanceof StatusImmunity immunity && immunity.protects().evaluate(pokemon));
+    /** Whether a {@link StatusImmunity} on this side, or on the Pokemon's own Tool, covers it against that status right now. */
+    public boolean protectsFromStatus(PokemonInPlay pokemon, IStatus status) {
+        Stream<IRule> standing = standingRules().stream().map(HeldRule::rule);
+        Stream<IRule> tool = pokemon.tool().map(CardInstance::definition).orElse(null) instanceof ToolCard card
+                ? card.rules().stream()
+                : Stream.empty();
+        return Stream.concat(standing, tool).anyMatch(rule -> rule instanceof StatusImmunity immunity
+                && immunity.covers(status) && immunity.protects().evaluate(pokemon));
     }
 
-    /** Clears every status off the Pokemon a {@link StatusImmunity} now covers; see that rule. */
+    /** Clears the statuses a {@link StatusImmunity} now covers; see that rule. */
     public void recoverProtected() {
-        inPlay().stream().filter(this::protectsFromStatus).forEach(PokemonInPlay::clearStatuses);
+        for (PokemonInPlay pokemon : inPlay()) {
+            List.copyOf(pokemon.statuses()).stream()
+                    .filter(status -> protectsFromStatus(pokemon, status))
+                    .forEach(pokemon::removeStatus);
+        }
+    }
+
+    /** The first coin of this side's next card-effect flip on {@code turn} is heads — Will. */
+    public void guaranteeHeadsOn(int turn) {
+        guaranteedHeadsOnTurn = turn;
+    }
+
+    /** Whether a guarantee is waiting on {@code turn}, spending it if so. */
+    public boolean takeGuaranteedHeads(int turn) {
+        boolean waiting = guaranteedHeadsOnTurn == turn;
+        if (waiting) {
+            guaranteedHeadsOnTurn = -1;
+        }
+        return waiting;
     }
 
     /**

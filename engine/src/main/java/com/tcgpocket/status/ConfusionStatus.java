@@ -37,7 +37,7 @@ public record ConfusionStatus() implements IStatus {
                 AttackDeclared.class,
                 new EventConcerns(new Self()),
                 new Attempt(List.of(
-                        new FlipN(new Literal(1)),
+                        FlipN.forSpecialCondition(),
                         new ConditionalEffect(
                                 new Not<ResolutionContext>(new LastCoinTossHeads()),
                                 new Fail())))));
