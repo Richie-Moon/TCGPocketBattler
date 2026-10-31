@@ -10,6 +10,7 @@ export default defineConfig({
     // The Spring Boot server (server/ module). Proxied so the page and the socket share one origin.
     proxy: {
       '/play': { target: 'ws://localhost:8080', ws: true },
+      '/sandbox': { target: 'ws://localhost:8080', ws: true },
       // Google sign-in. Not the string shorthand: that sets changeOrigin, and Spring would then send
       // Google's redirect and its own to localhost:8080 instead of back through this page.
       '/api': spring,

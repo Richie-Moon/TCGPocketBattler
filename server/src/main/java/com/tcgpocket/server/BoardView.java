@@ -8,6 +8,7 @@ import com.tcgpocket.state.Side;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -47,10 +48,15 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
      * For the opponent, {@code hand} is only what was revealed; {@code handSize} is always the real count.
      * {@code topCards} are the deck's top cards, top first, once the viewer has looked at them (Porygon for your own deck, Unown for either).
      * {@code bench} is by slot, {@link Side#BENCH_LIMIT} of them, null where a slot is empty.
+     * {@code sandbox} is null except in the owner's sandbox, where nothing is hidden.
      */
     record SideView(String name, int points, List<CardView> hand, int handSize, int deckSize, List<CardView> topCards,
                     List<CardView> discard, PokemonView active, List<PokemonView> bench,
-                    Type energy, Type nextEnergy, Cosmetics cosmetics) {
+                    Type energy, Type nextEnergy, Cosmetics cosmetics, SandboxView sandbox) {
+    }
+
+    /** What only the sandbox shows: the deck in order, top first, and the types the Energy Zone generates. */
+    record SandboxView(List<CardView> deck, Set<Type> energyTypes) {
     }
 
     static BoardView of(Battle battle, Side viewer, Function<Side, Cosmetics> cosmetics) {
@@ -58,11 +64,22 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                 battle.turn(),
                 battle.attacker() == viewer,
                 battle.stadium().map(BoardView::card).orElse(null),
-                side(viewer, true, cosmetics),
-                side(battle.opponentOf(viewer), false, cosmetics));
+                side(viewer, true, false, cosmetics),
+                side(battle.opponentOf(viewer), false, false, cosmetics));
     }
 
-    private static SideView side(Side side, boolean own, Function<Side, Cosmetics> cosmetics) {
+    /** For {@link SandboxGame} only, whose one viewer controls both sides: both hands and both decks are shown. */
+    static BoardView sandbox(Battle battle, Side viewer) {
+        Function<Side, Cosmetics> cosmetics = side -> Cosmetics.DEFAULT;
+        return new BoardView(
+                battle.turn(),
+                battle.attacker() == viewer,
+                battle.stadium().map(BoardView::card).orElse(null),
+                side(viewer, true, true, cosmetics),
+                side(battle.opponentOf(viewer), true, true, cosmetics));
+    }
+
+    private static SideView side(Side side, boolean own, boolean sandbox, Function<Side, Cosmetics> cosmetics) {
         return new SideView(
                 side.name(),
                 side.points(),
@@ -75,7 +92,8 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                 IntStream.range(0, Side.BENCH_LIMIT).mapToObj(slot -> side.benchAt(slot).map(BoardView::pokemon).orElse(null)).toList(),
                 side.currentEnergy().orElse(null),
                 side.nextEnergy().orElse(null),
-                cosmetics.apply(side));
+                cosmetics.apply(side),
+                sandbox ? new SandboxView(side.deck().stream().map(BoardView::card).toList(), side.registeredTypes()) : null);
     }
 
     private static CardView card(CardInstance card) {

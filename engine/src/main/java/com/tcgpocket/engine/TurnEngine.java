@@ -56,11 +56,22 @@ public final class TurnEngine {
     static final int POINTS_TO_WIN = 3;
 
     private final Battle battle;
+    private final boolean endless;
     private boolean over;
     private Side winner;
 
     public TurnEngine(Battle battle) {
+        this(battle, false);
+    }
+
+    private TurnEngine(Battle battle, boolean endless) {
         this.battle = Objects.requireNonNull(battle, "battle");
+        this.endless = endless;
+    }
+
+    /** Outside the rules, for the sandbox: no turn limit, and win conditions don't end the game, so only a player leaving does. */
+    public static TurnEngine endless(Battle battle) {
+        return new TurnEngine(battle, true);
     }
 
     public Battle battle() {
@@ -84,7 +95,7 @@ public final class TurnEngine {
 
     /** Plays turns from a board that is already set up until the game ends. Returns the winner, or empty for a tie. */
     public Optional<Side> playOut() {
-        while (!over && battle.turn() <= MAX_TURNS) {
+        while (!over && (endless || battle.turn() <= MAX_TURNS)) {
             playTurn();
         }
         over = true;
@@ -292,7 +303,8 @@ public final class TurnEngine {
         side.active().ifPresent(active -> candidates.addAll(active.definition().actions()));
         ownPokemon.forEach(target -> candidates.add(new AttachEnergyAction(target)));
         benched.forEach(target -> candidates.add(new RetreatAction(target)));
-        if (battle.turn() > 2) {
+        // In a real game the turn number alone decides this; the sandbox can mark a turn taken early, or set the turn.
+        if (battle.turn() > 2 || side.hasTakenATurn()) {
             for (CardInstance card : side.hand()) {
                 ownPokemon.forEach(target -> candidates.add(new EvolveAction(card, target)));
             }
@@ -397,6 +409,9 @@ public final class TurnEngine {
      * who still has a bench, is a tie.
      */
     private void decideWinner() {
+        if (endless) {
+            return;
+        }
         Side first = battle.attacker();
         Side second = battle.defender();
         int firstHolds = winConditions(first, second);

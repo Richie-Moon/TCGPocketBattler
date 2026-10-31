@@ -24,6 +24,14 @@ served, or against the engine's `RandomPlayer` at once for `/play?bot` (unrated;
   (`Decks`, `db` profile): drafts are allowed, so saving checks only that a deck is well-formed,
   and only the selected deck is played. The deck editor browses `/api/cards` (`Cards`): printed
   text only, straight from `CardPool`, so it needs no sign-in or database.
+- `/sandbox` (`SandboxSocket`, `SandboxGame`; web `?sandbox`, linked from nowhere) is the owner's board for testing
+  cards: one browser plays both sides of an empty game and edits it with `SandboxCommand`s. The server checks the
+  Google subject against `SANDBOX_OWNER_SUBJECT` and closes on anyone else, so it needs the `db` profile; nothing here
+  touches `Ratings` or `Decks`, and don't add recording to it, since its games break the rules. Edits run on the game
+  thread and only at the "Your move" question; returning a no-op action from it makes `playTurn` check knockouts and
+  ask again. `TurnEngine.endless` runs it: no turn limit, and win conditions don't end the game, so it lasts until the
+  socket closes. Both sides generate every type until edited; setting the zone's current Energy allows another attach
+  that turn, and "Ready to evolve" ends its owner's first turn for good, so evolving works at once. Edits fire no triggers. Only coin flips can be forced; `nextInt` and `shuffle` can't.
 - Persistence is an OCI Always Free Autonomous Database (23ai), off by default.
   `--spring.profiles.active=db` turns on the datasource (`application-db.properties`, wallet folder
   in `DB_WALLET`, password in `DB_PASSWORD`) and runs the idempotent `schema.sql`. Keep it free:

@@ -9,7 +9,7 @@ import down from './assets/editor/down.svg'
 import search from './assets/editor/search.svg'
 import up from './assets/editor/up.svg'
 import chevron from './assets/home/chevron-down.svg'
-import { CARD_BASE, COIN_BASE, ENERGY_BASE, PLAYMAT_BASE, SLEEVE_BASE, listArt } from './art'
+import { CARD_BASE, COIN_BASE, ENERGY, ENERGY_BASE, PLAYMAT_BASE, SLEEVE_BASE, listArt } from './art'
 import { DECK_SIZE } from './Decks'
 import { Icon, Shell, type Page } from './Home'
 
@@ -31,9 +31,6 @@ type Draft = {
 /** The rules {@code DeckValidator} checks before a game; a draft may fall short of them, never exceed them. */
 const MAX_COPIES = 2
 const MAX_ENERGY = 3
-
-/** The Energy Zone types: every {@code Type} but Dragon and Colorless, which have no Energy. */
-const ENERGY = ['GRASS', 'FIRE', 'WATER', 'LIGHTNING', 'PSYCHIC', 'FIGHTING', 'DARKNESS', 'METAL']
 
 /** How many cards the phone's collapsed deck bar shows before "+N". */
 const STRIP = 7

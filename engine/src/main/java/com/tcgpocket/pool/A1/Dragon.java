@@ -38,7 +38,7 @@ public final class Dragon {
     public static final PokemonCard DRAGONAIR = PokemonCard.evolution(
                     "A1-184", "Dragonair", "They say that if it emits an aura from its whole body, the weather will begin to change instantly.",
                     1, "Dratini", 100, Type.DRAGON, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
-                            "Tail Smack", "", EnergyCost.of(Type.WATER, 1, Type.LIGHTNING, 1, Type.COLORLESS, 2),
+                            "Tail Smack", "", EnergyCost.of(Type.WATER, 1, Type.LIGHTNING, 1, Type.COLORLESS, 1),
                             new Attempt(List.of(
                                     new DealDamage(new Literal(80), new OpponentActive())
                             )))), CardRarity.UNCOMMON);

@@ -58,6 +58,8 @@ note bottom of TurnEngine
   your opponent still has a bench, is a tie (points vs bench).
 
   After turn MAX_TURNS (30) the game is a tie.
+
+  TurnEngine.endless(battle), for the sandbox, has neither ending.
 end note
 
 TurnEngine *-- Battle

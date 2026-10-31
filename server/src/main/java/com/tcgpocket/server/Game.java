@@ -195,7 +195,7 @@ final class Game {
     }
 
     /** The game's chance, noting each coin flip for the browsers to show. Setup broadcasts from two threads. */
-    private static final class Flips implements RandomSource {
+    static final class Flips implements RandomSource {
         private final RandomSource rng;
         private final List<Boolean> since = new ArrayList<>();
 

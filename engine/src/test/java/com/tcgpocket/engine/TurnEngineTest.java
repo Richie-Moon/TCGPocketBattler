@@ -235,6 +235,20 @@ class TurnEngineTest {
             assertTrue(result.isEmpty());
             assertEquals(TurnEngine.MAX_TURNS + 1, passive.battle.turn());
         }
+
+        @Test
+        @DisplayName("an endless game plays on past a win condition")
+        void endlessIgnoresWinConditions() {
+            TurnEngine endless = TurnEngine.endless(board.battle);
+            board.you.awardPoints(2);
+            knockOut(theirs);
+
+            endless.checkKnockouts(Optional.empty());
+
+            assertFalse(endless.isOver());
+            assertTrue(endless.winner().isEmpty());
+            assertEquals(3, board.you.points());
+        }
     }
 
     @Test

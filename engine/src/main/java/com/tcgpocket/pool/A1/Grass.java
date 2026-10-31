@@ -122,7 +122,7 @@ public final class Grass {
      */
     public static final PokemonCard BUTTERFREE = PokemonCard.evolution(
             "A1-007", "Butterfree", "In battle, it flaps its wings at great speed to release highly toxic dust into the air.",
-            2, "Metapod", 120, Type.GRASS, EnergyCost.of(Type.COLORLESS, 3), List.of(new Action(
+            2, "Metapod", 120, Type.GRASS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
                     "Gust", "", EnergyCost.of(Type.GRASS, 1, Type.COLORLESS, 2),
                     new Attempt(List.of(
                             new DealDamage(new Literal(60), new OpponentActive())
@@ -196,7 +196,7 @@ public final class Grass {
     public static final PokemonCard GLOOM = PokemonCard.evolution(
             "A1-012", "Gloom", "Its pistils exude an incredibly foul odor. The horrid stench can cause fainting at a distance of 1.25 miles.",
             1, "Oddish", 80, Type.GRASS, EnergyCost.of(Type.COLORLESS, 2), List.of(new Action(
-                    "Drool", "", EnergyCost.of(Type.GRASS, 1), new Attempt(List.of(
+                    "Drool", "", EnergyCost.of(Type.GRASS, 1, Type.COLORLESS, 1), new Attempt(List.of(
                     new DealDamage(new Literal(40), new OpponentActive())
             ))
             )), CardRarity.UNCOMMON
@@ -248,7 +248,7 @@ public final class Grass {
     public static final PokemonCard VENONAT = PokemonCard.basic(
             "A1-016", "Venonat", "Poison oozes from all over its bosy. It catches small bug Pokémon at night that are attracted by light.",
             60, Type.GRASS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
-                    "Tackle", "", EnergyCost.of(Type.GRASS, 1, Type.COLORLESS, 1),
+                    "Tackle", "", EnergyCost.of(Type.GRASS, 1),
                     new Attempt(List.of(
                             new DealDamage(new Literal(20), new OpponentActive())
                     ))
@@ -260,8 +260,8 @@ public final class Grass {
      */
     public static final PokemonCard VENOMOTH = PokemonCard.evolution(
             "A1-017", "Venomoth", "Its wings are covered with dustlike scales. Every time it flaps its wings, it looss highly toxic dust",
-            1, "Venonat", 120, Type.GRASS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
-                    "Poison Powder", "Your opponent's Active Pokémon is now Poisoned.", EnergyCost.of(Type.GRASS, 2, Type.COLORLESS, 1),
+            1, "Venonat", 80, Type.GRASS, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
+                    "Poison Powder", "Your opponent's Active Pokémon is now Poisoned.", EnergyCost.of(Type.GRASS, 1),
                     new Attempt(List.of(
                             new DealDamage(new Literal(30), new OpponentActive()),
                             new AddStatus(new PoisonStatus(), new OpponentActive())
