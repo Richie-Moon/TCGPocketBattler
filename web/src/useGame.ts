@@ -113,7 +113,7 @@ export function useGame(mode: GameMode) {
           setDecision(null)
           setResult(message.result)
           track(message.board)
-          setLog((log) => [...log, { kind: 'info', text: `Game over: ${message.result}.` }])
+          setLog((log) => [...log, { kind: 'info', text: `Game over. ${message.result}.` }])
           break
         case 'error':
           setError(message.message)

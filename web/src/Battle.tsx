@@ -316,7 +316,6 @@ export function Battle({
                 {unread > 0 && <span className="badge">{unread}</span>}
               </button>
               <div className="turn" key={status}>
-                {board && <img className="coin" src={`${COIN_BASE}/${current.cosmetics.coin}`} alt="" />}
                 <span className={board?.yourTurn && !over ? 'dot yours' : 'dot'} />
                 {status}
               </div>

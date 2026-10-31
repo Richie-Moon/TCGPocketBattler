@@ -2762,12 +2762,6 @@ p {
   white-space: nowrap;
 }
 
-.battle .turn .coin {
-  width: 24px;
-  height: 24px;
-  margin: -4px 0;
-}
-
 .battle .turn .dot {
   width: 10px;
   height: 10px;
