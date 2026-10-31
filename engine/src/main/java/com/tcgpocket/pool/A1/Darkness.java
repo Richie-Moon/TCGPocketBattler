@@ -5,10 +5,7 @@ import com.tcgpocket.action.PlainAction;
 import com.tcgpocket.card.ActivatedAbility;
 import com.tcgpocket.card.CardRarity;
 import com.tcgpocket.card.PokemonCard;
-import com.tcgpocket.condition.For;
-import com.tcgpocket.condition.IsPoisoned;
-import com.tcgpocket.condition.IsSpecies;
-import com.tcgpocket.condition.Not;
+import com.tcgpocket.condition.*;
 import com.tcgpocket.effect.*;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
@@ -17,6 +14,7 @@ import com.tcgpocket.state.Zone;
 import com.tcgpocket.status.PoisonStatus;
 import com.tcgpocket.target.AttackerSide;
 import com.tcgpocket.target.OpponentActive;
+import com.tcgpocket.target.Self;
 
 import java.util.List;
 import java.util.Optional;
@@ -190,7 +188,7 @@ public final class Darkness {
             .withAbility(new ActivatedAbility("Gas Leak", "Once during your turn, if this Pokémon is in the Active Spot, you may make your opponent's Active Pokémon Poisoned.",
                     new PlainAction("", new Attempt(List.of(
                             new AddStatus(new PoisonStatus(), new OpponentActive())
-                    ))), true, new Not<>(new For(new IsPoisoned(), new OpponentActive()))
+                    ))), true, new And<>(new Not<>(new For(new IsPoisoned(), new OpponentActive())), new For(new IsActive(), new Self()))
             ));
     
     /** A1-240 · Nidoqueen (alternate art of A1-168) */
