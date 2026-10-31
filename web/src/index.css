@@ -2707,6 +2707,19 @@ p {
 .battle .active .attached { left: 5.5px; bottom: 5.5px; gap: 3.667px; }
 .battle .active .attached img { width: 16.5px; height: 16.5px; }
 
+/* Down the right edge, under the HP badge and half off the card; sized by the card, so it scales with each slot. */
+.battle .statuses {
+  position: absolute;
+  top: 22%;
+  right: -9%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 22%;
+}
+
+.battle .statuses img { display: block; width: 100%; animation: battle-pop 0.25s ease-out; }
+
 .battle .tags {
   position: absolute;
   left: 50%;
