@@ -12,7 +12,7 @@ import {
 } from 'react'
 import chat from './assets/battle/chat.svg'
 import send from './assets/battle/send.svg'
-import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE } from './art'
+import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE, STATUS_BASE } from './art'
 import { Icon } from './Home'
 import type { BoardView, CardView, OptionView, PokemonView, SideView } from './protocol'
 import { SandboxPanel } from './SandboxPanel'
@@ -764,6 +764,15 @@ function Slot({ className, title, slot, children }: { className: string; title?:
   )
 }
 
+/** Each status as the board names it, to the word its icon is named by. */
+const STATUS_ICONS: Record<string, string> = {
+  Sleep: 'Asleep',
+  Burn: 'Burned',
+  Confusion: 'Confused',
+  Paralysis: 'Paralyzed',
+  Poison: 'Poisoned',
+}
+
 function Pokemon({
   pokemon,
   state,
@@ -800,7 +809,6 @@ function Pokemon({
   // From 5 Energy on, each type shows once with its count, so the row stays on the card.
   const condensed = types.reduce((sum, [, count]) => sum + count, 0) >= 5
   const energy = condensed ? types : types.flatMap(([type, count]) => Array.from({ length: count }, () => [type, 1] as const))
-  const tags = [...pokemon.statuses, ...(pokemon.tool ? [pokemon.tool.name] : [])]
   return (
     <button
       ref={self}
@@ -824,7 +832,14 @@ function Pokemon({
           ))}
         </span>
       )}
-      {tags.length > 0 && <span key={tags.join()} className="tags">{tags.join(' · ')}</span>}
+      {pokemon.statuses.length > 0 && (
+        <span className="statuses">
+          {pokemon.statuses.map((status) => (
+            <img key={status} src={`${STATUS_BASE}/Status_${STATUS_ICONS[status]}.png`} alt={status} title={status} />
+          ))}
+        </span>
+      )}
+      {pokemon.tool && <span key={pokemon.tool.name} className="tags">{pokemon.tool.name}</span>}
     </button>
   )
 }

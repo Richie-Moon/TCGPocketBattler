@@ -11,6 +11,9 @@ export const EMBLEM_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/
 /** Energy icons, "<type>.png" with the type in lower case, in the same public bucket. */
 export const ENERGY_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/energy'
 
+/** Status icons, "Status_<name>.png", in the same public bucket. */
+export const STATUS_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/statuses'
+
 /** Deck coins, "Coin_<name>.png", in the same public bucket. */
 export const COIN_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/coins'
 
