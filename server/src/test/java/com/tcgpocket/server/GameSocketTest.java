@@ -1,10 +1,13 @@
 package com.tcgpocket.server;
 
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.WebSocketContainer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -82,7 +85,9 @@ class GameSocketTest {
     }
 
     private Client connect(Client client, String path) throws Exception {
-        new StandardWebSocketClient().execute(client, "ws://localhost:" + port + path).get(10, TimeUnit.SECONDS);
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        container.setDefaultMaxTextMessageBufferSize(1024 * 1024); // a setup decision can reach about 50 KB
+        new StandardWebSocketClient(container).execute(client, "ws://localhost:" + port + path).get(10, TimeUnit.SECONDS);
         return client;
     }
 
@@ -144,6 +149,12 @@ class GameSocketTest {
                 case "error" -> errors.add(node.get("message").asString().replaceAll("^\\w+ -?\\d+ ", ""));
                 default -> { }
             }
+        }
+
+        /** The server closes only after {@code over}, so any earlier close fails the test at once with its reason. */
+        @Override
+        public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+            over.completeExceptionally(new IllegalStateException("closed before the game ended: " + status));
         }
 
         /** A drag-and-drop client finds options by instance id, so every id must be one it can see. */
