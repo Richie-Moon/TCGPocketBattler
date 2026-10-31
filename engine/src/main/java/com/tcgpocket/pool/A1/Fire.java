@@ -76,7 +76,7 @@ public final class Fire {
     public static final PokemonCard VULPIX = PokemonCard.basic(
             "A1-037", "Vulpix", "While young, it has six gorgeous tails. When it grows, several new tails are sprouted.",
             50, Type.FIRE, EnergyCost.of(Type.COLORLESS, 1), List.of(new Action(
-                    "Tail Whip", "Flip a coin. If heads, the Defending Pokémon can't attack during your opponent's next turn.", EnergyCost.of(Type.FIRE, 1), new Attempt(List.of(
+                    "Tail Whip", "Flip a coin. If heads, the Defending Pokémon can't attack during your opponent's next turn.", EnergyCost.of(Type.COLORLESS, 1), new Attempt(List.of(
                     new FlipN(new Literal(1)),
                     new ConditionalEffect(
                             new LastCoinTossHeads(),
