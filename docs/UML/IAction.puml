@@ -20,6 +20,8 @@ class Action <<record>> implements IAction {
        could be restricted at all. See Energy.puml. '/
     - cost: EnergyCost
     - attempt: IAttempt
+    /' A second way to pay, while the attacker meets a condition. Defiant Spark. '/
+    - alternative: Optional<AlternativeCost>
 }
 
 /'

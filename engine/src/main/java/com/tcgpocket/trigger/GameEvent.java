@@ -21,7 +21,7 @@ public sealed interface GameEvent permits
         TurnStart, TurnEnd,
         AttackDeclared, DamageIncoming, DamageDealt, Knockout, Healed,
         StatusApplied, StatusRemoved,
-        CardPlayed, Evolved, ToolAttached, ToolRemoved, Retreated, EnergyAttached {
+        CardPlayed, PokemonBenched, Evolved, ToolAttached, ToolRemoved, Retreated, EnergyAttached {
 
     // CoinFlipped is modelled but deliberately not built yet: nothing can
     // consume it (a trigger fires with a fresh scope, so it could not read the

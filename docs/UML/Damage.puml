@@ -44,6 +44,7 @@ enum ModifierKind {
     CANNOT_RETREAT
     REDUCE_RETREAT_COST
     COUNTER_DAMAGE
+    DELAYED_DAMAGE
 }
 
 DamageCalculator ..> DamageEvent

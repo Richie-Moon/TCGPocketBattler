@@ -14,6 +14,7 @@ import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
 import com.tcgpocket.state.Zone;
 import com.tcgpocket.trigger.CardPlayed;
+import com.tcgpocket.trigger.PokemonBenched;
 import com.tcgpocket.trigger.TriggerDispatcher;
 
 import java.util.List;
@@ -131,8 +132,10 @@ public record PlayCardAction(CardInstance card, Optional<PokemonInPlay> onto, Op
         TriggerDispatcher.dispatch(context.battle(), new CardPlayed(side, card));
 
         if (card.definition() instanceof IPlayableCard playable) {
-            side.addToBench(new PokemonInPlay(
-                    card.instanceId(), playable, side, Zone.BENCH, context.battle().turn()), benchSlot.getAsInt());
+            PokemonInPlay benched = new PokemonInPlay(
+                    card.instanceId(), playable, side, Zone.BENCH, context.battle().turn());
+            side.addToBench(benched, benchSlot.getAsInt());
+            TriggerDispatcher.dispatch(context.battle(), new PokemonBenched(benched));
             return AttemptResult.success(List.of(EffectOutcome.APPLIED));
         }
 

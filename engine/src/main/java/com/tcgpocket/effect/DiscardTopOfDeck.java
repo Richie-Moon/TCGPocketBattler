@@ -34,6 +34,7 @@ public record DiscardTopOfDeck(INumber cardCount, ISideTarget side) implements I
             CardInstance top = target.deck().getFirst();
             target.removeFromDeck(top);
             target.addToDiscard(top);
+            context.scope().recordPickedCard(top);
         }
         return EffectOutcome.APPLIED;
     }

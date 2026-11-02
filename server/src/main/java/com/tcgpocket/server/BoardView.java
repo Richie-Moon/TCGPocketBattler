@@ -110,7 +110,7 @@ record BoardView(int turn, boolean yourTurn, CardView stadium, SideView you, Sid
                 pokemon.attachedEnergy(),
                 pokemon.statuses().stream().map(status -> status.getClass().getSimpleName().replace("Status", "")).toList(),
                 pokemon.tool().map(BoardView::card).orElse(null),
-                pokemon.definition().actions().stream().flatMap(Cards::attacks)
+                pokemon.attacks().stream().flatMap(Cards::attacks)
                         .map(attack -> new TextView(attack.name(), attack.description())).toList(),
                 pokemon.definition().ability()
                         .map(ability -> new TextView(ability.name(), ability.description())).orElse(null));

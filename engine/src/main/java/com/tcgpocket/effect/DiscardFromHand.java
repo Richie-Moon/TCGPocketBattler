@@ -73,7 +73,7 @@ public record DiscardFromHand(
      * trade as {@link DistributeEnergy}: a plain {@code Decision<T>} needs no
      * special case in any player. C(10, 2) is 45, so it stays small.
      */
-    private static List<List<CardInstance>> subsets(List<CardInstance> cards, int count) {
+    static List<List<CardInstance>> subsets(List<CardInstance> cards, int count) {
         if (count == 0) {
             return List.of(List.of());
         }

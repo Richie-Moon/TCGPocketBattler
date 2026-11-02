@@ -245,7 +245,7 @@ public final class TurnEngine {
 
             Optional<PokemonInPlay> attacker = side.active();
             boolean attacked = attacker
-                    .map(pokemon -> pokemon.definition().actions().contains(chosen))
+                    .map(pokemon -> pokemon.attacks().contains(chosen))
                     .orElse(false);
 
             chosen.execute(contextFor(side));
@@ -300,7 +300,7 @@ public final class TurnEngine {
         ownPokemon.addAll(benched);
 
         List<IAction> candidates = new ArrayList<>();
-        side.active().ifPresent(active -> candidates.addAll(active.definition().actions()));
+        side.active().ifPresent(active -> candidates.addAll(active.attacks()));
         ownPokemon.forEach(target -> candidates.add(new AttachEnergyAction(target)));
         benched.forEach(target -> candidates.add(new RetreatAction(target)));
         // In a real game the turn number alone decides this; the sandbox can mark a turn taken early, or set the turn.

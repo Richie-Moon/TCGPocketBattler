@@ -23,8 +23,7 @@ import com.tcgpocket.resolve.ResolutionContext;
  *       intermediate is meaningful.
  * </ul>
  */
-public sealed interface INumber permits
-        Literal, Sum, Difference, Product, Quotient, Branch,
+public sealed interface INumber permits CardsDiscarded, EnergyTypesOn, Literal, Sum, Difference, Product, Quotient, Branch,
         MaxHP, CurrentHP, DamageOn, Stage, EnergyOn, CountCards,
         NumberHeads, EventDamage, DamageDone, Points, TimesAttackUsed, EnergyAmong, EnergyInDiscard, RetreatCost, PokemonDiscarded {
 

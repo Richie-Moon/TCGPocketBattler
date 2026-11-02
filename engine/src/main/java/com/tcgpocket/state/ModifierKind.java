@@ -74,5 +74,11 @@ public enum ModifierKind {
      * attack. Read by {@code TriggerDispatcher}, which gives the Pokemon a
      * retaliating trigger while it lasts.
      */
-    COUNTER_DAMAGE
+    COUNTER_DAMAGE,
+    /**
+     * Places its amount on this Pokemon at the end of the modifier's last turn.
+     * Read by {@code TriggerDispatcher}. Evolving and devolving keep it; leaving
+     * the Active Spot does not.
+     */
+    DELAYED_DAMAGE
 }

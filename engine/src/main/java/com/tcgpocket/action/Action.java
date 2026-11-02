@@ -3,6 +3,7 @@ package com.tcgpocket.action;
 import com.tcgpocket.card.AttackCostIncrease;
 import com.tcgpocket.card.AttackCostReduction;
 import com.tcgpocket.condition.HasEnergy;
+import com.tcgpocket.condition.ICondition;
 import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
@@ -28,18 +29,40 @@ import java.util.Optional;
  * <p>The {@code cost} is what gates it — before this existed nothing in the
  * model could stop a Pokemon attacking with no energy attached.
  */
-public record Action(String name, String description, EnergyCost cost, IAttempt attempt)
+public record Action(String name, String description, EnergyCost cost, IAttempt attempt,
+        Optional<AlternativeCost> alternative)
         implements IAction {
+
+    /**
+     * A second way to pay, open while the attacker meets {@code when} — Boltund's
+     * "if this Pokémon has damage on it, this attack can be used for 1 Lightning
+     * Energy". The same adjustments apply to it as to the printed cost.
+     */
+    public record AlternativeCost(EnergyCost cost, ICondition<PokemonInPlay> when) {
+        public AlternativeCost {
+            Objects.requireNonNull(cost, "cost");
+            Objects.requireNonNull(when, "when");
+        }
+    }
 
     public Action {
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(description, "description");
         Objects.requireNonNull(cost, "cost");
         Objects.requireNonNull(attempt, "attempt");
+        Objects.requireNonNull(alternative, "alternative");
+    }
+
+    public Action(String name, String description, EnergyCost cost, IAttempt attempt) {
+        this(name, description, cost, attempt, Optional.empty());
     }
 
     public Action(String name, EnergyCost cost, IAttempt attempt) {
         this(name, "", cost, attempt);
+    }
+
+    public Action withAlternativeCost(EnergyCost alternativeCost, ICondition<PokemonInPlay> when) {
+        return new Action(name, description, cost, attempt, Optional.of(new AlternativeCost(alternativeCost, when)));
     }
 
     /**
@@ -65,11 +88,17 @@ public record Action(String name, String description, EnergyCost cost, IAttempt 
 
         return !heldDown
                 && context.controller().active().filter(pokemon::equals).isPresent()
-                && new HasEnergy(typedCost(pokemon).plusColorless(colorlessAdjustment(context, pokemon))).evaluate(pokemon);
+                && (canPay(cost, context, pokemon) || alternative
+                        .filter(other -> other.when().evaluate(pokemon) && canPay(other.cost(), context, pokemon))
+                        .isPresent());
+    }
+
+    private static boolean canPay(EnergyCost cost, ResolutionContext context, PokemonInPlay pokemon) {
+        return new HasEnergy(typedCost(cost, pokemon).plusColorless(colorlessAdjustment(context, pokemon))).evaluate(pokemon);
     }
 
     /** The printed cost less the attacker's own typed {@link AttackCostReduction} (En-fruits-iastic). */
-    private EnergyCost typedCost(PokemonInPlay pokemon) {
+    private static EnergyCost typedCost(EnergyCost cost, PokemonInPlay pokemon) {
         EnergyCost reduced = cost;
         for (Side.HeldRule held : pokemon.owner().standingRules()) {
             if (held.holder() == pokemon && held.rule() instanceof AttackCostReduction rule

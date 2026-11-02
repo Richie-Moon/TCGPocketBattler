@@ -40,7 +40,7 @@ import java.util.List;
  * <p>Fixed, so a seeded game replays identically: attacker's side then
  * defender's, active before bench, and per Pokemon its statuses (in the order
  * they were applied), then its Tool, then its passive ability, then any
- * {@code ATTACK_NEEDS_HEADS} or {@code COUNTER_DAMAGE} modifier. The Stadium
+ * {@code ATTACK_NEEDS_HEADS}, {@code COUNTER_DAMAGE} or {@code DELAYED_DAMAGE} modifier. The Stadium
  * goes last, as it belongs to neither board.
  */
 public final class TriggerDispatcher {
@@ -106,6 +106,13 @@ public final class TriggerDispatcher {
                         .forEach(modifier -> held(found, List.of(new Trigger(DamageDealt.class,
                                 new EventConcerns(new Self()),
                                 new Attempt(List.of(new PlaceDamage(new Literal(modifier.amount()), new EventSource()))))),
+                                pokemon));
+                // Cursed Prose: a turn-end trigger on the modifier's last turn only.
+                pokemon.modifiers().stream()
+                        .filter(modifier -> modifier.kind() == ModifierKind.DELAYED_DAMAGE)
+                        .filter(modifier -> modifier.expiresOnTurn() == battle.turn())
+                        .forEach(modifier -> held(found, List.of(new Trigger(TurnEnd.class,
+                                new Attempt(List.of(new PlaceDamage(new Literal(modifier.amount()), new Self()))))),
                                 pokemon));
             }
         }
