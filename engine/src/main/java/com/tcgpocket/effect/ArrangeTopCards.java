@@ -12,18 +12,24 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The side's player looks at the top cards of their own deck and puts them back
- * in any order — Hiker.
+ * A player looks at the top cards of a deck and puts them back in any order —
+ * Hiker with their own, Morty with their opponent's.
  *
  * <p>One question per position, top first, and none for the last card. They stay
  * known afterwards, as with {@link LookAtTopCards}. A deck shorter than
  * {@code cardCount} arranges what it has.
  */
-public record ArrangeTopCards(INumber cardCount, ISideTarget side) implements IEffect {
+public record ArrangeTopCards(INumber cardCount, ISideTarget side, ISideTarget viewer) implements IEffect {
 
     public ArrangeTopCards {
         Objects.requireNonNull(cardCount, "cardCount");
         Objects.requireNonNull(side, "side");
+        Objects.requireNonNull(viewer, "viewer");
+    }
+
+    /** The deck's owner arranges their own deck. */
+    public ArrangeTopCards(INumber cardCount, ISideTarget side) {
+        this(cardCount, side, side);
     }
 
     @Override
@@ -34,18 +40,29 @@ public record ArrangeTopCards(INumber cardCount, ISideTarget side) implements IE
             return EffectOutcome.NO_OP;
         }
 
-        target.lookAtTopCards(count);
-        List<CardInstance> remaining = new ArrayList<>(target.seenTopCards());
+        Side arranger = viewer.resolve(context);
+        boolean own = arranger == target;
+        show(target, own, count);
+        List<CardInstance> remaining = new ArrayList<>(own ? target.seenTopCards() : target.topCardsSeenByOpponent());
         List<CardInstance> arranged = new ArrayList<>(remaining.size());
         while (remaining.size() > 1) {
-            CardInstance next = target.player().choose(new Decision<>(
-                    "Choose card " + (arranged.size() + 1) + " from the top of your deck.", List.copyOf(remaining), target, context));
+            CardInstance next = arranger.player().choose(new Decision<>(
+                    "Choose card " + (arranged.size() + 1) + " from the top of " + (own ? "your" : "your opponent's") + " deck.",
+                    List.copyOf(remaining), arranger, context));
             remaining.remove(next);
             arranged.add(next);
         }
         arranged.addAll(remaining);
         target.replaceTopOfDeck(arranged);
-        target.lookAtTopCards(arranged.size());
+        show(target, own, arranged.size());
         return EffectOutcome.APPLIED;
+    }
+
+    private static void show(Side deck, boolean own, int count) {
+        if (own) {
+            deck.lookAtTopCards(count);
+        } else {
+            deck.showTopCardsToOpponent(count);
+        }
     }
 }

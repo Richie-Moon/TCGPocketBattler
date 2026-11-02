@@ -110,6 +110,10 @@ class RetreatCost <<record>> implements INumber {
 }
 
 /' Wild Swing: read from the scope, after a DiscardAnyFromPlay. '/
+class CardsDiscarded <<record>> implements INumber {}
+class EnergyTypesOn <<record>> implements INumber {
+    - target: ITarget
+}
 class PokemonDiscarded <<record>> implements INumber {}
 
 class EnergyAmong <<record>> implements INumber {

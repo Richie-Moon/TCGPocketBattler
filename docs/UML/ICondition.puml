@@ -192,6 +192,14 @@ class AttackUsedLastTurn <<record>> implements IConditionCtx {
     - attackName: String
 }
 
+/' Who dealt the damage or knockout being handled. Illusive Trickery. '/
+class EventSourceIs <<record>> implements IConditionCtx {
+    - target: ITarget
+}
+/' Tests the card this resolution last picked out. Cliff Crumbler. '/
+class PickedCard <<record>> implements IConditionCtx {
+    - condition: ICondition<CardInstance>
+}
 class EvolvedThisTurn <<record>> implements IConditionPokemon {}
 
 class IsSupporter <<record>> implements IConditionCard {}

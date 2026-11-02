@@ -109,6 +109,10 @@ class Evolved <<record>> implements GameEvent {
     - from: PokemonCard
     - to: PokemonInPlay
 }
+/' Played from hand onto the Bench, after it lands; CardPlayed fires before. Infiltrating Inspection. '/
+class PokemonBenched <<record>> implements GameEvent {
+    - pokemon: PokemonInPlay
+}
 class ToolAttached <<record>> implements GameEvent {
     - holder: PokemonInPlay
     - tool: CardInstance

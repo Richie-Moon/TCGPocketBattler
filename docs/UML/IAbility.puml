@@ -55,6 +55,8 @@ class NoRetreatCost <<record>> implements IRule {
 note bottom of NoRetreatCost : read by RetreatAction; the holder's own cost,
 or another's when retreating is set (Tatsugiri)
 
+/' The Tool holder also uses the attacks beneath it; read by PokemonInPlay.attacks(). Memory Light. '/
+class PreviousAttacks <<record>> implements IRule {}
 class RetreatCostReduction <<record>> implements IRule {
     - amount: int
     - retreating: ICondition<? super PokemonInPlay>

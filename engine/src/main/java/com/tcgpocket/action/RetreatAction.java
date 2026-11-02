@@ -3,6 +3,7 @@ package com.tcgpocket.action;
 import com.tcgpocket.card.CardTag;
 import com.tcgpocket.card.NoRetreatCost;
 import com.tcgpocket.card.RetreatCostReduction;
+import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.condition.IsAsleep;
 import com.tcgpocket.condition.IsParalyzed;
 import com.tcgpocket.effect.AttemptResult;
@@ -10,6 +11,7 @@ import com.tcgpocket.effect.EffectOutcome;
 import com.tcgpocket.energy.EnergyCost;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.resolve.ResolutionContext;
+import com.tcgpocket.state.CardInstance;
 import com.tcgpocket.state.ModifierKind;
 import com.tcgpocket.state.PokemonInPlay;
 import com.tcgpocket.state.Side;
@@ -89,7 +91,7 @@ public record RetreatAction(ITarget replacement) implements IAction {
      * {@link ModifierKind#INCREASE_RETREAT_COST}, on the colorless part and
      * never below zero. Every printed retreat cost is
      * colorless, so that is all of it. Less again each {@link RetreatCostReduction}
-     * on its side that covers it. Nothing at all while the Pokemon holds
+     * on its side that covers it, or on its own Tool (Inflatable Boat). Nothing at all while the Pokemon holds
      * a {@link NoRetreatCost} whose condition it meets.
      */
     public static EnergyCost retreatCostOf(ResolutionContext context, PokemonInPlay retreating) {
@@ -103,6 +105,13 @@ public record RetreatAction(ITarget replacement) implements IAction {
                         && rule.whileHolder().evaluate(held.holder()) && rule.retreating().evaluate(retreating))
                 .mapToInt(held -> ((RetreatCostReduction) held.rule()).amount())
                 .sum();
+        if (retreating.tool().map(CardInstance::definition).orElse(null) instanceof ToolCard tool) {
+            ruleReduction += tool.rules().stream()
+                    .filter(rule -> rule instanceof RetreatCostReduction reduction
+                            && reduction.whileHolder().evaluate(retreating) && reduction.retreating().evaluate(retreating))
+                    .mapToInt(rule -> ((RetreatCostReduction) rule).amount())
+                    .sum();
+        }
         int turn = context.battle().turn();
         return retreating.definition().retreatCost().plusColorless(
                 retreating.modifierTotal(ModifierKind.INCREASE_RETREAT_COST, turn)

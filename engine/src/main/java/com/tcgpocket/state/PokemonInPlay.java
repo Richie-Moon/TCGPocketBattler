@@ -1,10 +1,12 @@
 package com.tcgpocket.state;
 
+import com.tcgpocket.action.IAction;
 import com.tcgpocket.card.EnergyBoost;
 import com.tcgpocket.card.HpBonus;
 import com.tcgpocket.card.IRule;
 import com.tcgpocket.card.IPlayableCard;
 import com.tcgpocket.card.PokemonCard;
+import com.tcgpocket.card.PreviousAttacks;
 import com.tcgpocket.card.ToolCard;
 import com.tcgpocket.energy.Type;
 import com.tcgpocket.status.IStatus;
@@ -95,7 +97,7 @@ public final class PokemonInPlay extends CardInstance {
      * Evolves onto this Pokemon.
      *
      * <p>Damage, attached energy and the Tool all carry over; statuses and
-     * temporary modifiers do not, which is why evolving is a way out of a
+     * temporary modifiers (bar {@code DELAYED_DAMAGE}) do not, which is why evolving is a way out of a
      * special condition. The turn counter resets, so the evolution cannot
      * itself evolve on the same turn.
      *
@@ -109,8 +111,43 @@ public final class PokemonInPlay extends CardInstance {
         evolutions.add(evolution);
         turnPlayed = currentTurn;
         evolvedThisTurn = true;
+        clearForStageChange();
+    }
+
+    /**
+     * Takes the top Evolution card off this Pokemon, as evolving in reverse:
+     * damage, attached energy and the Tool stay; statuses and temporary modifiers
+     * do not. Damage at or above the lower max HP leaves it knocked out.
+     *
+     * @return the card removed, or empty for a Pokemon with nothing evolved onto it
+     */
+    public Optional<CardInstance> devolve() {
+        if (evolutions.isEmpty()) {
+            return Optional.empty();
+        }
+        CardInstance top = evolutions.removeLast();
+        damage = Math.min(maxHp(), damage);
+        clearForStageChange();
+        return Optional.of(top);
+    }
+
+    /** A curse follows the Pokemon through a change of stage; everything else temporary does not. */
+    private void clearForStageChange() {
         statuses.clear();
-        modifiers.clear();
+        modifiers.removeIf(modifier -> modifier.kind() != ModifierKind.DELAYED_DAMAGE);
+    }
+
+    /**
+     * What this Pokemon can attack with: its top card's attacks, then with a
+     * {@link PreviousAttacks} Tool those of the cards beneath it, newest first.
+     */
+    public List<IAction> attacks() {
+        List<IAction> attacks = new ArrayList<>(definition().actions());
+        if (tool().map(CardInstance::definition).orElse(null) instanceof ToolCard card
+                && card.rules().stream().anyMatch(PreviousAttacks.class::isInstance)) {
+            evolutionStack().reversed().forEach(previous -> attacks.addAll(previous.actions()));
+        }
+        return attacks;
     }
 
     /** Whether this Pokemon has already used its ability this turn. */

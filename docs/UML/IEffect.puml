@@ -164,9 +164,34 @@ class MoveEnergyOfTypes <<record>> implements IEffect {
 class GuaranteeNextHeads <<record>> implements IEffect {
   +side : ISideTarget
 }
+/' The top Evolution card back to its owner's hand; a Basic or a knocked-out
+   Pokemon is a NO_OP. Temporal Leaves. '/
+class Devolve <<record>> implements IEffect {
+    - target: ITarget
+}
+/' Up to maxCards matching cards from hand, the empty choice declining; the
+   count lands on the scope for CardsDiscarded. Litter. '/
+class DiscardUpToFromHand <<record>> implements IEffect {
+    - side: ISideTarget
+    - maxCards: INumber
+    - matching: ICondition<CardInstance>
+}
+/' Every match among the top of a deck to hand, then shuffles. Traveling Merchant. '/
+class TakeFromTopOfDeck <<record>> implements IEffect {
+    - cardCount: INumber
+    - side: ISideTarget
+    - matching: ICondition<CardInstance>
+}
+/' Installs DELAYED_DAMAGE, placed at the end of the modifier's last turn. Cursed Prose. '/
+class DelayedDamage <<record>> implements IDurationEffect {
+    - damageAmount: INumber
+    - target: ITarget
+    - duration: INumber
+}
 class ArrangeTopCards <<record>> implements IEffect {
   +cardCount : INumber
   +side : ISideTarget
+  +viewer : ISideTarget
 }
 class ChangeNextEnergy <<record>> implements IEffect {
     - side: ISideTarget

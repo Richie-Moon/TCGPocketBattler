@@ -34,8 +34,7 @@ import com.tcgpocket.state.PokemonInPlay;
  *
  * @param <T> what this condition examines
  */
-public sealed interface ICondition<T> permits
-        // combinators, generic over any subject
+public sealed interface ICondition<T> permits EventSourceIs, PickedCard, // combinators, generic over any subject
         And, Or, Not, All, Any, Always,
         // subject: ResolutionContext
         GreaterThan, LessThan, EqualTo, Probability, For, ForAny,

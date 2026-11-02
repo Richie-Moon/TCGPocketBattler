@@ -22,6 +22,7 @@ public final class ResolutionScope {
     private boolean attack;
     private CardInstance pickedCard;
     private int pokemonDiscarded;
+    private int cardsDiscarded;
 
     /** Whether this resolution is an attack, as opposed to a Trainer, an Ability or a trigger. */
     public boolean isAttack() {
@@ -32,7 +33,7 @@ public final class ResolutionScope {
         this.attack = true;
     }
 
-    /** The card a {@code LookAtRandomCard} picked, for the {@code UsePickedCard} after it. */
+    /** The card a {@code LookAtRandomCard} picked or a {@code DiscardTopOfDeck} last discarded. */
     public Optional<CardInstance> pickedCard() {
         return Optional.ofNullable(pickedCard);
     }
@@ -48,6 +49,15 @@ public final class ResolutionScope {
 
     public void recordPokemonDiscarded(int count) {
         this.pokemonDiscarded = count;
+    }
+
+    /** How many cards a {@code DiscardUpToFromHand} discarded, for the {@code CardsDiscarded} after it. */
+    public int cardsDiscarded() {
+        return cardsDiscarded;
+    }
+
+    public void recordCardsDiscarded(int count) {
+        this.cardsDiscarded = count;
     }
 
     public Optional<FlipResult> lastFlip() {
