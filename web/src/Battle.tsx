@@ -12,7 +12,7 @@ import {
 } from 'react'
 import chat from './assets/battle/chat.svg'
 import send from './assets/battle/send.svg'
-import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE, STATUS_BASE } from './art'
+import { CARD_BASE, COIN_BASE, ENERGY_BASE, ICON_BASE, PLAYMAT_BASE, SLEEVE_BASE, STATUS_BASE, toolArt } from './art'
 import { Icon } from './Home'
 import type { BoardView, CardView, OptionView, PokemonView, SideView } from './protocol'
 import { SandboxPanel } from './SandboxPanel'
@@ -436,9 +436,24 @@ export function Battle({
           />
         )}
         {inspect && (
-          <button type="button" className="inspect" aria-label="Close" onClick={() => setInspect(null)}>
-            <img src={`${CARD_BASE}/${inspect}.webp`} alt="" />
-          </button>
+          <div className="inspect" onClick={() => setInspect(null)}>
+            <span className="inspect-card">
+              <img src={`${CARD_BASE}/${inspect.card}.webp`} alt="" />
+              {inspect.tool && (
+                <button
+                  type="button"
+                  className="tool"
+                  aria-label={`See ${inspect.tool.name}`}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setInspect({ card: inspect.tool!.card })
+                  }}
+                >
+                  <img src={toolArt(inspect.tool.name)} alt={inspect.tool.name} />
+                </button>
+              )}
+            </span>
+          </div>
         )}
       </div>
 
@@ -480,7 +495,7 @@ function useFit(mat: RefObject<HTMLDivElement | null>) {
  * the click a long press or drag would end in is swallowed, so it doesn't also tap.
  */
 function useGestures(onStart: (source: Source) => void, onDrop: (source: Source, at: Element | null, y: number) => void) {
-  const [inspect, setInspect] = useState<string | null>(null)
+  const [inspect, setInspect] = useState<Inspected | null>(null)
   const [drag, setDrag] = useState<{ src: string; x: number; y: number; w: number; h: number } | null>(null)
   const swallow = useRef(false)
   // The latest handlers, so a drag that outlives a render answers the decision open when it ends.
@@ -493,7 +508,7 @@ function useGestures(onStart: (source: Source) => void, onDrop: (source: Source,
     swallow.current = false
     if (event.button !== 0) return
     const target = event.target as Element
-    const card = target.closest('[data-card]')?.getAttribute('data-card')
+    const card = inspected(target)
     const handle = target.closest('[data-drag]')
     if (!card && !handle) return
     const raw = handle?.getAttribute('data-drag')
@@ -553,7 +568,7 @@ function useGestures(onStart: (source: Source) => void, onDrop: (source: Source,
       event.stopPropagation()
     },
     onContextMenu(event: MouseEvent) {
-      const card = (event.target as Element).closest('[data-card]')?.getAttribute('data-card')
+      const card = inspected(event.target as Element)
       if (!card) return
       event.preventDefault()
       setInspect(card)
@@ -561,6 +576,18 @@ function useGestures(onStart: (source: Source) => void, onDrop: (source: Source,
     onDragStart: (event: DragEvent) => event.preventDefault(),
   }
   return { inspect, setInspect, ghost, gestures }
+}
+
+/** A card shown large, with the Tool attached to it when it is a Pokemon in play. */
+type Inspected = { card: string; tool?: { card: string; name: string } }
+
+/** The card a press on `target` is on, read off its `data-card` (and `data-tool`/`data-tool-name`) attributes. */
+function inspected(target: Element): Inspected | null {
+  const card = target.closest<HTMLElement>('[data-card]')?.dataset.card
+  if (!card) return null
+  // From the Pokemon's button: the art inside it carries its own data-card, which the lookup above stops at.
+  const holder = target.closest<HTMLElement>('[data-tool]')?.dataset
+  return { card, tool: holder ? { card: holder.tool!, name: holder.toolName! } : undefined }
 }
 
 /**
@@ -817,6 +844,8 @@ function Pokemon({
       aria-disabled={!state}
       data-id={pokemon.id}
       data-card={pokemon.card}
+      data-tool={pokemon.tool?.card}
+      data-tool-name={pokemon.tool?.name}
       data-drag={state === 'can' || state === 'selected' ? pokemon.id : undefined}
       onClick={() => state && onClick(pokemon.id)}
     >
@@ -839,7 +868,15 @@ function Pokemon({
           ))}
         </span>
       )}
-      {pokemon.tool && <span key={pokemon.tool.name} className="tags">{pokemon.tool.name}</span>}
+      {pokemon.tool && (
+        <img
+          key={pokemon.tool.name}
+          className="tool"
+          src={toolArt(pokemon.tool.name)}
+          alt={pokemon.tool.name}
+          title={pokemon.tool.name}
+        />
+      )}
     </button>
   )
 }

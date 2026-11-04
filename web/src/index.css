@@ -2523,7 +2523,14 @@ p {
   background: rgba(13, 26, 51, 0.6);
 }
 
-.battle .inspect img {
+/* Holds the card and its Tool, which .tool places against the card's edge. */
+.battle .inspect-card {
+  position: relative;
+  display: block;
+}
+
+.battle .inspect-card > img {
+  display: block;
   width: min(90vw, 367px, 64dvh);
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(13, 26, 51, 0.4);
@@ -2720,18 +2727,20 @@ p {
 
 .battle .statuses img { display: block; width: 100%; animation: battle-pop 0.25s ease-out; }
 
-.battle .tags {
+/* Centred on the left edge, a quarter of the way down; sized by the card, so it scales with each slot. */
+.battle .tool {
   position: absolute;
-  left: 50%;
-  top: 100%;
-  translate: -50% 4px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  background: var(--color-surface);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
+  left: 0;
+  top: 25%;
+  width: 40%;
+  translate: -50% -50%;
 }
+
+/* In the large view it is tappable, so it grows under the pointer. */
+.battle .inspect .tool { transition: scale 0.15s ease-out; }
+.battle .inspect .tool:hover { scale: 1.05; }
+
+.battle .tool img { display: block; width: 100%; }
 
 /* The current Energy in the ring, the next one small over its corner. */
 .battle .energy-zone {
@@ -3334,7 +3343,6 @@ p {
 
 .battle .pokemon { animation: battle-enter 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .battle .attached .energy { animation: battle-pop 0.25s ease-out; }
-.battle .tags,
 .battle .turn,
 .battle .stadium,
 .battle .pile:not(.deck) .art { animation: battle-fade 0.3s ease-out; }
