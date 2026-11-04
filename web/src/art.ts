@@ -14,6 +14,10 @@ export const ENERGY_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/
 /** Status icons, "Status_<name>.png", in the same public bucket. */
 export const STATUS_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/statuses'
 
+/** A Tool's preview, "Tool_<name>.png" with spaces as underscores, in the same public bucket. */
+export const toolArt = (name: string) =>
+  `https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/tools/Tool_${name.replaceAll(' ', '_')}.png`
+
 /** Deck coins, "Coin_<name>.png", in the same public bucket. */
 export const COIN_BASE = 'https://objectstorage.ap-sydney-1.oraclecloud.com/n/sd3dz8oxtchf/b/assets-bucket/o/coins'
 
