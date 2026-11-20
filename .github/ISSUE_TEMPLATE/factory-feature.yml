@@ -17,9 +17,9 @@ body:
     validations:
       required: true
   - type: textarea
-    id: done-means
+    id: acceptance-criteria
     attributes:
-      label: Done means
+      label: Acceptance Criteria
       description: The checks that prove this is finished. If you can't fill this in, the task isn't ready for an agent.
     validations:
       required: true
