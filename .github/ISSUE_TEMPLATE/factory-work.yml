@@ -23,3 +23,14 @@ body:
       description: The checks that prove this is finished. If you can't fill this in, the task isn't ready for an agent.
     validations:
       required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      description: How risky is this change?
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
