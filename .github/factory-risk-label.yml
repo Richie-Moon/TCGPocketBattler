@@ -1,0 +1,35 @@
+name: Label factory task risk
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    if: contains(github.event.issue.labels.*.name, 'factory')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            // Issue forms render each field as "### <Label>\n\n<value>"
+            const match = body.match(/###\s*Risk\s*\n+\s*(High|Medium|Low)\b/i);
+            if (!match) return;
+
+            const wanted = `factory:${match[1].toLowerCase()}`;
+            const riskLabels = ['factory:high', 'factory:medium', 'factory:low'];
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.issue.number;
+
+            // Remove any other risk label (e.g. if the issue was edited)
+            for (const l of context.payload.issue.labels) {
+              if (riskLabels.includes(l.name) && l.name !== wanted) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number, name: l.name });
+              }
+            }
+
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [wanted] });
