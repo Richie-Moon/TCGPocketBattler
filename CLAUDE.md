@@ -1,6 +1,13 @@
 # CLAUDE.md
 
-Guidance for Claude Code in this repository. If the request is unclear, ask 1-3 clarifying questions.
+Guidance for Claude Code in this repository. If a request is unclear, always ask 1-3 clarifying questions.
+
+# Security Guidelines
+- Never commit API keys, tokens, or credentials
+- Use environment variables for sensitive data
+- Review skills that interact with external services
+- Test skills in safe environments before sharing
+- NEVER annotate git commits with Claude Code as author, or mention Claude Code in ANY way.
 
 ## Git
 
@@ -27,7 +34,9 @@ cd web && npm install && npm run dev      # localhost:5173 in two tabs (needs th
 cd web && npm run build && npm run lint   # type-check + bundle, oxlint
 ```
 
-## The core idea
+## Project Overview
+
+A Pokémon TCG Pocket battling simulator. 
 
 **A card's text is data, not code.** An attack is an immutable tree of small composable nodes the
 engine evaluates. There is no `case "Pikachu"`; adding a card must never add a branch to the engine.
