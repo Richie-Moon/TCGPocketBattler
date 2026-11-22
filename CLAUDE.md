@@ -3,6 +3,7 @@
 Guidance for Claude Code in this repository. If a request is unclear, always ask 1-3 clarifying questions.
 
 # Security Guidelines
+
 - Never commit API keys, tokens, or credentials
 - Use environment variables for sensitive data
 - Review skills that interact with external services
@@ -11,8 +12,8 @@ Guidance for Claude Code in this repository. If a request is unclear, always ask
 
 ## Git
 
-`main` is the release branch. After merging a PR, delete its branch locally (`git branch -d <b>`)
-and on GitHub (`git push origin --delete <b>`).
+`main` is the release branch. After merging a PR, delete its branch locally (`git branch -d <b>`). The remote branch should be deleted automatically.  
+Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) standard. 
 
 ## Build & test
 
